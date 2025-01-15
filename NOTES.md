@@ -107,3 +107,10 @@ Next, after:
 - We should probably make either enter or cmd-enter a way to validate thoughts in ingest, with other shortcuts to edit, etc. If it needs extra steps like fill in another field, enter could take us to that view/form.
 
 - We should implement undos for all CRUD operations. This would require a local-first cache of user actions (different from logs - although this could just be a db col on the internal events/logs table).
+
+TODO extension preparation for store:
+
+- Change CMD subtitles: Don't use subtitles as descriptions for your command
+- Update README for onboarding screen / api key
+- Create screenshots
+- Add a license
