@@ -1,11 +1,11 @@
 {
     "$schema": "https://www.raycast.com/schemas/extension.json",
-    "name": "altered-where-entropy-meets-order",
+    "name": "altered",
     "title": "ALTERED: Where Entropy Meets Order",
     "description": "Knowledge systems for the obsessed.",
     "icon": "icon.png",
     "author": "inducingchaos",
-    "owner": "rileybarabash",
+    "owner": "inducingchaos",
     "categories": [
         "Productivity",
         "Applications",
