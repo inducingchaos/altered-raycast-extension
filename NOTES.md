@@ -10,6 +10,7 @@ Add POC for:
 Do research:
 
 - Skim entire raycast docs
+- Best fetch alt if raycast can't do it
 - Research tools for dynamically building API routes, whether tRPC is still worth it
 - Best fuzzy search, check obsidian's implementation
 - Workings of turbo repo
@@ -107,6 +108,8 @@ Next, after:
 - We should probably make either enter or cmd-enter a way to validate thoughts in ingest, with other shortcuts to edit, etc. If it needs extra steps like fill in another field, enter could take us to that view/form.
 
 - We should implement undos for all CRUD operations. This would require a local-first cache of user actions (different from logs - although this could just be a db col on the internal events/logs table).
+
+- Use count and offset for pagination in url params
 
 TODO extension preparation for store:
 

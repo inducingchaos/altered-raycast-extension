@@ -22,32 +22,44 @@ type Thought = {
 export default function Command() {
     const [searchText, setSearchText] = useState("")
     const [thoughts, setThoughts] = useState([] as Thought[])
-    const [createThought, setCreateThought] = useState(false)
 
     const { isLoading: initialDataIsLoading } = useFetch(
         `https://altered.app/api/raycast/ingest?${new URLSearchParams({ q: searchText })}`,
         { onData: setThoughts }
     )
 
-    const { isLoading: createDataIsLoading } = useFetch(`https://altered.app/api/raycast/ingest`, {
+    const thought = {
+        userId: 1,
+        content: searchText
+    }
+
+    const appendCreatedThought = (thought: Thought) => {
+        setThoughts(prev => [...prev, thought])
+        setRunCreateThought(false)
+        setSearchText("")
+    }
+
+    const createThoughtInit = (thought: Partial<Thought>) => ({
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ thought: { userId: 1, content: searchText } }),
-        execute: createThought,
-        onData: data => {
-            setThoughts(prev => [...prev, data as Thought])
-            setCreateThought(false)
-            setSearchText("")
-        }
+        body: JSON.stringify({ thought })
+    })
+
+    const [runCreateThought, setRunCreateThought] = useState(false)
+
+    const { isLoading: createThoughtIsLoading } = useFetch(`https://altered.app/api/raycast/ingest`, {
+        ...createThoughtInit(thought),
+        execute: runCreateThought,
+        onData: appendCreatedThought
     })
 
     const [characterCount, setCharacterCount] = useState(0)
 
     return (
         <List
-            isLoading={initialDataIsLoading || createDataIsLoading}
+            isLoading={initialDataIsLoading || createThoughtIsLoading}
             onSearchTextChange={searchText => {
                 setSearchText(searchText)
                 setCharacterCount(searchText.length)
@@ -64,7 +76,7 @@ export default function Command() {
                 subtitle="Create thought..."
                 actions={
                     <ActionPanel>
-                        <Action title="Create Thought" onAction={() => setCreateThought(true)} />
+                        <Action title="Create Thought" onAction={() => setRunCreateThought(true)} />
                     </ActionPanel>
                 }
             />
