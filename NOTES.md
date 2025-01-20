@@ -15,6 +15,7 @@ Do research:
 - Best fuzzy search, check obsidian's implementation
 - Workings of turbo repo
 - Watch Theo's video on HTTP and compare Mintlify and Fumadocs
+- Start with local-first approach that syncs to db for absolute speed
 
 Consider choices (after research):
 
@@ -110,6 +111,72 @@ Next, after:
 - We should implement undos for all CRUD operations. This would require a local-first cache of user actions (different from logs - although this could just be a db col on the internal events/logs table).
 
 - Use count and offset for pagination in url params
+- Find cmd for opening a file or thought in the extension
+
+- in altered, add todo for periodically removing expired tokens
+- Add defaults to sdkit config exports
+
+- add logging in every func that's togglable with a debug flag and domain
+
+- make config files optional and privide sdkit defaults
+
+1. Drizzle SQL in Ray ext
+2. Config loader for SDKit
+
+3. Nanoid pass-through for network
+
+4. Pass through
+
+- Add auto-filling datasets from social media posts,etc
+
+1. remember function
+2. HTTP first but with 5s delay for local testing
+3. How you can use mental lists to rememebr things
+
+- temporary/exp datasets
+- dynamic rules as operations that req a certain input can be used to create conditions for expiration, e.g., X times after the last entriy or pudate
+
+- For e.g., logging, i think module-based configs are best. Because if you implement network func and you want to modify locales and logging behaviour, you would go to one config file instead of having to create two. IDK... what's more important here? IT's all DX... the ease of defining all props of a module in one file, or the uniformity of having all localization strings together?
+
+# 1: Module-based configs
+
+- Smaller chunks, easier to create and manage
+- Harder to organize/scope modules, requires more refactoring
+- More universal functionality
+
+# 2: Type-based configs
+
+- Easier to understand type/format
+- Simple structure
+
+...just decide as you go, current approach is probably fine. Having a bit of structure provides opportunity for refactoring, where module-based does not.
+
+- put alias recs in store desc use as cmd name then put branded name in subtitle
+
+- create codeComment API for consistent domain-specific comments
+- create createDisplayParams func or ReadableOptionsObject util type to generate "with"/"for" style params for functions, with helper terms (is is a identifier, from means transforming an object, with means passing object, for means performing an action for something externally or a purpose, and means additional data, using means leveraging values to create an output, where is specifying a "condition", etc) so maybe "forPurpose" respectibly is "output-identification" "input-tooling/transformation" "input-subject/passing" "specifying-dependants" -- could have verbose mode, where using is usingObject, etc this could be "withSuffix"
+
+- TTC + "do" mode
+- Completion bias, and how doing small things compound
+- Implement default messages for each id in a exception domain
+
+- !!! don't worry too much about prototyping the app past simple add-remove, focus on adding thoughts and developing framework APIs for AI to rapidly build with and use
+
+```
+type RequestData = Record<string, unknown>
+
+export async function unwrapNetworkRequestData<T extends RequestData>({
+    usingRequest,
+    withValidation
+}: {
+    usingRequest: Request
+    withValidation: ValidationSchema
+}): Promise<T>
+```
+
+- first half of (code) day, refactor for scale, second half, build for speed
+
+- For the above func, it may include a simple auth check in it unitl real auth is imp'd, and withValidation is an aliased, structured zod schema in a sense. It inherits the <> type to give it structure, using a util type to map its value types to the following. primitives are as strings like "number" "undefined". union types are string arrays. Since text based, we can accept string types like "cookie", but to avoid collisions with the primitives like "number" we need to prefix them with "string:". Instead of splitting this on colon which could create collisions, we split on "string:" and check the result count. for more complex validation/types, we can pass a function like `({ validator: v }) => v.string()` or `({ validator: v, value }) => v.string().parse(value)` (returns Zod result object) or `({ validator: v, value }) => v.string().parse(value).success` or `({ value }) => !!value`.
 
 TODO extension preparation for store:
 
