@@ -34,7 +34,7 @@
         {
             "name": "ingest",
             "title": "Ingest",
-            "subtitle": "ALTERED",
+            "subtitle": "ALTERED Ingest",
             "description": "Provides an interface for drafting and refining thoughts for your ALTERED brain.",
             "mode": "view",
             "keywords": [],
@@ -52,6 +52,13 @@
             "title": "Show Typeahead Results CMD",
             "subtitle": "Dynamic search with live suggestions.",
             "description": "Dynamic search with live suggestions.",
+            "mode": "view"
+        },
+        {
+            "name": "capture",
+            "title": "Capture a Thought",
+            "subtitle": "ALTERED Capture",
+            "description": "Provides an interface for drafting and refining thoughts for your ALTERED brain.",
             "mode": "view"
         }
     ],
