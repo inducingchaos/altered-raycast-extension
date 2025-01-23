@@ -3,80 +3,162 @@
  */
 
 import { List } from "@raycast/api"
-import { memo, useEffect, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { CaptureActions, onSearchTextChange, onSelectionChange } from "./domains/capture"
-import { dataColumns } from "./domains/shared"
+import { type DataColumn, dataColumns } from "./domains/shared"
 
-export function DataColumn({
+export function DataColumnListItem({
     column,
-    selectedItemId
+    isSelected,
+    searchText
 }: {
-    column: (typeof dataColumns)[number]
-    selectedItemId: string | undefined
-    previousSelectedItemId: string | undefined
+    column: DataColumn
+    isSelected: boolean
+    searchText: string
 }) {
+    // Create a stable function reference for accessories
+    const getAccessories = useCallback((): List.Item.Accessory[] => {
+        return searchText ? [{ text: searchText }] : []
+    }, [searchText])
+
     return (
         <List.Item
             key={column.id}
             id={column.id}
-            title={selectedItemId === column.id ? column.label : ""}
-            subtitle={selectedItemId === column.id ? column.type : column.label}
-            // title={column.label}
-            // subtitle={column.type}
+            title={isSelected ? column.label : ""}
+            subtitle={isSelected ? column.type : column.label}
             actions={<CaptureActions />}
-            // accessories={}
+            accessories={getAccessories()}
         />
     )
 }
 
-export const MemoizedDataColumn = memo(DataColumn, (_, { column, previousSelectedItemId, selectedItemId }) => {
-    const wasSelected = previousSelectedItemId === column.id
-    const isSelected = selectedItemId === column.id
+/**
+ * @remarks May not be necessary.
+ */
+export const MemoizedDataColumnListItem = memo(DataColumnListItem)
 
-    if (wasSelected || isSelected) console.log(`Changing: ${column.id}`)
-
-    return !wasSelected && !isSelected
-})
-
-export function DataColumnSection({
+export function DataColumnListSection({
     selectedItemId,
-    previousSelectedItemId
+    searchText
 }: {
     selectedItemId: string | undefined
-    previousSelectedItemId: string | undefined
+    searchText: string
 }) {
     return (
         <List.Section>
             {dataColumns.map(column => (
-                <MemoizedDataColumn
+                <MemoizedDataColumnListItem
                     key={column.id}
                     column={column}
-                    selectedItemId={selectedItemId}
-                    previousSelectedItemId={previousSelectedItemId}
+                    isSelected={selectedItemId === column.id}
+                    searchText={searchText}
                 />
             ))}
         </List.Section>
     )
 }
 
-export default function Capture() {
-    const [searchText, setSearchText] = useState("")
-    const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
-    const previousSelectedItemId = useRef<string | undefined>()
+// /**
+//  * Delays each state update by a fixed amount.
+//  * Each change triggers its own delayed update.
+//  * Example: Typing "123" with 25ms delay:
+//  * - "1" appears after 25ms
+//  * - "12" appears after 25ms
+//  * - "123" appears after 25ms
+//  */
+// function useDelayedState<T>(value: T, delay: number): T {
+//     const [delayedValue, setDelayedValue] = useState<T>(value)
+
+//     useEffect(() => {
+//         const timer = setTimeout(() => setDelayedValue(value), delay)
+//         return () => clearTimeout(timer)
+//     }, [value, delay])
+
+//     return delayedValue
+// }
+
+/**
+ * Only updates state after value stops changing for delay period.
+ * Resets timer on each change.
+ * Example: Typing "123" with 25ms delay:
+ * - Nothing appears while typing
+ * - "123" appears 25ms after last keystroke
+ */
+function useDebounceState<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value)
+    const timeoutRef = useRef<NodeJS.Timeout>()
 
     useEffect(() => {
-        previousSelectedItemId.current = selectedItemId
-    }, [selectedItemId])
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            setDebouncedValue(value)
+        }, delay)
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+        }
+    }, [value, delay])
+
+    return debouncedValue
+}
+
+export default function Capture() {
+    // Core state
+    const [searchText, setSearchText] = useState("")
+    // const debouncedSearchText = useDelayedState(searchText, 25)
+    const debouncedSearchText = useDebounceState(searchText, 25)
+
+    const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
+    const lastSelectionTime = useRef(0)
+    const pendingSelection = useRef<string | null>(null)
+
+    useEffect(() => {
+        if (!pendingSelection.current) return
+
+        const timeSinceLastSelection = Date.now() - lastSelectionTime.current
+        if (timeSinceLastSelection > 25) {
+            onSelectionChange({
+                selectedItemId: pendingSelection.current,
+                setSelectedItemId
+            })
+            pendingSelection.current = null
+        }
+    }, [debouncedSearchText])
+
+    const handleSearchTextChange = useCallback((value: string) => {
+        onSearchTextChange({ searchText: value, setSearchText })
+    }, [])
+
+    const handleSelectionChange = useCallback((value: string | null) => {
+        if (!value) return
+
+        const now = Date.now()
+        const timeSinceLastSelection = now - lastSelectionTime.current
+
+        if (timeSinceLastSelection < 25) {
+            pendingSelection.current = value
+            return
+        }
+
+        lastSelectionTime.current = now
+        onSelectionChange({ selectedItemId: value, setSelectedItemId })
+    }, [])
 
     return (
         <List
-            onSearchTextChange={value => onSearchTextChange({ searchText: value, setSearchText })}
-            onSelectionChange={value => onSelectionChange({ selectedItemId: value, setSelectedItemId })}
+            onSearchTextChange={handleSearchTextChange}
+            onSelectionChange={handleSelectionChange}
             searchText={searchText}
             selectedItemId={selectedItemId}
             searchBarPlaceholder={"Your thought..."}
         >
-            <DataColumnSection selectedItemId={selectedItemId} previousSelectedItemId={previousSelectedItemId.current} />
+            <DataColumnListSection selectedItemId={selectedItemId} searchText={debouncedSearchText} />
         </List>
     )
 }
