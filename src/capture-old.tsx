@@ -251,6 +251,7 @@ type CaptureItemsState = {
 
 type CaptureItemID = keyof CaptureItemsState
 
+// DONE
 const initialCaptureItemsState: CaptureItemsState = {
     content: { error: null },
     alias: { error: null },
@@ -267,6 +268,7 @@ export default function Command() {
     const lastRenderTime = useRef(0)
     // const lastSearchTextChangeTime = useRef(0)
 
+    // DONE
     const [captureItemsState, setCaptureItemsState] = useState<CaptureItemsState>(initialCaptureItemsState)
 
     const selectedItem = useMemo(() => captureItemsState[selectedItemId], [captureItemsState[selectedItemId], selectedItemId])

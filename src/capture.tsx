@@ -2,50 +2,16 @@
  *
  */
 
-import { Color, Icon, List } from "@raycast/api"
-import { Dispatch, memo, SetStateAction, useEffect, useRef, useState } from "react"
-import { CaptureActions, onSearchTextChange, onSelectionChange } from "./domains/capture"
+import { List } from "@raycast/api"
+import { Dispatch, memo, SetStateAction, useLayoutEffect, useRef, useState } from "react"
+import { CaptureActions, getAccessories, onSearchTextChange, onSelectionChange } from "./domains/capture"
 import { type DataColumn, dataColumns } from "./domains/shared"
-
-export function DataColumnListSectionAccessories({
-    value,
-    isSelected
-}: {
-    value: string | undefined
-    isSelected: boolean
-}): List.Item.Accessory[] {
-    const accessories: List.Item.Accessory[] = []
-
-    const errorAccessory = {
-        tag: { value: "", color: Color.Red },
-        icon: { source: Icon.ExclamationMark, tintColor: Color.Red },
-        tooltip: "Error"
-    }
-    if (!isSelected && value && value.length > 10) accessories.push(errorAccessory)
-
-    const valueAccessory = { text: { value: value ?? "", color: Color.PrimaryText }, tooltip: "Search" }
-    if (isSelected === false) accessories.push(valueAccessory)
-
-    const rulesAccessories = [
-        { tag: { value: "Max: 15", color: Color.SecondaryText }, tooltip: "Rules2" },
-        { tag: { value: "Min: 0", color: Color.SecondaryText }, tooltip: "Rules3" },
-        { tag: { value: "Required", color: Color.SecondaryText }, tooltip: "Rules" }
-    ]
-    const spacerAccessory = { text: " ".repeat(128) }
-    if (isSelected) accessories.push(...rulesAccessories, spacerAccessory)
-
-    return accessories
-}
 
 export function DataColumnListItem({
     column,
     isSelected,
 
-    searchText,
-    setSearchText,
-
-    searchTextLocked,
-    setSearchTextLocked
+    searchText
 }: {
     column: DataColumn
     isSelected: boolean
@@ -58,13 +24,14 @@ export function DataColumnListItem({
 }) {
     const [value, setValue] = useState<string>()
 
-    useEffect(() => {
-        if (searchTextLocked && isSelected && searchText !== value) setValue(searchText)
+    useLayoutEffect(() => {
+        if (isSelected) setValue(searchText)
+        // if (searchTextLocked && isSelected && searchText !== value) setValue(searchText)
 
-        if (!searchTextLocked) {
-            setSearchText(value ?? "")
-            setSearchTextLocked(true)
-        }
+        // if (!searchTextLocked) {
+        //     setSearchText(value ?? "")
+        //     setSearchTextLocked(true)
+        // }
     }, [searchText])
 
     return (
@@ -74,7 +41,7 @@ export function DataColumnListItem({
             title={isSelected ? column.label : ""}
             subtitle={isSelected ? column.type : column.label}
             actions={<CaptureActions />}
-            accessories={DataColumnListSectionAccessories({ value, isSelected })}
+            accessories={getAccessories({ value, isSelected })}
         />
     )
 }
@@ -118,9 +85,18 @@ export function DataColumnListSection({
     )
 }
 
+type CaptureItemsErrorID = (typeof captureItemsErrors)[number]["id"]
+
+export type DataColumnStore = Record<
+    string,
+    {
+        value: string
+        errors: [] | null
+    }
+>
+
 export default function Capture() {
-    const [searchText, setSearchText] = useState("")
-    const [searchTextLocked, setSearchTextLocked] = useState(false)
+    const [dataColumns, setDataColumns] = useState<DataColumnStore>({})
 
     const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
     const selectedAt = useRef(0)
@@ -141,13 +117,7 @@ export default function Capture() {
             selectedItemId={selectedItemId}
             searchBarPlaceholder={"Your thought..."}
         >
-            <DataColumnListSection
-                selectedItemId={selectedItemId}
-                searchText={searchText}
-                setSearchText={setSearchText}
-                searchTextLocked={searchTextLocked}
-                setSearchTextLocked={setSearchTextLocked}
-            />
+            <DataColumnListSection selectedItemId={selectedItemId} searchText={searchText} setSearchText={setSearchText} />
         </List>
     )
 }

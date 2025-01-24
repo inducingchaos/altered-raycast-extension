@@ -2,5 +2,5 @@
  *
  */
 
-export * from "./data"
+export * from "./data/definitions"
 export * from "./TEMP"
