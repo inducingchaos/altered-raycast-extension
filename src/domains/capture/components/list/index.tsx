@@ -41,7 +41,12 @@ export function DataColumnList() {
             }
             searchBarPlaceholder={searchBarPlaceholder}
         >
-            <DataColumnListSection selectedItemId={selectedItemId} columns={columns} dataStore={dataStore} />
+            <DataColumnListSection
+                selectedItemId={selectedItemId}
+                columns={columns}
+                dataStore={dataStore}
+                setDataStore={setDataStore}
+            />
         </List>
     )
 }

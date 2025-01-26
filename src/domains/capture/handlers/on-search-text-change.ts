@@ -3,10 +3,10 @@
  */
 
 import { Dispatch, MutableRefObject, SetStateAction } from "react"
+import { SerializableDataColumn } from "../../shared/data/definitions"
+import { validateDataColumn } from "../../shared/data/utils"
 import { debug, shouldShowDebug } from "../../shared/TEMP"
 import { DataStore } from "../types"
-import { DataRuleError, dataTypes, SerializableDataColumn } from "../../shared/data/definitions"
-import { validateRule, validateType } from "../../shared/data/utils"
 
 export function onSearchTextChange({
     searchText,
@@ -26,16 +26,7 @@ export function onSearchTextChange({
     const canUpdate = dataStoreUpdatedAt.current || searchText.length > 0
 
     if (selectedColumn && canUpdate) {
-        const typeError = !validateType({ id: selectedColumn.type, value: searchText })
-            ? dataTypes[selectedColumn.type].error
-            : undefined
-
-        const ruleErrors = selectedColumn?.rules.reduce((store, rule) => {
-            if (validateRule({ id: rule.id, value: searchText })) return store
-            return [...store, rule.error]
-        }, [] as DataRuleError[])
-
-        const errors = typeError ? [typeError] : ruleErrors
+        const { errors } = validateDataColumn({ value: searchText, column: selectedColumn })
 
         setDataStore(prev =>
             new Map(prev).set(selectedColumn.id, {

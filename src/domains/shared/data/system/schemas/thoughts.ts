@@ -6,7 +6,7 @@
 
 import { nanoid } from "nanoid"
 import { dataTypes, SerializableDataSchema } from "../../definitions"
-import { max10Rule, maxLength255Rule, min0Rule, requiredRule } from "../rules"
+import { max10Rule, maxLength255Rule, min0Rule } from "../rules"
 
 export const thoughtsSchema: SerializableDataSchema = {
     id: nanoid(),
@@ -21,8 +21,9 @@ export const thoughtsSchema: SerializableDataSchema = {
             description: "The description of your thought.",
 
             type: dataTypes.string.id,
+            required: true,
             // function: null,
-            rules: [requiredRule, maxLength255Rule]
+            rules: [maxLength255Rule]
         },
         {
             id: nanoid(),
@@ -30,12 +31,14 @@ export const thoughtsSchema: SerializableDataSchema = {
             description: "A name for your thought.",
 
             type: dataTypes.string.id,
+            required: false,
             // function: null,
             rules: []
         },
         {
             id: nanoid(),
             type: dataTypes.number.id,
+            required: false,
             // function: {
             //     type: "range",
             //     parameters: {
@@ -54,6 +57,7 @@ export const thoughtsSchema: SerializableDataSchema = {
             description: "A related asset.",
 
             type: dataTypes.string.id,
+            required: false,
             // function: null,
             rules: []
         },
@@ -63,12 +67,14 @@ export const thoughtsSchema: SerializableDataSchema = {
             description: "Categories for indexing.",
 
             type: dataTypes.string.id,
+            required: false,
             // function: null,
-            rules: [requiredRule]
+            rules: []
         },
         {
             id: nanoid(),
             type: dataTypes.string.id,
+            required: false,
             // function: {
             //     type: "select",
             //     options: ["iOS", "macOS", "watchOS"]

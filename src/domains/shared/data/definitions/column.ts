@@ -11,6 +11,7 @@ export type DataColumn = {
     description: string
 
     type: DataType
+    required: boolean
     rules: DataRule[]
 }
 

@@ -7,16 +7,20 @@ import { CaptureActions } from "../../actions"
 import { DataStore } from "../../types"
 import { createDataColumnListItemAccessories } from "../../utils"
 import { dataTypes, SerializableDataColumn } from "../../../shared/data/definitions"
-import { useMemo } from "react"
+import { Dispatch, SetStateAction, useMemo } from "react"
 
 export function DataColumnListItem({
     column,
+    columns,
     isSelected,
-    dataStore
+    dataStore,
+    setDataStore
 }: {
     column: SerializableDataColumn
+    columns: SerializableDataColumn[]
     isSelected: boolean
     dataStore: DataStore
+    setDataStore: Dispatch<SetStateAction<DataStore>>
 }) {
     const value = useMemo(() => dataStore.get(column.id)?.value, [isSelected])
     const isEmpty = value === undefined || value === ""
@@ -30,7 +34,7 @@ export function DataColumnListItem({
             id={column.id}
             title={title}
             subtitle={subtitle}
-            actions={<CaptureActions />}
+            actions={<CaptureActions columns={columns} dataStore={dataStore} setDataStore={setDataStore} />}
             accessories={createDataColumnListItemAccessories({ column, state: dataStore.get(column.id), isSelected })}
         />
     )

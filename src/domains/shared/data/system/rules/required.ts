@@ -1,23 +1,23 @@
-/**
- *
- */
+// /**
+//  *
+//  */
 
-import { nanoid } from "nanoid"
-import { DataRule } from "../../definitions/rule"
-import { dataTypeIDs } from "../../definitions/type"
+// import { nanoid } from "nanoid"
+// import { DataRule } from "../../definitions/rule"
+// import { dataTypeIDs } from "../../definitions/type"
 
-// spell-checker: disable
+// // spell-checker: disable
 
-export const requiredRule: DataRule = {
-    id: nanoid(),
-    name: "Required",
-    description: "This value is required.",
-    error: {
-        label: "Required",
-        description: "This value is required."
-    },
+// export const requiredRule: DataRule = {
+//     id: nanoid(),
+//     name: "Required",
+//     description: "This value is required.",
+//     error: {
+//         label: "Required",
+//         description: "This value is required."
+//     },
 
-    types: [...dataTypeIDs]
-}
+//     types: [...dataTypeIDs]
+// }
 
-export const validateRequiredRule = (value: string | undefined): boolean => value !== undefined && value !== ""
+// export const validateRequiredRule = (value: string | undefined): boolean => value !== undefined && value !== ""
