@@ -11,9 +11,10 @@ import { DataColumnListSection } from "./section"
 
 export function DataColumnList() {
     const [dataStore, setDataStore] = useState<DataStore>(new Map())
+    const dataStoreUpdatedAt = useRef<number | undefined>()
 
     const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
-    const selectedAt = useRef(0)
+    const selectedItemIdUpdatedAt = useRef<number | undefined>()
 
     const columns = thoughtsSchema.columns
     const selectedColumn = columns.find(column => column.id === selectedItemId)
@@ -30,12 +31,14 @@ export function DataColumnList() {
             onSelectionChange={value =>
                 onSelectionChange({
                     selectedItemId: value,
-                    selectedAt,
-                    setSelectedItemId
+                    setSelectedItemId,
+                    selectedItemIdUpdatedAt
                 })
             }
             searchText={searchText}
-            onSearchTextChange={value => onSearchTextChange({ searchText: value, selectedColumn, setDataStore })}
+            onSearchTextChange={value =>
+                onSearchTextChange({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })
+            }
             searchBarPlaceholder={searchBarPlaceholder}
         >
             <DataColumnListSection selectedItemId={selectedItemId} columns={columns} dataStore={dataStore} />

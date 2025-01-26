@@ -64,7 +64,7 @@ export const thoughtsSchema: SerializableDataSchema = {
 
             type: dataTypes.string.id,
             // function: null,
-            rules: []
+            rules: [requiredRule]
         },
         {
             id: nanoid(),

@@ -8,7 +8,6 @@ import { DataStoreState } from "../../../types"
 import { createDataColumnListItemErrorAccessories } from "./errors"
 import { createDataColumnListItemRuleAccessories } from "./rules"
 import { createDataColumnListItemValueAccessories } from "./value"
-import { createDataColumnListItemSpacerAccessory } from "./spacer"
 
 export function createDataColumnListItemAccessories({
     column,
@@ -20,6 +19,6 @@ export function createDataColumnListItemAccessories({
     isSelected: boolean
 }): List.Item.Accessory[] {
     return isSelected
-        ? [...createDataColumnListItemRuleAccessories({ rules: column.rules }), createDataColumnListItemSpacerAccessory()]
+        ? [...createDataColumnListItemRuleAccessories({ rules: column.rules })]
         : [...createDataColumnListItemErrorAccessories({ state }), ...createDataColumnListItemValueAccessories({ state })]
 }

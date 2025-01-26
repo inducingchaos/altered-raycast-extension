@@ -12,7 +12,7 @@ export const max10Rule: DataRule = {
     name: "Max: 10",
     description: "Maximum value of 10.",
     error: {
-        label: "Out of Range",
+        label: "Exceeds Max",
         description: "The value must be 10 or less."
     },
 

@@ -12,7 +12,7 @@ export const min0Rule: DataRule = {
     name: "Min: 0",
     description: "Minimum value of 0.",
     error: {
-        label: "Out of Range",
+        label: "Exceeds Min",
         description: "The value must be equal to or greater than 0."
     },
 

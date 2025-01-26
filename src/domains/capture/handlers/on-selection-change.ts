@@ -8,12 +8,12 @@ import { thoughtsSchema } from "../../shared/data/system/schemas/thoughts"
 
 export function onSelectionChange({
     selectedItemId,
-    selectedAt,
-    setSelectedItemId
+    setSelectedItemId,
+    selectedItemIdUpdatedAt
 }: {
     selectedItemId: string | null
-    selectedAt: MutableRefObject<number>
     setSelectedItemId: Dispatch<SetStateAction<string | undefined>>
+    selectedItemIdUpdatedAt: MutableRefObject<number | undefined>
 }): void {
     if (!selectedItemId) throw new Error("'Null' item selected - handle this edge case.")
 
@@ -26,8 +26,8 @@ export function onSelectionChange({
     //  Debounce selections to avoid the erratic re-render behavior caused by dynamically changing the list items.
 
     const now = Date.now()
-    if (now - selectedAt.current < 25) return
-    selectedAt.current = now
+    if (selectedItemIdUpdatedAt.current && now - selectedItemIdUpdatedAt.current < 25) return
+    selectedItemIdUpdatedAt.current = now
 
     setSelectedItemId(selectedItemId)
 }
