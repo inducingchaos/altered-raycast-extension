@@ -2,4 +2,4 @@
  *
  */
 
-export * from "./get-accessories"
+export * from "./accessories"

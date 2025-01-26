@@ -2,13 +2,20 @@
  *
  */
 
+import { nanoid } from "nanoid"
+import { DataRule } from "../../definitions/rule"
+import { dataTypeIDs } from "../../definitions/type"
+
 // spell-checker: disable
 
 export const requiredRule: DataRule = {
-    id: "zZfi6k24Ni4s77mPyhv0E",
+    id: nanoid(),
     name: "Required",
-    description: "This field is required.",
+    description: "This value is required.",
     error: {
-        description: "This field is required."
-    }
+        label: "Required",
+        description: "This value is required."
+    },
+
+    types: [...dataTypeIDs]
 }

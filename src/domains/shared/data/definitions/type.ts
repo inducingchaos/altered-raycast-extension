@@ -2,7 +2,9 @@
  *
  */
 
-export type DataTypeID = "string" | "number" | "boolean" | "date"
+export const dataTypeIDs = ["string", "number", "boolean", "date"] as const
+
+export type DataTypeID = (typeof dataTypeIDs)[number]
 
 export type DataType = {
     id: DataTypeID
@@ -21,8 +23,8 @@ export const dataTypes: Record<DataTypeID, DataType> = {
     },
     boolean: {
         id: "boolean",
-        name: "Boolean",
-        description: "A value that represents true or false."
+        name: "True/False"
+        // description: "A value that represents true or false."
     },
     date: {
         id: "date",

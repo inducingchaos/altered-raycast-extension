@@ -2,7 +2,8 @@
  *
  */
 
-export * from "./columns"
-export * from "./rules"
-export * from "./types"
-export * from "./functions"
+export * from "./column"
+export * from "./rule"
+export * from "./type"
+export * from "./function"
+export * from "./schema"

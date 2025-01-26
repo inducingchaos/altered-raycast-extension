@@ -4,71 +4,78 @@
 
 // spell-checker: disable
 
-import { dataTypes } from "../../definitions"
-import { max255Rule, requiredRule } from "../rules"
+import { nanoid } from "nanoid"
+import { dataTypes, SerializableDataSchema } from "../../definitions"
+import { max10Rule, maxLength255Rule, min0Rule, requiredRule } from "../rules"
 
-export const thoughtsSchema: DataSchema = {
-    id: "TQaS_SXyTsqtGe9n1SGf9",
+export const thoughtsSchema: SerializableDataSchema = {
+    id: nanoid(),
     name: "Thoughts",
     description: "A collection of the thoughts in your ALTERED brain.",
     system: true,
 
     columns: [
         {
-            id: "MMHOmgsJQxeV-gpMzdrYi",
+            id: nanoid(),
             label: "Content",
             description: "The description of your thought.",
 
             type: dataTypes.string.id,
-            function: null,
-            rules: [requiredRule.id, max255Rule.id]
+            // function: null,
+            rules: [requiredRule, maxLength255Rule]
         },
         {
-            id: "mYNciYMKJ55Fru9VthoQn",
+            id: nanoid(),
             label: "Alias",
             description: "A name for your thought.",
 
             type: dataTypes.string.id,
-            function: null,
+            // function: null,
             rules: []
         },
         {
-            id: "yZH80hj9sdIOnKfJC79jV",
+            id: nanoid(),
             type: dataTypes.number.id,
-            function: {
-                type: "range",
-                parameters: {
-                    min: 0,
-                    max: 10,
-                    step: 1
-                }
-            },
+            // function: {
+            //     type: "range",
+            //     parameters: {
+            //         min: 0,
+            //         max: 10,
+            //         step: 1
+            //     }
+            // },
             label: "Priority",
-            description: "Level of significance."
+            description: "Level of significance.",
+            rules: [min0Rule, max10Rule]
         },
         {
-            id: "NPi6hNEOIla8x2sWPk1Cd",
-            type: dataTypes.string.id,
-            function: null,
+            id: nanoid(),
             label: "Attachment",
-            description: "A related asset."
+            description: "A related asset.",
+
+            type: dataTypes.string.id,
+            // function: null,
+            rules: []
         },
         {
-            id: "DB6mqwxC2_72zFcd3RN9K",
-            type: dataTypes.string.id,
-            function: null,
+            id: nanoid(),
             label: "Tags",
-            description: "Categories for indexing."
+            description: "Categories for indexing.",
+
+            type: dataTypes.string.id,
+            // function: null,
+            rules: []
         },
         {
-            id: "F8xcTSyUXYd0eJ3i80Far",
+            id: nanoid(),
             type: dataTypes.string.id,
-            function: {
-                type: "select",
-                options: ["iOS", "macOS", "watchOS"]
-            },
+            // function: {
+            //     type: "select",
+            //     options: ["iOS", "macOS", "watchOS"]
+            // },
             label: "Operating System",
-            description: "The operating system of the device."
+            description: "The operating system of the device.",
+            rules: []
         }
     ]
 }
