@@ -9,16 +9,16 @@ import { DataColumnListItem } from "./item"
 
 export function DataColumnListSection({
     selectedItemId,
-    dataColumns,
+    columns,
     dataStore
 }: {
     selectedItemId: string | undefined
-    dataColumns: SerializableDataColumn[]
+    columns: SerializableDataColumn[]
     dataStore: DataStore
 }) {
     return (
         <List.Section>
-            {dataColumns.map(column => (
+            {columns.map(column => (
                 <DataColumnListItem
                     key={column.id}
                     column={column}

@@ -4,10 +4,10 @@
 
 import { List } from "@raycast/api"
 import { useRef, useState } from "react"
+import { thoughtsSchema } from "../../../shared/data/system/schemas/thoughts"
 import { onSearchTextChange, onSelectionChange } from "../../handlers"
 import { DataStore } from "../../types"
 import { DataColumnListSection } from "./section"
-import { thoughtsSchema } from "../../../shared/data/system/schemas/thoughts"
 
 export function DataColumnList() {
     const [dataStore, setDataStore] = useState<DataStore>(new Map())
@@ -15,14 +15,13 @@ export function DataColumnList() {
     const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
     const selectedAt = useRef(0)
 
-    const dataColumns = thoughtsSchema.columns
-    const selectedDataColumn = selectedItemId ? dataColumns.find(column => column.id === selectedItemId) : null
+    const columns = thoughtsSchema.columns
+    const selectedColumn = columns.find(column => column.id === selectedItemId)
 
     const searchText = (selectedItemId && dataStore.get(selectedItemId)?.value) ?? ""
     const searchBarPlaceholder = `${
-        selectedDataColumn?.description?.endsWith(".")
-            ? selectedDataColumn.description.slice(0, -1)
-            : (selectedDataColumn?.description ?? "Loading")
+        (selectedColumn?.description?.endsWith(".") ? selectedColumn.description.slice(0, -1) : selectedColumn?.description) ??
+        "Loading"
     }...`
 
     return (
@@ -36,10 +35,10 @@ export function DataColumnList() {
                 })
             }
             searchText={searchText}
-            onSearchTextChange={value => onSearchTextChange({ searchText: value, selectedItemId, setDataStore })}
+            onSearchTextChange={value => onSearchTextChange({ searchText: value, selectedColumn, setDataStore })}
             searchBarPlaceholder={searchBarPlaceholder}
         >
-            <DataColumnListSection selectedItemId={selectedItemId} dataColumns={dataColumns} dataStore={dataStore} />
+            <DataColumnListSection selectedItemId={selectedItemId} columns={columns} dataStore={dataStore} />
         </List>
     )
 }

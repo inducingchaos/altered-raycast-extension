@@ -4,6 +4,7 @@
 
 import { Dispatch, MutableRefObject, SetStateAction } from "react"
 import { debug, shouldShowDebug } from "../../shared/TEMP"
+import { thoughtsSchema } from "../../shared/data/system/schemas/thoughts"
 
 export function onSelectionChange({
     selectedItemId,
@@ -18,7 +19,9 @@ export function onSelectionChange({
 
     debug.state.onSelectionChange.count++
     if (shouldShowDebug({ for: "onSelectionChange" }))
-        console.log(`#${debug.state.onSelectionChange.count}, in 'onSelectionChange': ${selectedItemId}`)
+        console.log(
+            `#${debug.state.onSelectionChange.count}, in 'onSelectionChange': ${thoughtsSchema.columns.find(column => column.id === selectedItemId)?.label}`
+        )
 
     //  Debounce selections to avoid the erratic re-render behavior caused by dynamically changing the list items.
 

@@ -18,3 +18,12 @@ export const min0Rule: DataRule = {
 
     types: [dataTypes.number.id]
 }
+
+export const validateMin0Rule = (value: string | undefined): boolean => {
+    if (value === undefined) return false
+
+    const number = parseInt(value)
+    if (isNaN(number)) return false
+
+    return number >= 0
+}

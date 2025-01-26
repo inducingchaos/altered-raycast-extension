@@ -19,3 +19,5 @@ export const requiredRule: DataRule = {
 
     types: [...dataTypeIDs]
 }
+
+export const validateRequiredRule = (value: string | undefined): boolean => value !== undefined && value !== ""

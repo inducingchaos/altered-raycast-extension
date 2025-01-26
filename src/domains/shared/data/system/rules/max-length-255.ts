@@ -18,3 +18,5 @@ export const maxLength255Rule: DataRule = {
 
     types: [dataTypes.string.id]
 }
+
+export const validateMaxLength255Rule = (value: string | undefined): boolean => value !== undefined && value.length <= 255
