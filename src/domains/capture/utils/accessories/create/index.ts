@@ -9,6 +9,7 @@ import { createDataColumnListItemErrorAccessories } from "./errors"
 import { createDataColumnListItemRuleAccessories } from "./rules"
 import { createDataColumnListItemValueAccessories } from "./value"
 import { createDataColumnListItemRequiredAccessories } from "./required"
+import { createDataColumnListItemSpacerAccessory } from "./spacer"
 
 export function createDataColumnListItemAccessories({
     column,
@@ -22,7 +23,8 @@ export function createDataColumnListItemAccessories({
     return isSelected
         ? [
               ...createDataColumnListItemRuleAccessories({ rules: column.rules }),
-              ...createDataColumnListItemRequiredAccessories({ isRequired: column.required })
+              ...createDataColumnListItemRequiredAccessories({ isRequired: column.required }),
+              createDataColumnListItemSpacerAccessory()
           ]
         : [...createDataColumnListItemErrorAccessories({ state }), ...createDataColumnListItemValueAccessories({ state })]
 }

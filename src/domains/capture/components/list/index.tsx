@@ -42,8 +42,10 @@ export function DataColumnList() {
             searchBarPlaceholder={searchBarPlaceholder}
         >
             <DataColumnListSection
-                selectedItemId={selectedItemId}
                 columns={columns}
+                selectedItemId={selectedItemId}
+                selectedItemIdUpdatedAt={selectedItemIdUpdatedAt}
+                setSelectedItemId={setSelectedItemId}
                 dataStore={dataStore}
                 setDataStore={setDataStore}
             />
