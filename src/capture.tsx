@@ -2,8 +2,8 @@
  *
  */
 
-import { DataColumnList } from "./domains/capture"
+import { CaptureLayout } from "./domains/capture/components/layout"
 
 export default function Capture() {
-    return <DataColumnList />
+    return <CaptureLayout />
 }

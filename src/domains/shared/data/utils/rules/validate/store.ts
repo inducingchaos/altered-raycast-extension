@@ -21,13 +21,13 @@ export function validateStore({
             const state = dataStore.get(column.id)
 
             const { success, errors } = validateDataColumn({
-                value: state?.value ?? "",
+                value: state?.value ?? column.default ?? "",
                 column
             })
 
             setDataStore(prev =>
                 new Map(prev).set(column.id, {
-                    value: state?.value ?? "",
+                    value: state?.value ?? column.default ?? "",
                     errors: errors
                 })
             )

@@ -26,5 +26,8 @@ export function createDataColumnListItemAccessories({
               ...createDataColumnListItemRequiredAccessories({ isRequired: column.required }),
               createDataColumnListItemSpacerAccessory()
           ]
-        : [...createDataColumnListItemErrorAccessories({ state }), ...createDataColumnListItemValueAccessories({ state })]
+        : [
+              ...createDataColumnListItemErrorAccessories({ state }),
+              ...createDataColumnListItemValueAccessories({ column, state })
+          ]
 }

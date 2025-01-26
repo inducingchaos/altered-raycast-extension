@@ -9,6 +9,7 @@ export type DataColumn = {
     id: string
     label: string
     description: string
+    default: string | null
 
     type: DataType
     required: boolean

@@ -9,7 +9,7 @@ export const validateType = ({ id, value }: { id: DataType["id"]; value: string 
 
     if (id === "string") return true
     if (id === "number") return !isNaN(Number(value))
-    if (id === "boolean") return value === "true" || value === "false"
+    if (id === "boolean") return value?.toLowerCase() === "true" || value?.toLowerCase() === "false"
 
     return false
 }

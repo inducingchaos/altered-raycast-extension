@@ -67,6 +67,10 @@ export async function onCreateAction({
 
     console.log("Create")
 
+    const data = Object.fromEntries(columns.map(column => [column.id, dataStore.get(column.id)?.value]))
+
+    console.log(data)
+
     await closeMainWindow()
     const toast = await showToast({
         style: Toast.Style.Animated,

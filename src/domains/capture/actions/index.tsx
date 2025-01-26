@@ -34,6 +34,8 @@ export function CaptureActions({
                 selectedItemId={selectedItemId}
                 setSelectedItemId={setSelectedItemId}
                 selectedItemIdUpdatedAt={selectedItemIdUpdatedAt}
+                dataStore={dataStore}
+                setDataStore={setDataStore}
             />
         </ActionPanel>
     )
