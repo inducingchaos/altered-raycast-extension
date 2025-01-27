@@ -18,13 +18,6 @@
     "license": "MIT",
     "commands": [
         {
-            "name": "check-in",
-            "title": "Check In",
-            "subtitle": "Your daily dose of motivation.",
-            "description": "Generates a motivational message.",
-            "mode": "no-view"
-        },
-        {
             "name": "echo",
             "title": "Echo",
             "subtitle": "Get the current deployment info.",
@@ -66,6 +59,7 @@
         "@raycast/api": "^1.88.4",
         "@raycast/utils": "^1.17.0",
         "nanoid": "^5.0.9",
+        "zod": "^3.24.1",
         "zustand": "^5.0.3"
     },
     "devDependencies": {

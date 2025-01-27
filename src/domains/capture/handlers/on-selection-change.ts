@@ -20,7 +20,7 @@ export function onSelectionChange({
     debug.state.onSelectionChange.count++
     if (shouldShowDebug({ for: "onSelectionChange" }))
         console.log(
-            `#${debug.state.onSelectionChange.count}, in 'onSelectionChange': ${thoughtsSchema.columns.find(column => column.id === selectedItemId)?.label}`
+            `#${debug.state.onSelectionChange.count}, in 'onSelectionChange': ${thoughtsSchema.columns.find(column => column.id === selectedItemId)?.name}`
         )
 
     //  Debounce selections to avoid the erratic re-render behavior caused by dynamically changing the list items.

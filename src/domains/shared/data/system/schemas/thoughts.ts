@@ -17,7 +17,7 @@ export const thoughtsSchema: SerializableDataSchema = {
     columns: [
         {
             id: nanoid(),
-            label: "Content",
+            name: "Content",
             description: "The description of your thought.",
             default: null,
 
@@ -28,12 +28,12 @@ export const thoughtsSchema: SerializableDataSchema = {
         },
         {
             id: nanoid(),
-            label: "Alias",
+            name: "Alias",
             description: "A name for your thought.",
-            default: null,
 
-            type: dataTypes.string.id,
+            type: "string",
             required: false,
+            default: null,
             // function: null,
             rules: []
         },
@@ -50,13 +50,13 @@ export const thoughtsSchema: SerializableDataSchema = {
             //         step: 1
             //     }
             // },
-            label: "Priority",
+            name: "Priority",
             description: "Level of significance.",
             rules: [min0Rule, max10Rule]
         },
         {
             id: nanoid(),
-            label: "Attachment",
+            name: "Attachment",
             description: "A related asset.",
             default: null,
             type: dataTypes.string.id,
@@ -66,7 +66,7 @@ export const thoughtsSchema: SerializableDataSchema = {
         },
         {
             id: nanoid(),
-            label: "Tags",
+            name: "Tags",
             description: "Categories for indexing.",
             default: null,
             type: dataTypes.string.id,
@@ -76,7 +76,7 @@ export const thoughtsSchema: SerializableDataSchema = {
         },
         {
             id: nanoid(),
-            label: "Validated",
+            name: "Validated",
             description: "Whether the thought has been validated.",
             default: "False",
 
@@ -84,6 +84,31 @@ export const thoughtsSchema: SerializableDataSchema = {
             required: false,
             rules: []
         },
+
+        // make default and required mutually exclusive
+
+        {
+            id: nanoid(),
+            name: "Sensitive",
+            description: "Whether the thought is sensitive.",
+            default: "False",
+
+            type: dataTypes.boolean.id,
+            required: false,
+            rules: []
+        },
+
+        {
+            id: nanoid(),
+            name: "Datasets",
+            description: "Whether the thought is sensitive.",
+            default: "False",
+
+            type: dataTypes.boolean.id,
+            required: false,
+            rules: []
+        },
+
         {
             id: nanoid(),
             type: dataTypes.string.id,
@@ -93,7 +118,7 @@ export const thoughtsSchema: SerializableDataSchema = {
             //     type: "select",
             //     options: ["iOS", "macOS", "watchOS"]
             // },
-            label: "Operating System",
+            name: "Operating System",
             description: "The operating system of the device.",
             rules: []
         }

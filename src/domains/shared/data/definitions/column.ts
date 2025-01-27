@@ -7,7 +7,7 @@ import { DataType } from "./type"
 
 export type DataColumn = {
     id: string
-    label: string
+    name: string
     description: string
     default: string | null
 

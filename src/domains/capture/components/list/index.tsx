@@ -9,7 +9,6 @@ import { DataColumnListSection } from "./section"
 
 export function DataColumnList() {
     const {
-        dataStore,
         setDataStore,
         dataStoreUpdatedAt,
 
@@ -17,7 +16,6 @@ export function DataColumnList() {
         setSelectedItemId,
         selectedItemIdUpdatedAt,
 
-        columns,
         selectedColumn,
 
         searchText,
@@ -40,14 +38,7 @@ export function DataColumnList() {
             }
             searchBarPlaceholder={searchBarPlaceholder}
         >
-            <DataColumnListSection
-                columns={columns}
-                selectedItemId={selectedItemId}
-                selectedItemIdUpdatedAt={selectedItemIdUpdatedAt}
-                setSelectedItemId={setSelectedItemId}
-                dataStore={dataStore}
-                setDataStore={setDataStore}
-            />
+            <DataColumnListSection />
         </List>
     )
 }

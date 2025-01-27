@@ -3,43 +3,18 @@
  */
 
 import { Action, ActionPanel, Icon } from "@raycast/api"
-import { Dispatch, MutableRefObject, SetStateAction } from "react"
+import { Dispatch, SetStateAction } from "react"
 import { SerializableDataColumn } from "../../../shared/data/definitions"
+import { useCaptureList } from "../../components/provider"
 import { onSelectionChange } from "../../handlers"
 import { DataStore } from "../../types"
 
-export function NavigateActions({
-    columns,
-    selectedItemId,
-    setSelectedItemId,
-    selectedItemIdUpdatedAt,
-    dataStore,
-    setDataStore
-}: {
-    columns: SerializableDataColumn[]
-    selectedItemId: string | undefined
-    setSelectedItemId: Dispatch<SetStateAction<string | undefined>>
-    selectedItemIdUpdatedAt: MutableRefObject<number | undefined>
-    dataStore: DataStore
-    setDataStore: Dispatch<SetStateAction<DataStore>>
-}): JSX.Element {
+export function NavigateActions(): JSX.Element {
+    const { columns, selectedItemId, setSelectedItemId, selectedItemIdUpdatedAt, dataStore, setDataStore } = useCaptureList()
+
     return (
         <ActionPanel.Section title="Navigate">
-            <Action
-                title="Next"
-                icon={Icon.ArrowRight}
-                shortcut={{ modifiers: [], key: "tab" }}
-                onAction={() => {
-                    const currentIndex = columns.findIndex(column => column.id === selectedItemId)
-                    const nextIndex = (currentIndex + 1) % columns.length
-
-                    onSelectionChange({
-                        selectedItemIdUpdatedAt,
-                        selectedItemId: columns[nextIndex]?.id,
-                        setSelectedItemId
-                    })
-                }}
-            />
+            <HFNavigateAction />
             <Action
                 title="Previous"
                 icon={Icon.ArrowLeft}

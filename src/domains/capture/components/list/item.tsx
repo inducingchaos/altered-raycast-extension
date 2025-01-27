@@ -3,36 +3,22 @@
  */
 
 import { List } from "@raycast/api"
-import { CaptureActions } from "../../actions"
-import { DataStore } from "../../types"
-import { createDataColumnListItemAccessories } from "../../utils"
+import { useMemo } from "react"
 import { dataTypes, SerializableDataColumn } from "../../../shared/data/definitions"
-import { Dispatch, MutableRefObject, SetStateAction, useMemo } from "react"
+import { CaptureActions } from "../../actions"
+import { createDataColumnListItemAccessories } from "../../utils"
+import { useCaptureList } from "../provider"
 
-export function DataColumnListItem({
-    column,
-    columns,
-    isSelected,
-    dataStore,
-    setDataStore,
-    selectedItemId,
-    setSelectedItemId,
-    selectedItemIdUpdatedAt
-}: {
-    column: SerializableDataColumn
-    columns: SerializableDataColumn[]
-    isSelected: boolean
-    dataStore: DataStore
-    setDataStore: Dispatch<SetStateAction<DataStore>>
-    selectedItemId: string | undefined
-    setSelectedItemId: Dispatch<SetStateAction<string | undefined>>
-    selectedItemIdUpdatedAt: MutableRefObject<number | undefined>
-}) {
+export function DataColumnListItem({ column }: { column: SerializableDataColumn }): JSX.Element {
+    const { dataStore, selectedItemId } = useCaptureList()
+
+    const isSelected = selectedItemId === column.id
+
     const value = useMemo(() => dataStore.get(column.id)?.value, [isSelected])
     const isEmpty = value === undefined || value === ""
 
-    const title = isSelected || !isEmpty ? column.label : ""
-    const subtitle = isSelected ? dataTypes[column.type].name : !isEmpty ? undefined : column.label
+    const title = isSelected || !isEmpty ? column.name : ""
+    const subtitle = isSelected ? dataTypes[column.type].name : !isEmpty ? undefined : column.name
 
     return (
         <List.Item
@@ -40,16 +26,7 @@ export function DataColumnListItem({
             id={column.id}
             title={title}
             subtitle={subtitle}
-            actions={
-                <CaptureActions
-                    columns={columns}
-                    dataStore={dataStore}
-                    setDataStore={setDataStore}
-                    selectedItemId={selectedItemId}
-                    setSelectedItemId={setSelectedItemId}
-                    selectedItemIdUpdatedAt={selectedItemIdUpdatedAt}
-                />
-            }
+            actions={<CaptureActions />}
             accessories={createDataColumnListItemAccessories({ column, state: dataStore.get(column.id), isSelected })}
         />
     )
