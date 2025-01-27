@@ -2,6 +2,6 @@
  *
  */
 
-export type KebabToCamelCase<Value extends string> = Value extends `${infer Char}${"-"}${infer Rest}`
-    ? `${Char}${Capitalize<KebabToCamelCase<Rest>>}`
+export type KebabCaseToCamelCase<Value extends string> = Value extends `${infer First}-${infer Rest}`
+    ? `${First}${Capitalize<KebabCaseToCamelCase<Rest>>}`
     : Value

@@ -184,3 +184,9 @@ TODO extension preparation for store:
 - Update README for onboarding screen / api key
 - Create screenshots
 - Add a license
+
+// Before mass upload, we need:
+
+- Dataset creation and selection
+- HyperForm completion
+- Monorepo setup
