@@ -2,7 +2,7 @@
  *
  */
 
-import { z, ZodObject, ZodSchema, ZodType } from "zod"
+import { SafeParseReturnType, z, ZodObject, ZodParsedType, ZodSchema, ZodType } from "zod"
 import { KebabCaseToCamelCase } from "../../../sdkit/utils"
 import { DataType } from "./types"
 
@@ -10,7 +10,24 @@ export const dataConstraintIds = ["required", "min-length", "max-length", "min-v
 
 export type DataConstraintID = (typeof dataConstraintIds)[number]
 
-export type DataConstraint<OptionsSchema extends ZodSchema, Options = z.infer<OptionsSchema>> = {
+export type DataConstraintOptions<OptionSchema extends ZodSchema = ZodSchema> = Record<
+    string,
+    {
+        name: string
+        description: string
+    } & (
+        | { options: DataConstraintOptions }
+        | {
+              schema: OptionSchema
+          }
+    )
+>
+
+export type DataConstraint<
+    OptionsSchema extends ZodSchema,
+    Options = z.infer<OptionsSchema>,
+    ValidateResult = SafeParseReturnType<OptionsSchema, Options>
+> = {
     id: DataConstraintID
     name: string
     description: string
@@ -29,6 +46,8 @@ export type DataConstraint<OptionsSchema extends ZodSchema, Options = z.infer<Op
             description?: string | ((options: Options) => string)
         }
     }
+
+    validate: (options: Options) => (value: string) => ValidateResult
 }
 
 export function createDataConstraint<T extends ZodSchema>(props: DataConstraint<T>) {
@@ -148,7 +167,7 @@ export const dataConstraints = {
             min: {
                 name: "Min",
                 description: "The minimum value.",
-                schema: z.number({ coerce: true })
+                validate: value => z.number({ coerce: true }).safeParse(value)
             },
             max: {
                 name: "Max",
@@ -188,13 +207,13 @@ export const dataConstraints = {
             }
         },
 
-        validate: (params: { min: number; max: number; interval?: { value?: number; origin?: number } }, value: number) =>
+        validate: options => value =>
             z
-                .number()
-                .min(params.min - (params.interval?.origin ?? 0))
-                .max(params.max - (params.interval?.origin ?? 0))
-                .step(params.interval?.value ?? 1)
-                .safeParse(value - (params.interval?.origin ?? 0))
+                .number({ coerce: true })
+                .min(options.min - (options.interval?.origin ?? 0))
+                .max(options.max - (options.interval?.origin ?? 0))
+                .step(options.interval?.value ?? 1)
+                .safeParse(value - (options.interval?.origin ?? 0))
     })
 } as const
 
@@ -240,30 +259,39 @@ const constraintIds = dataConstraintIds
 //  2. Get the parameters for the selected constraint
 
 const selectedConstraintId: DataConstraintID = "range"
-const dataConstraintParameters = [
-    {
-        id: "min",
+const dataConstraintParameters = {
+    min: {
         name: "Min",
         description: "The minimum value.",
-        schema: z.number()
+        schema: z.number({ coerce: true })
     },
-    {
-        id: "max",
+    max: {
         name: "Max",
         description: "The maximum value.",
-        schema: z.number()
+        schema: z.number({ coerce: true })
     },
-    {
-        id: "step",
+
+    step: {
         name: "Step",
-        description: "The step value.",
-        schema: z.number().optional()
+        description: "The step of the value.",
+        schema: {
+            value: {
+                name: "Value",
+                description: "The value of the step.",
+                schema: z.number({ coerce: true }).optional()
+            },
+            offset: {
+                name: "Offset",
+                description: "The offset of the step. Defaults to the minimum range value.",
+                schema: z.number({ coerce: true }).optional()
+            }
+        }
     }
-]
+}
 
-//  3. Assuming we get back the mapped and validated parameters, we can create the constraint
+//  3. Assuming we get back the mapped and validated parameters, we can configure the constraint
 
-const constraint = dataConstraints[selectedConstraintId]
+const { info, validate } = configureDataConstraint({ params })
 
 //  4. We can then use the constraint to validate the data
 
