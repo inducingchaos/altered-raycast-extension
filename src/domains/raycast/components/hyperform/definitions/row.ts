@@ -12,7 +12,8 @@ export type HFRow = {
     type: HFDataType
     default: string | null
     required: boolean
-    rules: HFConstraint[]
+    // TODO: Add constraints type
+    rules: string[]
 } & (
     | {
           default: string

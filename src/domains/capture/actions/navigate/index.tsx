@@ -14,7 +14,21 @@ export function NavigateActions(): JSX.Element {
 
     return (
         <ActionPanel.Section title="Navigate">
-            <HFNavigateAction />
+            <Action
+                title="Next"
+                icon={Icon.ArrowRight}
+                shortcut={{ modifiers: [], key: "tab" }}
+                onAction={() => {
+                    const currentIndex = columns.findIndex(column => column.id === selectedItemId)
+                    const nextIndex = (currentIndex + 1) % columns.length
+
+                    onSelectionChange({
+                        selectedItemIdUpdatedAt,
+                        selectedItemId: columns[nextIndex]?.id,
+                        setSelectedItemId
+                    })
+                }}
+            />
             <Action
                 title="Previous"
                 icon={Icon.ArrowLeft}
