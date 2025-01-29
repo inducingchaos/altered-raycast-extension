@@ -1,318 +1,360 @@
-// /**
-//  *
-//  */
+/**
+ *
+ */
 
-// import { SafeParseReturnType, z, ZodObject, ZodParsedType, ZodSchema, ZodType } from "zod"
-// import { KebabCaseToCamelCase } from "../../../sdkit/utils"
-// import { DataType } from "./types"
+import { SafeParseReturnType, z, ZodSchema } from "zod"
+import { DataType } from "./types"
 
-// export const dataConstraintIds = ["required", "min-length", "max-length", "min-value", "max-value", "range"] as const
+//  Source of truth for constraint IDs, also provides an easier way to visualize/organize the constraints (assuming we have a lot of them, and no better way to structure/systemize them).
+export const dataConstraintIds = ["required", "min-length", "max-length", "min-value", "max-value", "range"] as const
 
-// export type DataConstraintID = (typeof dataConstraintIds)[number]
+export type DataConstraintID = (typeof dataConstraintIds)[number]
 
-// export type DataConstraintOptions<OptionSchema extends ZodSchema = ZodSchema> = Record<
-//     string,
-//     {
-//         name: string
-//         description: string
-//     } & (
-//         | { options: DataConstraintOptions }
-//         | {
-//               schema: OptionSchema
-//           }
-//     )
-// >
+/**
+ * Defines the parameters that can be used to configure a data constraint at runtime.
+ */
+export type DataConstraintOptions<OptionSchema extends ZodSchema = ZodSchema> = Record<
+    string,
+    {
+        name: string
+        description: string
+        // should we have more info here for an error message, etc on validation?
+    } & ( // recursive options
+        | { options: DataConstraintOptions }
+        | {
+              validate: OptionSchema
+          }
+    )
+>
 
-// export type DataConstraint<
-//     OptionsSchema extends ZodSchema,
-//     Options = z.infer<OptionsSchema>,
-//     ValidateResult extends SafeParseReturnType<OptionsSchema, Options> = SafeParseReturnType<OptionsSchema, Options>
-// > = {
-//     id: DataConstraintID
-//     name: string
-//     description: string
+// main constraint definition type
 
-//     optionsSchema: OptionsSchema
-//     systemOnly: boolean
-//     forTypes: DataType["id"][]
-//     supersedes: DataConstraintID[]
+export type DataConstraint<
+    // this stuff is mainly for inference from the options into the dynamic info funcs, needs to be adapted to new recursive params/options type
+    OptionsSchema extends ZodSchema,
+    Options = z.infer<OptionsSchema>,
+    ValidateResult extends SafeParseReturnType<OptionsSchema, Options> = SafeParseReturnType<OptionsSchema, Options>
+> = {
+    //  should we inclide the ID in the object, or JUST have it as the key to the object containing it?
+    id: DataConstraintID
+    //  name/desc describing the constraint itself during setup
+    name: string
+    description: string
 
-//     info: {
-//         label: string | ((options: Options) => string)
-//         description: string | ((options: Options) => string)
+    // defines the parameters for the constraint. In the functions for configuring, etc we should transform this to ease of use when implementing
+    options: OptionsSchema
+    // better name for this? These contraints (like required, since it's more primitive) are shown to the user as contraints as they exist externally but are still technically a type of constraint.
+    systemOnly: boolean
+    //  The types of primitive data that this constraint applies to.
+    forTypes: DataType["id"][]
+    //  If any of these constraint IDs exist, the will be replaced/warned to remove.
+    supersedes: DataConstraintID[]
 
-//         error?: {
-//             label?: string | ((options: Options) => string)
-//             description?: string | ((options: Options) => string)
-//         }
-//     }
+    //  The generated UI for the contraint once configured. Better name than info like display? Error is for if validation fails.
+    info: {
+        label: string | ((options: Options) => string)
+        description: string | ((options: Options) => string)
 
-//     validate: (options: Options) => (value: string) => ValidateResult
+        error?: {
+            label?: string | ((options: Options) => string)
+            description?: string | ((options: Options) => string)
+        }
+    }
+
+    //  The main function that validates the constraint. Better name for this? Also considering putting all "dynamic" info in a combined object to signify that it's not meant to be used from the definition object. We could even segregate it somehow.
+    validate: (options: Options) => (value: string) => ValidateResult
+}
+
+// To be function used for defining constraints. It has to be a function because the generic inference doesn't work properly as just a plain object.
+export function createDataConstraint<T extends ZodSchema>(props: DataConstraint<T>) {
+    return props
+}
+
+// Internal definitions (DX case 1 to consider).
+
+// Commented ones use outdated syntax, we're gonna start by getting the most complex one working then adapt these.
+
+export const dataConstraints = {
+    // required: createDataConstraint({
+    //     id: "required",
+    //     name: "Required",
+    //     description: "Whether or not the value is required.",
+
+    //     optionsSchema: z.null(),
+    //     systemOnly: true,
+    //     forTypes: ["string", "number", "boolean"],
+    //     supersedes: [],
+
+    //     info: {
+    //         label: "Required",
+    //         description: "The content cannot be empty."
+    //     }
+    // }),
+
+    // "min-length": createDataConstraint({
+    //     id: "min-length",
+    //     name: "Min Length",
+    //     description: "The minimum length of the value.",
+
+    //     optionsSchema: z.object({
+    //         value: z.number({ coerce: true })
+    //     }),
+    //     systemOnly: false,
+    //     forTypes: ["string"],
+    //     supersedes: [],
+
+    //     info: {
+    //         label: (options: { value: number }) => `Min Length: ${options.value}`,
+    //         description: (options: { value: number }) =>
+    //             `The content must be at least ${options.value} character${options.value === 1 ? "" : "s"}.`,
+
+    //         error: {
+    //             label: "Too Short"
+    //         }
+    //     }
+    // }),
+
+    // "max-length": createDataConstraint({
+    //     id: "max-length",
+    //     name: "Max Length",
+    //     description: "The maximum length of the value.",
+
+    //     optionsSchema: z.object({
+    //         value: z.number({ coerce: true })
+    //     }),
+    //     systemOnly: false,
+    //     forTypes: ["string"],
+    //     supersedes: [],
+
+    //     info: {
+    //         label: (options: { value: number }) => `Max Length: ${options.value}`,
+    //         description: (options: { value: number }) =>
+    //             `The content must be ${options.value} character${options.value === 1 ? "" : "s"} or less.`,
+
+    //         error: {
+    //             label: "Exceeds Max Length"
+    //         }
+    //     }
+    // }),
+
+    // "min-value": createDataConstraint({
+    //     id: "min-value",
+    //     name: "Min Value",
+    //     description: "The minimum value.",
+
+    //     optionsSchema: z.object({
+    //         value: z.number({ coerce: true })
+    //     }),
+    //     systemOnly: false,
+    //     forTypes: ["number"],
+    //     supersedes: [],
+
+    //     info: {
+    //         label: (options: { value: number }) => `Min: ${options.value}`,
+    //         description: (options: { value: number }) => `The value must be greater than or equal to ${options.value}.`,
+
+    //         error: {
+    //             label: "Below Min Value"
+    //         }
+    //     }
+    // }),
+    // "max-value": createDataConstraint({
+    //     id: "max-value",
+    //     name: "Max Value",
+    //     description: "The maximum value.",
+    //     optionsSchema: z.object({
+    //         value: z.number({ coerce: true })
+    //     }),
+    //     systemOnly: false,
+    //     forTypes: ["number"],
+    //     supersedes: [],
+
+    //     info: {
+    //         label: (options: { value: number }) => `Max: ${options.value}`,
+    //         description: (options: { value: number }) => `The value must be less than or equal to ${options.value}.`,
+    //         error: {
+    //             label: "Exceeds Max Value"
+    //         }
+    //     }
+    // }),
+    range: createDataConstraint({
+        name: "Range",
+        description: "The range of the value.",
+
+        // now I feel like this is a pretty good syntax for defining constraint options - can we do better?
+        options: {
+            min: {
+                // since we use a similar syntax for name/desc of options as we do for the constraint, could we consolidate this format somehow? Although we may not need the additional label/desc, although we should include the error part - I thought about using zod's custom message field, but in cases where we don't pass Zod and instead use a custom function, it's not possible to use that. So we should probably create a similar "info" object for these options.
+                name: "Min",
+                description: "The minimum value.",
+
+                // We want to make this simple for DX, but also adaptable... should we keep this as a function, or just accept a zod schema (and alternatively allow a custom function to be passed in)? Should we require parsing here or just check if it's a zod schema and do that behind the scenes? I'm thinking the latter, simpler the better. but then calling it validate wouldn't make as much sense... more like schema, but then passing a custom func wouldn't make sense. We could create a union type with both but the more union types, the more confusion...
+                validate: value => z.number({ coerce: true }).safeParse(value).success
+            },
+            max: {
+                name: "Max",
+                description: "The maximum value.",
+                //  This would make more sense to be called schema... idk what to do here
+                validate: z.number({ coerce: true })
+            },
+
+            step: {
+                name: "Step",
+                description: "The step of the value.",
+                options: {
+                    value: {
+                        name: "Value",
+                        description: "The value of the step.",
+                        schema: z.number({ coerce: true }).optional()
+                    },
+                    offset: {
+                        name: "Offset",
+                        description: "The offset of the step. Defaults to the minimum range value.",
+                        schema: z.number({ coerce: true }).optional()
+                    }
+                }
+            }
+        },
+        systemOnly: false,
+        //  from a macro perspective - is there a better way we could filter the constraints? I think relying on these primitive types HAS to be the way, because all almost all validation on numbers is done different than strings, dates, range types (which aren't really types themselves, more like functions), etc. I haven't even considered the collection issue for this yet, but it can probably wait. I do feel like it might fit into that "function" category.
+        forTypes: ["number"],
+        // Any better way for this as well? Ties into overall organization, grouping, etc.
+        supersedes: ["min-value", "max-value"],
+
+        // Better name or structure for this? Should we segment (put all simple values in something like "range.definition", and these in something like "range.result" or _generated so that people don't call info from this instead of a configured constraint?)
+        generate: {
+            info: {
+                // these are specifically typed because inference isn't adapted yet but this wont even need a type def here
+                label: (options: { min: number; max: number; step?: number }) =>
+                    `Range: ${options.min}-${options.max}${options.step ? `, Step: ${options.step}` : ""}`,
+                description: (options: { min: number; max: number; step?: number }) =>
+                    `The value must be between ${options.min} and ${options.max}${options.step ? `, with a step of ${options.step}` : ""}.`,
+
+                //  If error or any of its contents arent provided, the message is inherited from the non-error part.
+                error: {
+                    label: "Exceeds Range"
+                }
+            },
+
+            //  Now ideally, again we're only going to call/reference this inside the configureDataConstraint function, but it should return from there as a function like (value:)=>boolean or whatever the return type is (see below) - point here is that we might need to double-up this function so it returns a function. Not here though (Keep def DX simple) - we can do it inside the configureDataConstraint function.
+
+            validate: options =>
+                z
+                    .number({ coerce: true })
+                    .min(options.min - (options.interval?.origin ?? 0))
+                    .max(options.max - (options.interval?.origin ?? 0))
+                    .step(options.interval?.value ?? 1)
+                    .safeParse(value - (options.interval?.origin ?? 0))
+        }
+    })
+} as const
+
+// This stuff was for type inference for the config object before we made it recursive and partially literal instead of an entire ZodSchema.
+
+// This is a test
+
+type T = typeof dataConstraints.range.optionsSchema
+
+//  This type will need to be adapted for the following
+
+// export type DataConstraintConfigOptions<
+//     ID extends DataConstraintID,
+//     CamelCaseID extends CamelCaseDataConstraintID = KebabCaseToCamelCase<ID>,
+//     Constraint extends DataConstraint = (typeof dataConstraints)[CamelCaseID],
+//     OptionsSchema = Constraint["optionsSchema"]
+// > = OptionsSchema extends ZodSchema ? z.infer<OptionsSchema> : never
+
+//  This defines the inferred config shape and details needed.
+
+// export type DataConstraintConfig<ID extends DataConstraintID = DataConstraintID> = {
+//     id: ID
+//     options: DataConstraintConfigOptions<ID>
 // }
 
-// export function createDataConstraint<T extends ZodSchema>(props: DataConstraint<T>) {
-//     return props
-// }
+/* EXAMPLE IMPLEMENTATION (DX Case 3)  */
 
-// // Internal definitions.
+//  Get the constraints and display them in a list for the user to select from when configuring a schema column.
 
-// export const dataConstraints = {
-//     // required: createDataConstraint({
-//     //     id: "required",
-//     //     name: "Required",
-//     //     description: "Whether or not the value is required.",
+const constraints = Object.entries(dataConstraints).map(([id, constraint]) => ({
+    id,
+    name: constraint.name,
+    description: constraint.description
+}))
 
-//     //     optionsSchema: z.null(),
-//     //     systemOnly: true,
-//     //     forTypes: ["string", "number", "boolean"],
-//     //     supersedes: [],
+//  While on the topic - what is the best (conventional) way to store these types of code definitions, that aren't user-defined, but need to be referenced in the database? An array, object, map, or something else? I used a keyed object for type inference, but it could be done in many ways.
 
-//     //     info: {
-//     //         label: "Required",
-//     //         description: "The content cannot be empty."
-//     //     }
-//     // }),
+//  Get the parameters and details for the selected constraint & display in UI for user to configure. - maybe we could make the options config object more implementation-friendly, like flattening it or converting to an array? We need to balance the definition/implementation DX here... maintaining structure, while making it easy to display and work with.
 
-//     // "min-length": createDataConstraint({
-//     //     id: "min-length",
-//     //     name: "Min Length",
-//     //     description: "The minimum length of the value.",
+const selectedConstraintId: DataConstraintID = "range"
+const selectedConstraint = dataConstraints[selectedConstraintId]
+// or similar syntax, we may make the options simpler for dynamically passing to display in the UI for configuration
+const {
+    min,
+    max,
+    step: { value, offset }
+} = selectedConstraint.options
 
-//     //     optionsSchema: z.object({
-//     //         value: z.number({ coerce: true })
-//     //     }),
-//     //     systemOnly: false,
-//     //     forTypes: ["string"],
-//     //     supersedes: [],
+//  The implementation could validate the params using the `validate` function of each option, or simply pass back a whole object that could be validated under the hood. If we define a config object for system manually, it should have inference. We could also pass this object directly to the `configureDataConstraint` function.
 
-//     //     info: {
-//     //         label: (options: { value: number }) => `Min Length: ${options.value}`,
-//     //         description: (options: { value: number }) =>
-//     //             `The content must be at least ${options.value} character${options.value === 1 ? "" : "s"}.`,
+const rangeConfig: DataConstraintConfig<"range"> = {
+    id: "range",
+    options: {
+        min: 3,
+        max: 7,
+        step: {
+            value: 1.5,
+            offset: 1
+        }
+    }
+}
 
-//     //         error: {
-//     //             label: "Too Short"
-//     //         }
-//     //     }
-//     // }),
+//  Returns the dynamic validation function and the generated info.
+//  - What should we return from the constraint result, just the generated info or everything as a complete constraint object?
+const { info, validate: validateRangedNumber } = configureDataConstraint({ params: rangeConfig })
 
-//     // "max-length": createDataConstraint({
-//     //     id: "max-length",
-//     //     name: "Max Length",
-//     //     description: "The maximum length of the value.",
+//  We can then use the constraint to validate the data where the schema is used.
 
-//     //     optionsSchema: z.object({
-//     //         value: z.number({ coerce: true })
-//     //     }),
-//     //     systemOnly: false,
-//     //     forTypes: ["string"],
-//     //     supersedes: [],
+const data = 50
 
-//     //     info: {
-//     //         label: (options: { value: number }) => `Max Length: ${options.value}`,
-//     //         description: (options: { value: number }) =>
-//     //             `The content must be ${options.value} character${options.value === 1 ? "" : "s"} or less.`,
+// What format should the result be in? Should it be like this as a safeParse result, or a simple boolean, a detailed object, or something else?
+const { success, error, data } = validateRangedNumber(data)
 
-//     //         error: {
-//     //             label: "Exceeds Max Length"
-//     //         }
-//     //     }
-//     // }),
+// - DX 4: Manual definition and/or storage in either a database, or a json/ts file. It should be friendly enough to write yourself, but also dynamic and efficient.
+{
+    constraints: [
+        {
+            // ...
+        }
+    ]
+}
 
-//     // "min-value": createDataConstraint({
-//     //     id: "min-value",
-//     //     name: "Min Value",
-//     //     description: "The minimum value.",
+// - If/when we reference constraints in the database or otherwise, how can we maximize adaptability? For example, if we have a range constraint for a number, then introduce ranges in the future, adn ID of "range" may conflict. So I thought of (since the constraint definitions are written by us, not custom made by the user, and exist in our codebase) we could either reference the ID like I mentioned before, or create another object to map a Nanoid to each ID:
 
-//     //     optionsSchema: z.object({
-//     //         value: z.number({ coerce: true })
-//     //     }),
-//     //     systemOnly: false,
-//     //     forTypes: ["number"],
-//     //     supersedes: [],
+const dataConstraintUniversalIds = {
+    _xleUafS18QwNJ0Q1o4XY: "range",
+    "c3CEwVCEnJ67Fh-9yyZjM": "max-length"
+    // ...
+}
 
-//     //     info: {
-//     //         label: (options: { value: number }) => `Min: ${options.value}`,
-//     //         description: (options: { value: number }) => `The value must be greater than or equal to ${options.value}.`,
+// This would make name changes easier as we could keep the Nanoid and swap the string id. Is there a better solution or architecture for this?
 
-//     //         error: {
-//     //             label: "Below Min Value"
-//     //         }
-//     //     }
-//     // }),
-//     // "max-value": createDataConstraint({
-//     //     id: "max-value",
-//     //     name: "Max Value",
-//     //     description: "The maximum value.",
-//     //     optionsSchema: z.object({
-//     //         value: z.number({ coerce: true })
-//     //     }),
-//     //     systemOnly: false,
-//     //     forTypes: ["number"],
-//     //     supersedes: [],
+// - How might we store constraint configs in the database? Create a constraints table with the id of the constraint, and then the options as stringified JSON in mySQL? Doing each option as a row might get messy. Should we use Nanoids for these to, and maybe do something like <row - constraint nid> - <option nid> - <option value>? What's best practice or common for something like this?
 
-//     //     info: {
-//     //         label: (options: { value: number }) => `Max: ${options.value}`,
-//     //         description: (options: { value: number }) => `The value must be less than or equal to ${options.value}.`,
-//     //         error: {
-//     //             label: "Exceeds Max Value"
-//     //         }
-//     //     }
-//     // }),
-//     range: createDataConstraint({
-//         name: "Range",
-//         description: "The range of the value.",
-
-//         params: {
-//             min: {
-//                 name: "Min",
-//                 description: "The minimum value.",
-//                 validate: value => z.number({ coerce: true }).safeParse(value)
-//             },
-//             max: {
-//                 name: "Max",
-//                 description: "The maximum value.",
-//                 schema: z.number({ coerce: true })
-//             },
-
-//             step: {
-//                 name: "Step",
-//                 description: "The step of the value.",
-//                 schema: {
-//                     value: {
-//                         name: "Value",
-//                         description: "The value of the step.",
-//                         schema: z.number({ coerce: true }).optional()
-//                     },
-//                     offset: {
-//                         name: "Offset",
-//                         description: "The offset of the step. Defaults to the minimum range value.",
-//                         schema: z.number({ coerce: true }).optional()
-//                     }
-//                 }
-//             }
-//         },
-//         systemOnly: false,
-//         forTypes: ["number"],
-//         supersedes: ["min-value", "max-value"],
-
-//         info: {
-//             label: (options: { min: number; max: number; step?: number }) =>
-//                 `Range: ${options.min}-${options.max}${options.step ? `, Step: ${options.step}` : ""}`,
-//             description: (options: { min: number; max: number; step?: number }) =>
-//                 `The value must be between ${options.min} and ${options.max}${options.step ? `, with a step of ${options.step}` : ""}.`,
-
-//             error: {
-//                 label: "Exceeds Range"
-//             }
-//         },
-
-//         validate: options => value =>
-//             z
-//                 .number({ coerce: true })
-//                 .min(options.min - (options.interval?.origin ?? 0))
-//                 .max(options.max - (options.interval?.origin ?? 0))
-//                 .step(options.interval?.value ?? 1)
-//                 .safeParse(value - (options.interval?.origin ?? 0))
-//     })
-// } as const
-
-// type T = typeof dataConstraints.range.optionsSchema
-
-// // export type DataConstraintConfigOptions<
-// //     ID extends DataConstraintID,
-// //     CamelCaseID extends CamelCaseDataConstraintID = KebabCaseToCamelCase<ID>,
-// //     Constraint extends DataConstraint = (typeof dataConstraints)[CamelCaseID],
-// //     OptionsSchema = Constraint["optionsSchema"]
-// // > = OptionsSchema extends ZodSchema ? z.infer<OptionsSchema> : never
-
-// // export type DataConstraintConfig<ID extends DataConstraintID = DataConstraintID> = {
-// //     id: ID
-// //     options: DataConstraintConfigOptions<ID>
-// // }
-
-// // // Configuration object.
-
-// // export const dataConstraintConfig: DataConstraintConfig = {
-// //     id: "max-length",
-// //     options: {
-// //         value: 255
-// //     }
-// // }
-
-// // For range, it should infer different options
-// const rangeConfig: DataConstraintConfig<"range"> = {
-//     id: "range",
-//     options: {
-//         min: 0,
-//         max: 100,
-//         step: 1 // optional
-//     }
-// }
-
-// /* EXAMPLE IMPLEMENTATION */
-
-// //  1. Get the constraint IDs
-
-// const constraintIds = dataConstraintIds
-
-// //  2. Get the parameters for the selected constraint
-
-// const selectedConstraintId: DataConstraintID = "range"
-// const dataConstraintParameters = {
-//     min: {
-//         name: "Min",
-//         description: "The minimum value.",
-//         schema: z.number({ coerce: true })
-//     },
-//     max: {
-//         name: "Max",
-//         description: "The maximum value.",
-//         schema: z.number({ coerce: true })
-//     },
-
-//     step: {
-//         name: "Step",
-//         description: "The step of the value.",
-//         schema: {
-//             value: {
-//                 name: "Value",
-//                 description: "The value of the step.",
-//                 schema: z.number({ coerce: true }).optional()
-//             },
-//             offset: {
-//                 name: "Offset",
-//                 description: "The offset of the step. Defaults to the minimum range value.",
-//                 schema: z.number({ coerce: true }).optional()
-//             }
-//         }
-//     }
-// }
-
-// //  3. Assuming we get back the mapped and validated parameters, we can configure the constraint
-
-// const { info, validate } = configureDataConstraint({ params })
-
-// //  4. We can then use the constraint to validate the data
-
-// const data = 50
-// const isValid = constraint.optionsSchema.safeParse(data)
-
-// const dataConstraint = {
-//     validation: ["is-number", "limit-of-255"]
-// }
+// -in the future, how might we allow custom user-defined constraints? It would have to a a custom formula/function language (like excel or Notion) or just plain typescript... but that's a security risk. We would need to really sandbox and error-proof it, and that might be hard. Using pre-defined constraints is probably best for now?
 
 /*
 
 Ask Composer:
 
+PREFACE - these q's were written a lot earlier than the above changes, but most still apply
+
 Would you suggest any changes to this Data Constraint model? I'm building a database tool like that of notion, where there are primitive data types, and then optional constraints/rules you can add to the dataset schema for each column. We're defining this in code and letting users pick from the ones we define.
 
-My struggle is, one, organization. As the possible validation options grow, lets say we have 100, what is a good way to properly organize them and keep track of what already exists and maybe overlaps? I added a supercedes option for the user end of things, so if two rules are combined into one (like the range example) there will be a warning or error shown to use that instead. But, that doesn't solve the DX/internal issue here. I guess like anything else, split into different files/categories, and review previous ones before implementing something new...
+My struggle is, one, organization. As the possible validation options grow, lets say we have 100, what is a good way to properly organize them and keep track of what already exists and maybe overlaps? I added a supersedes option for the user end of things, so if two rules are combined into one (like the range example) there will be a warning or error shown to use that instead. But, that doesn't solve the DX/internal issue here. I guess like anything else, split into different files/categories, and review previous ones before implementing something new...
 
-Issue two is the general arbitrary data hierarchy & model. I've been fighting between whether or not to inclide required as a constraint. Reasons for: it needs/shares almost all the properties a constraint does, by definition it is a constraint, and it is displayed as a tag in the same way as constraints. However: it is almost on the primitive type-level in the way the application operates. For example, no validation checks are done if the type is not required. Also, I'm probably going to implement "required" as ui separate to the constraints collection/input, as it is very common and primitive in nature. Either way, required will be included in the schema (either as a constraint or a required boolean) but this is more of a ux/dx/model concern than anything.
+Issue two is the general arbitrary data hierarchy & model. I've been fighting between whether or not to include required as a constraint. Reasons for: it needs/shares almost all the properties a constraint does, by definition it is a constraint, and it is displayed as a tag in the same way as constraints. However: it is almost on the primitive type-level in the way the application operates. For example, no validation checks are done if the type is not required. Also, I'm probably going to implement "required" as ui separate to the constraints collection/input, as it is very common and primitive in nature. Either way, required will be included in the schema (either as a constraint or a required boolean) but this is more of a ux/dx/model concern than anything.
 
-As an extension of that concern - since we are really parsing everything initially as strings (accepting form inputs from Raycast, and otherwise) - the data types themselves are technically constraints as well? And should the range be implemented on the number type as a primitive (because it enables looping and seleciton functionality in the UI)? My take on that one is no, because all of our contraints are code-defined so we can create dynamic behaviour based on that - but I did consider it in the start. Even the range type/constraint is a mind fuck, because technically a range *type* is an input of 1-10, etc where a number type with a range constraint is just limited, etc.
+As an extension of that concern - since we are really parsing everything initially as strings (accepting form inputs from Raycast, and otherwise) - the data types themselves are technically constraints as well? And should the range be implemented on the number type as a primitive (because it enables looping and selection functionality in the UI)? My take on that one is no, because all of our constraints are code-defined so we can create dynamic behavior based on that - but I did consider it in the start. Even the range type/constraint is a mind fuck, because technically a range *type* is an input of 1-10, etc where a number type with a range constraint is just limited, etc.
 
 I also don't know where in this model collections, (maybe objects? Although any kind of structured collections would likely just be references to another "row" of our database...) and options/enums would fit in here. I think an enum-style type would just be a primitive with an options constraint, and I could implement the relative functionality based on that.
 
