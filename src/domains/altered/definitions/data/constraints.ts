@@ -2,72 +2,78 @@
  *
  */
 
-import { SafeParseReturnType, z, ZodSchema } from "zod"
+import { z, ZodSchema, SafeParseReturnType } from "zod"
+import { ValidationRule } from "./validation"
 import { DataType } from "./types"
 
 //  Source of truth for constraint IDs, also provides an easier way to visualize/organize the constraints (assuming we have a lot of them, and no better way to structure/systemize them).
-export const dataConstraintIds = ["required", "min-length", "max-length", "min-value", "max-value", "range"] as const
+export const dataConstraintIds = ["min-length", "max-length", "min-value", "max-value", "range"] as const
 
 export type DataConstraintID = (typeof dataConstraintIds)[number]
 
 /**
- * Defines the parameters that can be used to configure a data constraint at runtime.
+ * Defines the structure of a constraint's configuration options
  */
-export type DataConstraintOptions<OptionSchema extends ZodSchema = ZodSchema> = Record<
-    string,
-    {
-        name: string
-        description: string
-        // should we have more info here for an error message, etc on validation?
-    } & ( // recursive options
-        | { options: DataConstraintOptions }
-        | {
-              validate: OptionSchema
-          }
-    )
->
+export type DataConstraintOption<Schema extends ZodSchema = ZodSchema> = {
+    name: string
+    description: string
+} & ({ type: "group"; options: Record<string, DataConstraintOption> } | { type: "value"; schema: Schema })
+
+/**
+ * Utility type to infer the schema structure from options definition
+ */
+type InferSchemaFromOptions<T extends Record<string, DataConstraintOption>> = {
+    [K in keyof T]: T[K] extends { type: "value"; schema: ZodSchema }
+        ? z.infer<T[K]["schema"]>
+        : T[K] extends { type: "group"; options: Record<string, DataConstraintOption> }
+          ? InferSchemaFromOptions<T[K]["options"]>
+          : never
+}
+
+export type DataConstraint<Options extends Record<string, DataConstraintOption> = Record<string, DataConstraintOption>> =
+    ValidationRule & {
+        type: "constraint"
+        id: DataConstraintID
+        forTypes: DataType["id"][]
+        supersedes: DataConstraintID[]
+        options: Options
+        info: {
+            label: string | ((options: InferSchemaFromOptions<Options>) => string)
+            description: string | ((options: InferSchemaFromOptions<Options>) => string)
+            error?: {
+                label?: string | ((options: InferSchemaFromOptions<Options>) => string)
+                description?: string | ((options: InferSchemaFromOptions<Options>) => string)
+            }
+        }
+        validate: (options: InferSchemaFromOptions<Options>) => (value: string) => SafeParseReturnType<ZodSchema, unknown>
+    }
+
+//  DELETED COMMENTS THAT WE STILL NEED
+
+// on options schema: // should we have more info here for an error message, etc on validation?
+
+//  should we inclide the ID in the object, or JUST have it as the key to the object containing it?
+// Options: In the functions for configuring, etc we should transform this to ease of use when implementing
+//  These contraints (like required, since it's more primitive) are shown to the user as contraints as they exist externally but are still technically a type of constraint. >>> primitive data types are also kind of constraints, as they need validation
+//  The generated UI for the contraint once configured. Better name than info like display? Error is for if validation fails.
+//  Validate: The main function that validates the constraint. Better name for this? Also considering putting all "dynamic" info in a combined object to signify that it's not meant to be used from the definition object. We could even segregate it somehow.
+
+// on options name/desc: since we use a similar syntax for name/desc of options as we do for the constraint, could we consolidate this format somehow? Although we may not need the additional label/desc, although we should include the error part - I thought about using zod's custom message field, but in cases where we don't pass Zod and instead use a custom function, it's not possible to use that. So we should probably create a similar "info" object for these options.
+// on options validate: We want to make this simple for DX, but also adaptable... should we keep this as a function, or just accept a zod schema (and alternatively allow a custom function to be passed in)? Should we require parsing here or just check if it's a zod schema and do that behind the scenes? I'm thinking the latter, simpler the better. but then calling it validate wouldn't make as much sense... more like schema, but then passing a custom func wouldn't make sense. We could create a union type with both but the more union types, the more confusion...
+//  on options validate: This would make more sense to be called schema... idk what to do here
+//  on forTypes: from a macro perspective - is there a better way we could filter the constraints? I think relying on these primitive types HAS to be the way, because all almost all validation on numbers is done different than strings, dates, range types (which aren't really types themselves, more like functions), etc. I haven't even considered the collection issue for this yet, but it can probably wait. I do feel like it might fit into that "function" category.
+// ADD labels,etc back fro each option
+// Supercedes: Any better way for this as well? Ties into overall organization, grouping, etc.
+// on generate enclosure: Better name or structure for this? Should we segment (put all simple values in something like "range.definition", and these in something like "range.result" or _generated so that people don't call info from this instead of a configured constraint?)
+//  on validate: Now ideally, again we're only going to call/reference this inside the configureDataConstraint function, but it should return from there as a function like (value:)=>boolean or whatever the return type is (see below) - point here is that we might need to double-up this function so it returns a function. Not here though (Keep def DX simple) - we can do it inside the configureDataConstraint function.
 
 // main constraint definition type
 
-export type DataConstraint<
-    // this stuff is mainly for inference from the options into the dynamic info funcs, needs to be adapted to new recursive params/options type
-    OptionsSchema extends ZodSchema,
-    Options = z.infer<OptionsSchema>,
-    ValidateResult extends SafeParseReturnType<OptionsSchema, Options> = SafeParseReturnType<OptionsSchema, Options>
-> = {
-    //  should we inclide the ID in the object, or JUST have it as the key to the object containing it?
-    id: DataConstraintID
-    //  name/desc describing the constraint itself during setup
-    name: string
-    description: string
-
-    // defines the parameters for the constraint. In the functions for configuring, etc we should transform this to ease of use when implementing
-    options: OptionsSchema
-    // better name for this? These contraints (like required, since it's more primitive) are shown to the user as contraints as they exist externally but are still technically a type of constraint.
-    systemOnly: boolean
-    //  The types of primitive data that this constraint applies to.
-    forTypes: DataType["id"][]
-    //  If any of these constraint IDs exist, the will be replaced/warned to remove.
-    supersedes: DataConstraintID[]
-
-    //  The generated UI for the contraint once configured. Better name than info like display? Error is for if validation fails.
-    info: {
-        label: string | ((options: Options) => string)
-        description: string | ((options: Options) => string)
-
-        error?: {
-            label?: string | ((options: Options) => string)
-            description?: string | ((options: Options) => string)
-        }
-    }
-
-    //  The main function that validates the constraint. Better name for this? Also considering putting all "dynamic" info in a combined object to signify that it's not meant to be used from the definition object. We could even segregate it somehow.
-    validate: (options: Options) => (value: string) => ValidateResult
-}
-
-// To be function used for defining constraints. It has to be a function because the generic inference doesn't work properly as just a plain object.
-export function createDataConstraint<T extends ZodSchema>(props: DataConstraint<T>) {
-    return props
+// Helper function to create constraints with proper typing
+export function createDataConstraint<Options extends Record<string, DataConstraintOption>>(
+    props: Omit<DataConstraint<Options>, "type">
+) {
+    return { type: "constraint" as const, ...props }
 }
 
 // Internal definitions (DX case 1 to consider).
@@ -178,73 +184,67 @@ export const dataConstraints = {
     //     }
     // }),
     range: createDataConstraint({
+        id: "range",
         name: "Range",
         description: "The range of the value.",
 
-        // now I feel like this is a pretty good syntax for defining constraint options - can we do better?
+        forTypes: ["number"],
+        supersedes: ["min-value", "max-value"],
+
         options: {
             min: {
-                // since we use a similar syntax for name/desc of options as we do for the constraint, could we consolidate this format somehow? Although we may not need the additional label/desc, although we should include the error part - I thought about using zod's custom message field, but in cases where we don't pass Zod and instead use a custom function, it's not possible to use that. So we should probably create a similar "info" object for these options.
-                name: "Min",
-                description: "The minimum value.",
-
-                // We want to make this simple for DX, but also adaptable... should we keep this as a function, or just accept a zod schema (and alternatively allow a custom function to be passed in)? Should we require parsing here or just check if it's a zod schema and do that behind the scenes? I'm thinking the latter, simpler the better. but then calling it validate wouldn't make as much sense... more like schema, but then passing a custom func wouldn't make sense. We could create a union type with both but the more union types, the more confusion...
-                validate: value => z.number({ coerce: true }).safeParse(value).success
+                type: "value",
+                name: "Minimum",
+                description: "The minimum value allowed.",
+                schema: z.number()
             },
             max: {
-                name: "Max",
-                description: "The maximum value.",
-                //  This would make more sense to be called schema... idk what to do here
-                validate: z.number({ coerce: true })
+                type: "value",
+                name: "Maximum",
+                description: "The maximum value allowed.",
+                schema: z.number()
             },
-
             step: {
+                type: "group",
                 name: "Step",
-                description: "The step of the value.",
+                description: "Configure stepping behavior for the range.",
                 options: {
                     value: {
-                        name: "Value",
-                        description: "The value of the step.",
-                        schema: z.number({ coerce: true }).optional()
+                        type: "value",
+                        name: "Step Value",
+                        description: "The increment between allowed values.",
+                        schema: z.number().optional()
                     },
                     offset: {
-                        name: "Offset",
-                        description: "The offset of the step. Defaults to the minimum range value.",
-                        schema: z.number({ coerce: true }).optional()
+                        type: "value",
+                        name: "Step Offset",
+                        description: "The starting point for step calculations.",
+                        schema: z.number().optional()
                     }
                 }
             }
         },
-        systemOnly: false,
-        //  from a macro perspective - is there a better way we could filter the constraints? I think relying on these primitive types HAS to be the way, because all almost all validation on numbers is done different than strings, dates, range types (which aren't really types themselves, more like functions), etc. I haven't even considered the collection issue for this yet, but it can probably wait. I do feel like it might fit into that "function" category.
-        forTypes: ["number"],
-        // Any better way for this as well? Ties into overall organization, grouping, etc.
-        supersedes: ["min-value", "max-value"],
 
-        // Better name or structure for this? Should we segment (put all simple values in something like "range.definition", and these in something like "range.result" or _generated so that people don't call info from this instead of a configured constraint?)
-        generate: {
-            info: {
-                // these are specifically typed because inference isn't adapted yet but this wont even need a type def here
-                label: (options: { min: number; max: number; step?: number }) =>
-                    `Range: ${options.min}-${options.max}${options.step ? `, Step: ${options.step}` : ""}`,
-                description: (options: { min: number; max: number; step?: number }) =>
-                    `The value must be between ${options.min} and ${options.max}${options.step ? `, with a step of ${options.step}` : ""}.`,
+        info: {
+            label: options =>
+                `Range: ${options.min}-${options.max}${options.step?.value ? `, Step: ${options.step.value}` : ""}`,
+            description: options =>
+                `The value must be between ${options.min} and ${options.max}${
+                    options.step?.value ? `, with a step of ${options.step.value}` : ""
+                }.`,
+            error: {
+                label: "Exceeds Range"
+            }
+        },
 
-                //  If error or any of its contents arent provided, the message is inherited from the non-error part.
-                error: {
-                    label: "Exceeds Range"
-                }
-            },
-
-            //  Now ideally, again we're only going to call/reference this inside the configureDataConstraint function, but it should return from there as a function like (value:)=>boolean or whatever the return type is (see below) - point here is that we might need to double-up this function so it returns a function. Not here though (Keep def DX simple) - we can do it inside the configureDataConstraint function.
-
-            validate: options =>
-                z
-                    .number({ coerce: true })
-                    .min(options.min - (options.interval?.origin ?? 0))
-                    .max(options.max - (options.interval?.origin ?? 0))
-                    .step(options.interval?.value ?? 1)
-                    .safeParse(value - (options.interval?.origin ?? 0))
+        validate: options => {
+            const offset = options.step?.offset ?? 0
+            return z
+                .number({ coerce: true })
+                .min(options.min - offset)
+                .max(options.max - offset)
+                .step(options.step?.value ?? 1)
+                .safeParse(Number(value) - offset)
         }
     })
 } as const
