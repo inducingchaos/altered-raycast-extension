@@ -3,7 +3,7 @@
  */
 
 import { Type } from "arktype"
-import { Expand } from "../../../../sdkit/utils"
+import { Expand } from "../../../../../sdkit/utils"
 
 export type DataConstraintOption<Schema extends Type = Type> = {
     name: string

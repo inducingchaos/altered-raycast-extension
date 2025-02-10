@@ -3,8 +3,7 @@
  */
 
 import { Type } from "arktype"
-import { DataType } from "../../../../shared/data/definitions/type"
-import { rangeConstraint } from "./content"
+import { DataType } from "../../../../../shared/data/definitions/type"
 import { DataConstraintID } from "./ids"
 import { DataConstraintOptions, InferSchemaFromOptions } from "./options"
 
@@ -34,7 +33,3 @@ export function createDataConstraint<Options extends DataConstraintOptions<Optio
 ): DataConstraint<Options> {
     return props
 }
-
-export const dataConstraints = {
-    range: rangeConstraint
-} as const
