@@ -5,6 +5,8 @@
 // spell-checker: disable
 
 export const dataConstraintUids = {
+    required: "QFWPHA5M6P5Xw9sROR3w9",
+
     "min-length": "x_TXxF1Ver4jz9prlbgBc",
     "max-length": "-PWkRT-ZEndaHTRZtQLrl",
 
