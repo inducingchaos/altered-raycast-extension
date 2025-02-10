@@ -1,53 +1,3 @@
-/**
- *
- */
-
-import { z, ZodSchema, SafeParseReturnType } from "zod"
-import { ValidationRule } from "./validation"
-import { DataType } from "./types"
-
-//  Source of truth for constraint IDs, also provides an easier way to visualize/organize the constraints (assuming we have a lot of them, and no better way to structure/systemize them).
-export const dataConstraintIds = ["min-length", "max-length", "min-value", "max-value", "range"] as const
-
-export type DataConstraintID = (typeof dataConstraintIds)[number]
-
-/**
- * Defines the structure of a constraint's configuration options
- */
-export type DataConstraintOption<Schema extends ZodSchema = ZodSchema> = {
-    name: string
-    description: string
-} & ({ type: "group"; options: Record<string, DataConstraintOption> } | { type: "value"; schema: Schema })
-
-/**
- * Utility type to infer the schema structure from options definition
- */
-type InferSchemaFromOptions<T extends Record<string, DataConstraintOption>> = {
-    [K in keyof T]: T[K] extends { type: "value"; schema: ZodSchema }
-        ? z.infer<T[K]["schema"]>
-        : T[K] extends { type: "group"; options: Record<string, DataConstraintOption> }
-          ? InferSchemaFromOptions<T[K]["options"]>
-          : never
-}
-
-export type DataConstraint<Options extends Record<string, DataConstraintOption> = Record<string, DataConstraintOption>> =
-    ValidationRule & {
-        type: "constraint"
-        id: DataConstraintID
-        forTypes: DataType["id"][]
-        supersedes: DataConstraintID[]
-        options: Options
-        info: {
-            label: string | ((options: InferSchemaFromOptions<Options>) => string)
-            description: string | ((options: InferSchemaFromOptions<Options>) => string)
-            error?: {
-                label?: string | ((options: InferSchemaFromOptions<Options>) => string)
-                description?: string | ((options: InferSchemaFromOptions<Options>) => string)
-            }
-        }
-        validate: (options: InferSchemaFromOptions<Options>) => (value: string) => SafeParseReturnType<ZodSchema, unknown>
-    }
-
 //  DELETED COMMENTS THAT WE STILL NEED
 
 // on options schema: // should we have more info here for an error message, etc on validation?
@@ -69,207 +19,108 @@ export type DataConstraint<Options extends Record<string, DataConstraintOption> 
 
 // main constraint definition type
 
-// Helper function to create constraints with proper typing
-export function createDataConstraint<Options extends Record<string, DataConstraintOption>>(
-    props: Omit<DataConstraint<Options>, "type">
-) {
-    return { type: "constraint" as const, ...props }
-}
+// required: createDataConstraint({
+//     id: "required",
+//     name: "Required",
+//     description: "Whether or not the value is required.",
 
-// Internal definitions (DX case 1 to consider).
+//     optionsSchema: z.null(),
+//     systemOnly: true,
+//     forTypes: ["string", "number", "boolean"],
+//     supersedes: [],
 
-// Commented ones use outdated syntax, we're gonna start by getting the most complex one working then adapt these.
+//     info: {
+//         label: "Required",
+//         description: "The content cannot be empty."
+//     }
+// }),
 
-export const dataConstraints = {
-    // required: createDataConstraint({
-    //     id: "required",
-    //     name: "Required",
-    //     description: "Whether or not the value is required.",
+// "min-length": createDataConstraint({
+//     id: "min-length",
+//     name: "Min Length",
+//     description: "The minimum length of the value.",
 
-    //     optionsSchema: z.null(),
-    //     systemOnly: true,
-    //     forTypes: ["string", "number", "boolean"],
-    //     supersedes: [],
+//     optionsSchema: z.object({
+//         value: z.number({ coerce: true })
+//     }),
+//     systemOnly: false,
+//     forTypes: ["string"],
+//     supersedes: [],
 
-    //     info: {
-    //         label: "Required",
-    //         description: "The content cannot be empty."
-    //     }
-    // }),
+//     info: {
+//         label: (options: { value: number }) => `Min Length: ${options.value}`,
+//         description: (options: { value: number }) =>
+//             `The content must be at least ${options.value} character${options.value === 1 ? "" : "s"}.`,
 
-    // "min-length": createDataConstraint({
-    //     id: "min-length",
-    //     name: "Min Length",
-    //     description: "The minimum length of the value.",
+//         error: {
+//             label: "Too Short"
+//         }
+//     }
+// }),
 
-    //     optionsSchema: z.object({
-    //         value: z.number({ coerce: true })
-    //     }),
-    //     systemOnly: false,
-    //     forTypes: ["string"],
-    //     supersedes: [],
+// "max-length": createDataConstraint({
+//     id: "max-length",
+//     name: "Max Length",
+//     description: "The maximum length of the value.",
 
-    //     info: {
-    //         label: (options: { value: number }) => `Min Length: ${options.value}`,
-    //         description: (options: { value: number }) =>
-    //             `The content must be at least ${options.value} character${options.value === 1 ? "" : "s"}.`,
+//     optionsSchema: z.object({
+//         value: z.number({ coerce: true })
+//     }),
+//     systemOnly: false,
+//     forTypes: ["string"],
+//     supersedes: [],
 
-    //         error: {
-    //             label: "Too Short"
-    //         }
-    //     }
-    // }),
+//     info: {
+//         label: (options: { value: number }) => `Max Length: ${options.value}`,
+//         description: (options: { value: number }) =>
+//             `The content must be ${options.value} character${options.value === 1 ? "" : "s"} or less.`,
 
-    // "max-length": createDataConstraint({
-    //     id: "max-length",
-    //     name: "Max Length",
-    //     description: "The maximum length of the value.",
+//         error: {
+//             label: "Exceeds Max Length"
+//         }
+//     }
+// }),
 
-    //     optionsSchema: z.object({
-    //         value: z.number({ coerce: true })
-    //     }),
-    //     systemOnly: false,
-    //     forTypes: ["string"],
-    //     supersedes: [],
+// "min-value": createDataConstraint({
+//     id: "min-value",
+//     name: "Min Value",
+//     description: "The minimum value.",
 
-    //     info: {
-    //         label: (options: { value: number }) => `Max Length: ${options.value}`,
-    //         description: (options: { value: number }) =>
-    //             `The content must be ${options.value} character${options.value === 1 ? "" : "s"} or less.`,
+//     optionsSchema: z.object({
+//         value: z.number({ coerce: true })
+//     }),
+//     systemOnly: false,
+//     forTypes: ["number"],
+//     supersedes: [],
 
-    //         error: {
-    //             label: "Exceeds Max Length"
-    //         }
-    //     }
-    // }),
+//     info: {
+//         label: (options: { value: number }) => `Min: ${options.value}`,
+//         description: (options: { value: number }) => `The value must be greater than or equal to ${options.value}.`,
 
-    // "min-value": createDataConstraint({
-    //     id: "min-value",
-    //     name: "Min Value",
-    //     description: "The minimum value.",
+//         error: {
+//             label: "Below Min Value"
+//         }
+//     }
+// }),
+// "max-value": createDataConstraint({
+//     id: "max-value",
+//     name: "Max Value",
+//     description: "The maximum value.",
+//     optionsSchema: z.object({
+//         value: z.number({ coerce: true })
+//     }),
+//     systemOnly: false,
+//     forTypes: ["number"],
+//     supersedes: [],
 
-    //     optionsSchema: z.object({
-    //         value: z.number({ coerce: true })
-    //     }),
-    //     systemOnly: false,
-    //     forTypes: ["number"],
-    //     supersedes: [],
-
-    //     info: {
-    //         label: (options: { value: number }) => `Min: ${options.value}`,
-    //         description: (options: { value: number }) => `The value must be greater than or equal to ${options.value}.`,
-
-    //         error: {
-    //             label: "Below Min Value"
-    //         }
-    //     }
-    // }),
-    // "max-value": createDataConstraint({
-    //     id: "max-value",
-    //     name: "Max Value",
-    //     description: "The maximum value.",
-    //     optionsSchema: z.object({
-    //         value: z.number({ coerce: true })
-    //     }),
-    //     systemOnly: false,
-    //     forTypes: ["number"],
-    //     supersedes: [],
-
-    //     info: {
-    //         label: (options: { value: number }) => `Max: ${options.value}`,
-    //         description: (options: { value: number }) => `The value must be less than or equal to ${options.value}.`,
-    //         error: {
-    //             label: "Exceeds Max Value"
-    //         }
-    //     }
-    // }),
-    range: createDataConstraint({
-        id: "range",
-        name: "Range",
-        description: "The range of the value.",
-
-        forTypes: ["number"],
-        supersedes: ["min-value", "max-value"],
-
-        options: {
-            min: {
-                type: "value",
-                name: "Minimum",
-                description: "The minimum value allowed.",
-                schema: z.number()
-            },
-            max: {
-                type: "value",
-                name: "Maximum",
-                description: "The maximum value allowed.",
-                schema: z.number()
-            },
-            step: {
-                type: "group",
-                name: "Step",
-                description: "Configure stepping behavior for the range.",
-                options: {
-                    value: {
-                        type: "value",
-                        name: "Step Value",
-                        description: "The increment between allowed values.",
-                        schema: z.number().optional()
-                    },
-                    offset: {
-                        type: "value",
-                        name: "Step Offset",
-                        description: "The starting point for step calculations.",
-                        schema: z.number().optional()
-                    }
-                }
-            }
-        },
-
-        info: {
-            label: options =>
-                `Range: ${options.min}-${options.max}${options.step?.value ? `, Step: ${options.step.value}` : ""}`,
-            description: options =>
-                `The value must be between ${options.min} and ${options.max}${
-                    options.step?.value ? `, with a step of ${options.step.value}` : ""
-                }.`,
-            error: {
-                label: "Exceeds Range"
-            }
-        },
-
-        validate: options => {
-            const offset = options.step?.offset ?? 0
-            return z
-                .number({ coerce: true })
-                .min(options.min - offset)
-                .max(options.max - offset)
-                .step(options.step?.value ?? 1)
-                .safeParse(Number(value) - offset)
-        }
-    })
-} as const
-
-// This stuff was for type inference for the config object before we made it recursive and partially literal instead of an entire ZodSchema.
-
-// This is a test
-
-type T = typeof dataConstraints.range.optionsSchema
-
-//  This type will need to be adapted for the following
-
-// export type DataConstraintConfigOptions<
-//     ID extends DataConstraintID,
-//     CamelCaseID extends CamelCaseDataConstraintID = KebabCaseToCamelCase<ID>,
-//     Constraint extends DataConstraint = (typeof dataConstraints)[CamelCaseID],
-//     OptionsSchema = Constraint["optionsSchema"]
-// > = OptionsSchema extends ZodSchema ? z.infer<OptionsSchema> : never
-
-//  This defines the inferred config shape and details needed.
-
-// export type DataConstraintConfig<ID extends DataConstraintID = DataConstraintID> = {
-//     id: ID
-//     options: DataConstraintConfigOptions<ID>
-// }
+//     info: {
+//         label: (options: { value: number }) => `Max: ${options.value}`,
+//         description: (options: { value: number }) => `The value must be less than or equal to ${options.value}.`,
+//         error: {
+//             label: "Exceeds Max Value"
+//         }
+//     }
+// }),
 
 /* EXAMPLE IMPLEMENTATION (DX Case 3)  */
 

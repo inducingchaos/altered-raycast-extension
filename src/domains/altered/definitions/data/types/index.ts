@@ -2,13 +2,20 @@
  *
  */
 
+// spell-checker: disable
+
 import { type Type } from "arktype"
 import { numberType } from "./number"
 import { booleanType } from "./boolean"
 import { stringType } from "./string"
 
-export const dataTypeIds = ["string", "number", "boolean"] as const
-export type DataTypeID = (typeof dataTypeIds)[number]
+export const dataTypeUids = {
+    string: "9okMH4XWED_QbXGMiNNX5",
+    number: "uQdkaIp8SLkkBAXZ_RKe-",
+    boolean: "ESaRMNKcX1_znoAGbA2CN"
+} as const
+export const dataTypeIds = Object.keys(dataTypeUids)
+export type DataTypeID = keyof typeof dataTypeUids
 
 export type DataTypeInfo = {
     name: string

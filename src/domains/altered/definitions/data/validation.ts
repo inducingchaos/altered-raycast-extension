@@ -1,9 +1,10 @@
-import { SafeParseReturnType, z, ZodSchema } from "zod"
+import { SafeParseReturnType } from "zod"
+import { Type } from "arktype"
 
 /**
  * Base interface for anything that validates and displays validation info
  */
-export type ValidationRule<OptionsSchema extends ZodSchema = ZodSchema, Options = z.infer<OptionsSchema>> = {
+export type ValidationRule<OptionsSchema extends Type = Type, Options = OptionsSchema["infer"]> = {
     name: string
     description: string
     options: OptionsSchema
