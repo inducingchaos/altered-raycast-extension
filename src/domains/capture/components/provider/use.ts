@@ -3,12 +3,12 @@
  */
 
 import { useContext } from "react"
-import { CaptureListContext } from "./context"
-import type { CaptureListContextState } from "./types"
+import { CaptureContext } from "./context"
+import type { CaptureContextState } from "./types"
 
-export function useCaptureList(): CaptureListContextState {
-    const context = useContext(CaptureListContext)
-    if (!context) throw new Error("`useCaptureList` must be used within a `CaptureListContextProvider`.")
+export function useCapture(): CaptureContextState {
+    const context = useContext(CaptureContext)
+    if (!context) throw new Error("`useCapture` must be used within a `CaptureContextProvider`.")
 
     return context
 }

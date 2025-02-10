@@ -3,6 +3,6 @@
  */
 
 import { createContext } from "react"
-import type { CaptureListContextState } from "./types"
+import type { CaptureContextState } from "./types"
 
-export const CaptureListContext = createContext<CaptureListContextState | undefined>(undefined)
+export const CaptureContext = createContext<CaptureContextState | undefined>(undefined)

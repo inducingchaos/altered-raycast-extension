@@ -3,10 +3,10 @@
  */
 
 import { Action, ActionPanel, Icon } from "@raycast/api"
-import { useCaptureList } from "../components/provider"
+import { useCapture } from "../components/provider"
 
 export function ModifyActions(): JSX.Element {
-    const { setDataStore } = useCaptureList()
+    const { setDataStore } = useCapture()
 
     return (
         <ActionPanel.Section title="Modify">

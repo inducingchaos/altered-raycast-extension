@@ -8,10 +8,10 @@ import { setTimeout } from "timers/promises"
 import { DataStore } from "../../types"
 import { SerializableDataColumn } from "../../../shared/data/definitions"
 import { validateStore } from "../../../shared/data/utils/rules/validate/store"
-import { useCaptureList } from "../../components/provider"
+import { useCapture } from "../../components/provider"
 
 export function SubmitActions(): JSX.Element {
-    const { columns, dataStore, setDataStore } = useCaptureList()
+    const { columns, dataStore, setDataStore } = useCapture()
 
     return (
         <ActionPanel.Section title="Submit">

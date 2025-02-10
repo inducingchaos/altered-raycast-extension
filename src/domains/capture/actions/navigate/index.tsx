@@ -3,59 +3,54 @@
  */
 
 import { Action, ActionPanel, Icon } from "@raycast/api"
+import { SelectListItemAction } from "@sdkit/domains/raycast/actions/navigation/select-row"
 import { Dispatch, SetStateAction } from "react"
 import { SerializableDataColumn } from "../../../shared/data/definitions"
-import { useCaptureList } from "../../components/provider"
-import { onSelectionChange } from "../../handlers"
+import { useCapture } from "../../components/provider"
 import { DataStore } from "../../types"
 
 export function NavigateActions(): JSX.Element {
-    const { columns, selectedItemId, setSelectedItemId, selectedItemIdUpdatedAt, dataStore, setDataStore } = useCaptureList()
+    const { columns, dataStore, setDataStore, schema, state } = useCapture()
 
     return (
         <ActionPanel.Section title="Navigate">
-            <Action
-                title="Next"
-                icon={Icon.ArrowRight}
-                shortcut={{ modifiers: [], key: "tab" }}
-                onAction={() => {
-                    const currentIndex = columns.findIndex(column => column.id === selectedItemId)
-                    const nextIndex = (currentIndex + 1) % columns.length
-
-                    onSelectionChange({
-                        selectedItemIdUpdatedAt,
-                        selectedItemId: columns[nextIndex]?.id,
-                        setSelectedItemId
-                    })
-                }}
+            <SelectListItemAction
+                direction="next"
+                schema={schema}
+                state={{ selection: { id: state.selection.id, set: state.selection.set } }}
             />
-            <Action
-                title="Previous"
-                icon={Icon.ArrowLeft}
-                shortcut={{ modifiers: ["shift"], key: "tab" }}
-                onAction={() => {
-                    const currentIndex = columns.findIndex(column => column.id === selectedItemId)
-                    const previousIndex = (currentIndex - 1 + columns.length) % columns.length
-
-                    onSelectionChange({
-                        selectedItemIdUpdatedAt,
-                        selectedItemId: columns[previousIndex]?.id,
-                        setSelectedItemId
-                    })
-                }}
+            <SelectListItemAction
+                direction="previous"
+                schema={schema}
+                state={{ selection: { id: state.selection.id, set: state.selection.set } }}
             />
-
             <Action
                 title="Next Option"
                 icon={Icon.ArrowRightCircle}
                 shortcut={{ modifiers: ["ctrl"], key: "tab" }}
-                onAction={() => selectOption({ inDirection: "next", columns, dataStore, setDataStore, selectedItemId })}
+                onAction={() =>
+                    selectOption({
+                        inDirection: "next",
+                        columns,
+                        dataStore,
+                        setDataStore,
+                        selectedItemId: state.selection.id
+                    })
+                }
             />
             <Action
                 title="Previous Option"
                 icon={Icon.ArrowLeftCircle}
                 shortcut={{ modifiers: ["shift", "ctrl"], key: "tab" }}
-                onAction={() => selectOption({ inDirection: "previous", columns, dataStore, setDataStore, selectedItemId })}
+                onAction={() =>
+                    selectOption({
+                        inDirection: "previous",
+                        columns,
+                        dataStore,
+                        setDataStore,
+                        selectedItemId: state.selection.id
+                    })
+                }
             />
         </ActionPanel.Section>
     )

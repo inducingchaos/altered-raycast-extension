@@ -2,13 +2,14 @@
  *
  */
 
+import { thoughtsSchema } from "~/domains/shared/data/system"
 import { DataColumnList } from "./list"
-import { CaptureListContextProvider } from "./provider"
+import { CaptureContextProvider } from "./provider"
 
 export function CaptureLayout() {
     return (
-        <CaptureListContextProvider>
+        <CaptureContextProvider config={{ schema: thoughtsSchema }}>
             <DataColumnList />
-        </CaptureListContextProvider>
+        </CaptureContextProvider>
     )
 }

@@ -3,11 +3,11 @@
  */
 
 import { List } from "@raycast/api"
-import { useCaptureList } from "../provider"
+import { useCapture } from "../provider"
 import { DataColumnListItem } from "./item"
 
 export function DataColumnListSection(): JSX.Element {
-    const { columns } = useCaptureList()
+    const { columns } = useCapture()
 
     return (
         <List.Section>

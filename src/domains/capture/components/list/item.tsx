@@ -7,10 +7,10 @@ import { useMemo } from "react"
 import { dataTypes, SerializableDataColumn } from "../../../shared/data/definitions"
 import { CaptureActions } from "../../actions"
 import { createDataColumnListItemAccessories } from "../../utils"
-import { useCaptureList } from "../provider"
+import { useCapture } from "../provider"
 
 export function DataColumnListItem({ column }: { column: SerializableDataColumn }): JSX.Element {
-    const { dataStore, selectedItemId } = useCaptureList()
+    const { dataStore, selectedItemId } = useCapture()
 
     const isSelected = selectedItemId === column.id
 

@@ -4,7 +4,7 @@
 
 import { List } from "@raycast/api"
 import { onSearchTextChange, onSelectionChange } from "../../handlers"
-import { useCaptureList } from "../provider"
+import { useCapture } from "../provider"
 import { DataColumnListSection } from "./section"
 
 export function DataColumnList() {
@@ -20,7 +20,7 @@ export function DataColumnList() {
 
         searchText,
         searchBarPlaceholder
-    } = useCaptureList()
+    } = useCapture()
 
     return (
         <List

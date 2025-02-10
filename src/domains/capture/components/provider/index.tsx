@@ -4,20 +4,20 @@
 
 "use client"
 
-import { useRef, useState, type JSX } from "react"
-import { thoughtsSchema } from "../../../shared/data/system/schemas/thoughts"
+import { useMemo, useRef, useState, type JSX } from "react"
 import { DataStore } from "../../types"
-import { CaptureListContext } from "./context"
-import type { CaptureListContextProviderProps } from "./types"
+import { CaptureContext } from "./context"
+import type { CaptureContextProviderProps } from "./types"
+import { onSelectionChange } from "../../handlers"
 
-export function CaptureListContextProvider({ children }: CaptureListContextProviderProps): JSX.Element {
+export function CaptureContextProvider({ config, children }: CaptureContextProviderProps): JSX.Element {
     const [dataStore, setDataStore] = useState<DataStore>(new Map())
     const dataStoreUpdatedAt = useRef<number | undefined>()
 
     const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
     const selectedItemIdUpdatedAt = useRef<number | undefined>()
 
-    const columns = thoughtsSchema.columns
+    const columns = config.schema.columns
     const selectedColumn = columns.find(column => column.id === selectedItemId)
 
     const searchText = (selectedItemId && dataStore.get(selectedItemId)?.value) ?? ""
@@ -26,8 +26,24 @@ export function CaptureListContextProvider({ children }: CaptureListContextProvi
         "Loading"
     }...`
 
+    const schema = {
+        items: columns
+    }
+
+    const state = useMemo(
+        () => ({
+            selection: {
+                id: selectedItemId,
+                updatedAt: selectedItemIdUpdatedAt.current,
+                set: (id: string | undefined) =>
+                    onSelectionChange({ selectedItemId: id ?? null, setSelectedItemId, selectedItemIdUpdatedAt })
+            }
+        }),
+        [selectedItemId]
+    )
+
     return (
-        <CaptureListContext.Provider
+        <CaptureContext.Provider
             value={{
                 dataStore,
                 setDataStore,
@@ -38,11 +54,13 @@ export function CaptureListContextProvider({ children }: CaptureListContextProvi
                 columns,
                 selectedColumn,
                 searchText,
-                searchBarPlaceholder
+                searchBarPlaceholder,
+                schema,
+                state
             }}
         >
             {children}
-        </CaptureListContext.Provider>
+        </CaptureContext.Provider>
     )
 }
 
