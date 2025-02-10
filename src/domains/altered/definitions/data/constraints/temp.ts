@@ -212,3 +212,25 @@ I also don't know where in this model collections, (maybe objects? Although any 
 What are your thoughts on these conclusions based on knowledge of other people's implementations, and could you help me find some clarity on that what and where, etc? Please try to hit all of my points.
 
 */
+
+// This stuff was for type inference for the config object before we made it recursive and partially literal instead of an entire ZodSchema.
+
+// This is a test
+
+// type T = (typeof dataConstraints.range.testOptions)["infer"]
+
+//  This type will need to be adapted for the following
+
+// export type DataConstraintConfigOptions<
+//     ID extends DataConstraintID,
+//     CamelCaseID extends CamelCaseDataConstraintID = KebabCaseToCamelCase<ID>,
+//     Constraint extends DataConstraint = (typeof dataConstraints)[CamelCaseID],
+//     OptionsSchema = Constraint["optionsSchema"]
+// > = OptionsSchema extends ZodSchema ? z.infer<OptionsSchema> : never
+
+//  This defines the inferred config shape and details needed.
+
+// export type DataConstraintConfig<ID extends DataConstraintID = DataConstraintID> = {
+//     id: ID
+//     options: DataConstraintConfigOptions<ID>
+// }
