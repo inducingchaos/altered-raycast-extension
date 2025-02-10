@@ -2,8 +2,8 @@
  *
  */
 
-import { HFSchema } from "./schema"
+import { HyperFormConfig } from "./config"
 
-export type HyperFormOptions = {
-    schema: HFSchema
+export type HyperFormProps = {
+    config: HyperFormConfig
 }

@@ -5,7 +5,7 @@
     "description": "Knowledge systems for the obsessed.",
     "icon": "icon.png",
     "author": "inducingchaos",
-    "owner": "rileybarabash",
+    "owner": "inducingchaos",
     "access": "public",
     "categories": [
         "Productivity",
@@ -41,16 +41,16 @@
             ]
         },
         {
-            "name": "example-show-typeahead-results",
-            "title": "Show Typeahead Results CMD",
-            "subtitle": "Dynamic search with live suggestions.",
-            "description": "Dynamic search with live suggestions.",
-            "mode": "view"
-        },
-        {
             "name": "capture",
             "title": "Capture a Thought",
             "subtitle": "ALTERED Capture",
+            "description": "Provides an interface for drafting and refining thoughts for your ALTERED brain.",
+            "mode": "view"
+        },
+        {
+            "name": "hyper-capture",
+            "title": "Hyper Capture",
+            "subtitle": "ALTERED Hyper Capture",
             "description": "Provides an interface for drafting and refining thoughts for your ALTERED brain.",
             "mode": "view"
         }

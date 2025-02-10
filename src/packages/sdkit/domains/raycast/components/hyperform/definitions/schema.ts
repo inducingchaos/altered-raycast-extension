@@ -2,8 +2,11 @@
  *
  */
 
-import { HFRow } from "./row"
+import { HyperFormField } from "./field"
 
-export type HFSchema = {
-    rows: HFRow[]
+export type HyperFormSchema = {
+    id: string
+    name: string
+    description: string
+    fields: HyperFormField[]
 }

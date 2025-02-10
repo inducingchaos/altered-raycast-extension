@@ -2,7 +2,8 @@
  *
  */
 
-export * from "./schema"
+export * from "./constraint"
+export * from "./field"
 export * from "./props"
-export * from "./row"
-export * from "./data-type"
+export * from "./schema"
+export * from "./config"
