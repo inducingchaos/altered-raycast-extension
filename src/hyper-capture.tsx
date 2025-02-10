@@ -39,6 +39,22 @@ export default function HyperCapture() {
                                 constraints: []
                             }
                         ]
+                    },
+                    {
+                        // spell-checker: disable
+                        id: "MZE7hrH67zPNKhz3cepuY",
+                        name: "App Ideas",
+                        description: "",
+                        fields: [
+                            {
+                                id: "name",
+                                name: "Name",
+                                description: "The name of the app idea.",
+                                type: "string",
+                                required: true,
+                                constraints: []
+                            }
+                        ]
                     }
                 ]
             }}
