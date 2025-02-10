@@ -20,17 +20,6 @@ export const dataConstraintUids = {
 export const dataConstraintIds = Object.keys(dataConstraintUids)
 export type DataConstraintID = keyof typeof dataConstraintUids
 
-/**
- * Utility type to infer the schema structure from options definition
- */
-type InferSchemaFromOptions<Options extends DataConstraintOptions> = {
-    [Key in keyof Options]: Options[Key] extends { type: "value"; schema: Type }
-        ? Options[Key]["schema"]["infer"]
-        : Options[Key] extends { type: "group"; options: infer GroupOptions }
-          ? InferSchemaFromOptions<GroupOptions & DataConstraintOptions>
-          : never
-}
-
 export type DataConstraint<Options extends DataConstraintOptions = DataConstraintOptions, T extends Type = Type> = {
     type: "constraint"
 
@@ -149,51 +138,17 @@ export const dataConstraints = {
 //     options: DataConstraintConfigOptions<ID>
 // }
 
-/* THIS CORRECTLY INFERS THE TYPE OF THE SCHEMA */
+// Helper to force TypeScript to simplify complex types
+type Simplify<T> = { [K in keyof T]: T[K] } & {}
 
-type GenericObject<T extends Type = Type> = {
-    schema: T
-    options?: Record<string, GenericObject<T>>
-}
-
-function createGenericObject<T extends GenericObject<U>, U extends Type>(options: T): T {
-    return options
-}
-
-// needs to be create with func - ptherwise inference wont work
-
-const genericObject2 = createGenericObject({
-    schema: type("string"),
-    options: {
-        number: {
-            schema: type("number"),
-            options: {
-                boolean: {
-                    schema: type("boolean")
-                }
-            }
-        }
-    }
-})
-
-type InferRecursively<T extends GenericObject<Type>> = {
-    schema: T["schema"]["infer"]
-    options: {
-        [Key in keyof T["options"]]: T["options"][Key]
-    }
-}
-
-type InferredSchema = InferRecursively<typeof genericObject2>
-
-/* NOW, WE NEED TO DO IT RECURSIVELY USING THIS TYPE */
-
+// Recursive types as before
 export type DataConstraintOption<Schema extends Type = Type> = {
     name: string
     description: string
 } & (
     | {
           type: "group"
-          options: Record<string, DataConstraintOption>
+          options: DataConstraintOptions<Schema>
       }
     | {
           type: "value"
@@ -201,8 +156,56 @@ export type DataConstraintOption<Schema extends Type = Type> = {
       }
 )
 
-export type DataConstraintOptions = Record<string, DataConstraintOption>
+export type DataConstraintOptions<Schema extends Type = Type> = Record<string, DataConstraintOption<Schema>>
 
-// ...
+function createDataConstraint2<T extends DataConstraintOptions<U>, U extends Type>(options: T): T {
+    return options
+}
 
-type InferredRecursiveSchema = "placeholder"
+const dataConstraint2 = createDataConstraint2({
+    min: {
+        type: "value",
+        name: "Minimum",
+        description: "The minimum value allowed.",
+        schema: type("number")
+    },
+    max: {
+        type: "value",
+        name: "Maximum",
+        description: "The maximum value allowed.",
+        schema: type("number")
+    },
+    step: {
+        type: "group",
+        name: "Step",
+        description: "Configure stepping behavior for the range.",
+        options: {
+            value: {
+                type: "value",
+                name: "Step Value",
+                description: "The increment between allowed values.",
+                schema: type("number | undefined")
+            },
+            offset: {
+                type: "value",
+                name: "Step Offset",
+                description: "The starting point for step calculations.",
+                schema: type("number | undefined")
+            }
+        }
+    }
+})
+
+type InferSchemaFromOptions<T extends DataConstraintOptions<Type>> = {
+    [Key in keyof T]: T[Key] extends { type: "value"; schema: Type }
+        ? T[Key]["schema"]["infer"]
+        : T[Key] extends { type: "group"; options: infer GroupOptions }
+          ? InferSchemaFromOptions<GroupOptions & DataConstraintOptions<Type>>
+          : never
+}
+
+type InferredSchema = InferSchemaFromOptions<typeof dataConstraint2>
+
+function test(props: InferredSchema): boolean {
+    return props.step.offset
+}
