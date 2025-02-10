@@ -7,6 +7,7 @@
 import { z, ZodSchema, SafeParseReturnType } from "zod"
 import { DataType } from "../types"
 import { Type, type } from "arktype"
+import { Expand } from "../../../../sdkit/utils"
 
 export const dataConstraintUids = {
     "min-length": "x_TXxF1Ver4jz9prlbgBc",
@@ -138,9 +139,6 @@ export const dataConstraints = {
 //     options: DataConstraintConfigOptions<ID>
 // }
 
-// Helper to force TypeScript to simplify complex types
-type Simplify<T> = { [K in keyof T]: T[K] } & {}
-
 // Recursive types as before
 export type DataConstraintOption<Schema extends Type = Type> = {
     name: string
@@ -196,16 +194,12 @@ const dataConstraint2 = createDataConstraint2({
     }
 })
 
-type InferSchemaFromOptions<T extends DataConstraintOptions<Type>> = {
+type InferSchemaFromOptions<T extends DataConstraintOptions<Type>> = Expand<{
     [Key in keyof T]: T[Key] extends { type: "value"; schema: Type }
         ? T[Key]["schema"]["infer"]
         : T[Key] extends { type: "group"; options: infer GroupOptions }
           ? InferSchemaFromOptions<GroupOptions & DataConstraintOptions<Type>>
           : never
-}
+}>
 
-type InferredSchema = InferSchemaFromOptions<typeof dataConstraint2>
-
-function test(props: InferredSchema): boolean {
-    return props.step.offset
-}
+export type InferredSchema = InferSchemaFromOptions<typeof dataConstraint2>
