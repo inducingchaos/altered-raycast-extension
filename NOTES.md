@@ -162,6 +162,8 @@ Next, after:
 
 - !!! don't worry too much about prototyping the app past simple add-remove, focus on adding thoughts and developing framework APIs for AI to rapidly build with and use
 
+- Consider extending properties on `DataConstraintOption` to include validation errors.
+
 ```
 type RequestData = Record<string, unknown>
 

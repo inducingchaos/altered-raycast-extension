@@ -1,8 +1,5 @@
 //  DELETED COMMENTS THAT WE STILL NEED
 
-// on options schema: // should we have more info here for an error message, etc on validation?
-
-//  should we inclide the ID in the object, or JUST have it as the key to the object containing it?
 // Options: In the functions for configuring, etc we should transform this to ease of use when implementing
 //  These contraints (like required, since it's more primitive) are shown to the user as contraints as they exist externally but are still technically a type of constraint. >>> primitive data types are also kind of constraints, as they need validation
 //  The generated UI for the contraint once configured. Better name than info like display? Error is for if validation fails.

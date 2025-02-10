@@ -7,8 +7,8 @@ import { DataType } from "~/domains/shared/data/definitions/type"
 import { DataConstraintID } from "./ids"
 import { DataConstraintOptions, InferSchemaFromOptions } from "./options"
 
-export type DataConstraint<Options extends DataConstraintOptions> = {
-    id: DataConstraintID
+export type DataConstraint<ID extends DataConstraintID, Options extends DataConstraintOptions> = {
+    id: ID
     name: string
     description: string | ((options: InferSchemaFromOptions<Options>) => string)
 
@@ -27,8 +27,10 @@ export type DataConstraint<Options extends DataConstraintOptions> = {
     validate: (value: string, options: InferSchemaFromOptions<Options>) => boolean
 }
 
-export function createDataConstraint<Options extends DataConstraintOptions<OptionType>, OptionType extends Type>(
-    props: DataConstraint<Options>
-): DataConstraint<Options> {
+export function createDataConstraint<
+    ID extends DataConstraintID,
+    Options extends DataConstraintOptions<OptionType>,
+    OptionType extends Type
+>(props: DataConstraint<ID, Options>): DataConstraint<ID, Options> {
     return props
 }
