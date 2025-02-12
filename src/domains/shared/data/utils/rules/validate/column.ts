@@ -25,7 +25,7 @@ export function validateDataColumn({ value, column }: { value: string; column: S
     if (!column.required && !value.length) return { success: true, errors: [] }
 
     const typeError = !validateType({ id: column.type, value })
-        ? dataTypes[column.type as keyof typeof dataTypes].info.error
+        ? Object.values(dataTypes).find(type => type.id === column.type)?.info.error
         : undefined
 
     // fix data rule error key conflict

@@ -25,4 +25,4 @@ export const dataTypes = {
     string: stringType,
     number: numberType,
     boolean: booleanType
-} satisfies VerifyDataTypeKeys
+} as const satisfies VerifyDataTypeKeys

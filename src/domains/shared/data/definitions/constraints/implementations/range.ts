@@ -21,7 +21,8 @@ export const rangeConstraint = createDataConstraint({
     },
 
     types: ["number"],
-    supersedes: ["min-value", "max-value"],
+    supersedes: [],
+    // supersedes: ["min-value", "max-value"],
 
     options: {
         min: {

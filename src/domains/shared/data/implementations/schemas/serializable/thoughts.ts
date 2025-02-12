@@ -5,7 +5,7 @@
 // spell-checker: disable
 
 import { dataTypes, SerializableDataSchema } from "../../../definitions"
-import { max10Rule, maxLength255Rule, min0Rule } from "../../rules"
+import { createSerializableDataConstraint, dataConstraints } from "../../../definitions/constraints"
 
 // our serializable schema should have everything EXCEPT functions/logic, that needs to be constant in our shared package code
 
@@ -14,33 +14,65 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
     description: "A collection of the thoughts in your ALTERED brain.",
 
     columns: [
-        {
-            name: "Content",
-            description: "The description of your thought.",
-            type: dataTypes.string.id,
-            required: true,
-            rules: [maxLength255Rule]
-        },
-        {
-            name: "Alias",
-            description: "A name for your thought.",
-            type: dataTypes.string.id,
-            required: false
-        },
+        // {
+        //     name: "Content",
+        //     description: "The description of your thought.",
+        //     type: dataTypes.string.id,
+        //     required: true,
+        //     constraints: [
+        //         {
+        //             id: dataConstraints.maxLength.id,
+        //             parameters: {
+        //                 value: 255
+        //             }
+        //         }
+        // },
+        // {
+        //     name: "Alias",
+        //     description: "A name for your thought.",
+        //     type: dataTypes.string.id,
+        //     required: false
+        // },
         {
             name: "Priority",
             description: "Level of significance.",
             type: dataTypes.number.id,
             required: false,
-            rules: [min0Rule, max10Rule]
-        },
-        {
-            name: "Sensitive",
-            description: "Whether the thought is sensitive.",
-            type: dataTypes.boolean.id,
-            required: true,
-            default: "false"
+            constraints: [
+                createSerializableDataConstraint({
+                    id: dataConstraints.range.id,
+                    parameters: {
+                        min: 1,
+                        max: 11,
+                        step: {
+                            value: 2,
+                            offset: 0.25
+                        }
+                    }
+                })
+            ]
         }
+        // {
+        //     name: "Sensitive",
+        //     description: "Whether the thought is sensitive.",
+        //     type: dataTypes.boolean.id,
+        //     required: true,
+        //     default: "false"
+        // },
+        // {
+        //     name: "Options Test",
+        //     description: "The date and time the thought was created.",
+        //     type: dataTypes.string.id,
+        //     required: true,
+        //     default: "now",
+        //     constraints: [
+        //         {
+        //             id: dataConstraints.enum.id,
+        //             parameters: {
+        //                 values: ["now", "soon", "later"]
+        //             }
+        //         }
+        // }
     ]
 }
 
