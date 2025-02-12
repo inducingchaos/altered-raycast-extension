@@ -5,18 +5,17 @@
 // spell-checker: disable
 
 import { nanoid } from "nanoid"
-import { dataTypes, SerializableDataSchema } from "../../definitions"
-import { max10Rule, maxLength255Rule, min0Rule } from "../rules"
+import { dataTypes, SerializableDataSchema } from "../../../definitions"
+import { max10Rule, maxLength255Rule, min0Rule } from "../../rules"
 
-export const thoughtsSchema: SerializableDataSchema = {
-    id: nanoid(),
+// our serializable schema should have everything EXCEPT functions/logic, that needs to be constant in our shared package code
+
+export const serializableThoughtsSchema: SerializableDataSchema = {
     name: "Thoughts",
     description: "A collection of the thoughts in your ALTERED brain.",
-    system: true,
 
     columns: [
         {
-            id: nanoid(),
             name: "Content",
             description: "The description of your thought.",
             default: null,

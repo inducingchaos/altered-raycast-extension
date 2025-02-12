@@ -2,7 +2,8 @@
  *
  */
 
-import { SerializableDataColumn } from "./column"
+import { SerializableDataColumn } from "../column"
+import { DataSchema } from "./self"
 
 // export type DataColumn = {
 //     id: string
@@ -11,11 +12,7 @@ import { SerializableDataColumn } from "./column"
 //     rules: DataRule[]
 // }
 
-export type SerializableDataSchema = {
-    id: string
-    name: string
-    description: string
-    system: boolean
-
+export type SerializableDataSchema = Omit<DataSchema, "id"> & {
+    id?: string
     columns: SerializableDataColumn[]
 }

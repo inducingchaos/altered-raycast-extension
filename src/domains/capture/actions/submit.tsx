@@ -6,9 +6,9 @@ import { Action, ActionPanel, closeMainWindow, Icon, showToast, Toast } from "@r
 import { Dispatch, SetStateAction } from "react"
 import { setTimeout } from "timers/promises"
 import { DataStore } from "../types"
-import { SerializableDataColumn } from "../../shared/data/definitions"
+import { SafeDataColumn } from "../../shared/data/definitions"
 import { validateStore } from "../../shared/data/utils/rules/validate/store"
-import { useCapture } from "../components/context/provider"
+import { useCapture } from "../components/context"
 
 export function SubmitActions(): JSX.Element {
     const { columns, dataStore, setDataStore } = useCapture()
@@ -44,7 +44,7 @@ export async function onCreateAction({
     dataStore,
     setDataStore
 }: {
-    columns: SerializableDataColumn[]
+    columns: SafeDataColumn[]
     dataStore: DataStore
     setDataStore: Dispatch<SetStateAction<DataStore>>
 }): Promise<void> {

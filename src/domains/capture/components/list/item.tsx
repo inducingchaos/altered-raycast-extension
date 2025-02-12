@@ -4,12 +4,12 @@
 
 import { List } from "@raycast/api"
 import { useMemo } from "react"
-import { dataTypes, SerializableDataColumn } from "../../../shared/data/definitions"
+import { dataTypes, SafeDataColumn } from "../../../shared/data/definitions"
 import { CaptureActions } from "../../actions"
 import { createDataColumnListItemAccessories } from "../../utils"
 import { useCapture } from "../context"
 
-export function DataColumnListItem({ column }: { column: SerializableDataColumn }): JSX.Element {
+export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.Element {
     const { dataStore, selectedItemId } = useCapture()
 
     const isSelected = selectedItemId === column.id

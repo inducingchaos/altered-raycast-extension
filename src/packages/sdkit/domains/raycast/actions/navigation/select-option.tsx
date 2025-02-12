@@ -3,12 +3,12 @@
  */
 
 import { Action, Icon } from "@raycast/api"
-import { FormItem } from "@sdkit/domains/raycast/meta"
 import { DataStore } from "~/domains/capture/types"
+import { SafeDataSchema } from "~/domains/shared/data"
 
 export type SelectOptionActionProps = {
     direction: "next" | "previous"
-    schema: { items: FormItem[] }
+    schema: SafeDataSchema
     state: {
         store: {
             value: DataStore
@@ -58,7 +58,7 @@ function oldSelectOption({
         selection: { id: selectionId }
     }
 }: SelectOptionActionProps) {
-    if (schema.items.find(item => item.id === selectionId)?.type !== "boolean") return
+    if (schema.columns.find(column => column.id === selectionId)?.type !== "boolean") return
 
     if (!selectionId) return
 

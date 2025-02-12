@@ -10,7 +10,7 @@ import {
     validateMax10Rule,
     validateMaxLength255Rule,
     validateMin0Rule
-} from "../../../system"
+} from "../../../implementations"
 
 export const validateRule = ({ id, value }: { id: DataRule["id"]; value: string | undefined }): boolean => {
     const systemRules = [maxLength255Rule, min0Rule, max10Rule]

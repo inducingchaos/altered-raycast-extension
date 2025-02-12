@@ -4,7 +4,7 @@
 
 import { ActionPanel } from "@raycast/api"
 import { SelectItemAction, SelectOptionAction } from "@sdkit/domains/raycast/actions"
-import { useCapture } from "../components/context/provider"
+import { useCapture } from "../components/context"
 import { ModifyActions } from "./modify"
 import { SubmitActions } from "./submit"
 

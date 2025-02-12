@@ -3,12 +3,12 @@
  */
 
 import { Action, Icon } from "@raycast/api"
-import { FormItem } from "@sdkit/domains/raycast/meta"
 import { navigateArray } from "@sdkit/utils"
+import { SafeDataSchema } from "~/domains/shared/data"
 
 export type SelectItemActionProps = {
     direction: "next" | "previous"
-    schema: { items: FormItem[] }
+    schema: SafeDataSchema
     state: {
         selection: {
             id: string | undefined
@@ -26,7 +26,7 @@ export function SelectItemAction({ direction, schema, state }: SelectItemActionP
             onAction={() =>
                 state.selection.set(
                     navigateArray({
-                        source: schema.items,
+                        source: schema.columns,
                         current: ({ id }) => id === state.selection.id,
                         direction
                     }).id

@@ -3,7 +3,7 @@
  */
 
 import { Dispatch, MutableRefObject, SetStateAction } from "react"
-import { SerializableDataColumn } from "../../../shared/data/definitions"
+import { SafeDataColumn, SafeDataSchema } from "~/domains/shared/data"
 import { DataStore } from "../../types"
 
 export type CaptureContextState = {
@@ -15,12 +15,10 @@ export type CaptureContextState = {
     setSelectedItemId: Dispatch<SetStateAction<string | undefined>>
     selectedItemIdUpdatedAt: MutableRefObject<number | undefined>
 
-    schema: {
-        items: SerializableDataColumn[]
-    }
+    schema: SafeDataSchema
 
-    columns: SerializableDataColumn[]
-    selectedColumn: SerializableDataColumn | undefined
+    columns: SafeDataColumn[]
+    selectedColumn: SafeDataColumn | undefined
 
     searchText: string
     searchBarPlaceholder: string

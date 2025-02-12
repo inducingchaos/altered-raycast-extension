@@ -20,11 +20,13 @@ export function DataColumnList() {
         selectedColumn,
 
         searchText,
-        searchBarPlaceholder
+        searchBarPlaceholder,
+
+        schema
     } = useCapture()
 
     const changeSelection = (value: string | null) =>
-        _changeSelection({ selectedItemId: value, setSelectedItemId, selectedItemIdUpdatedAt })
+        _changeSelection({ selectedItemId: value, setSelectedItemId, selectedItemIdUpdatedAt, schema })
 
     return (
         <List
