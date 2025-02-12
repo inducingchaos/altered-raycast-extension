@@ -2,8 +2,8 @@
  *
  */
 
-import { CaptureLayout } from "./domains/capture/components/layout"
+import { CaptureForm } from "./domains/capture/components/layout"
 
 export default function Capture() {
-    return <CaptureLayout />
+    return <CaptureForm />
 }

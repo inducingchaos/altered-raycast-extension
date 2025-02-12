@@ -3,11 +3,12 @@
  */
 
 import { List } from "@raycast/api"
-import { onSearchTextChange, onSelectionChange } from "../../handlers"
-import { useCapture } from "../provider"
+import { onSearchTextChange, changeSelection as _changeSelection } from "../../handlers"
+import { useCapture } from "../context"
 import { DataColumnListSection } from "./section"
 
 export function DataColumnList() {
+    // covert to new capture context
     const {
         setDataStore,
         dataStoreUpdatedAt,
@@ -22,16 +23,13 @@ export function DataColumnList() {
         searchBarPlaceholder
     } = useCapture()
 
+    const changeSelection = (value: string | null) =>
+        _changeSelection({ selectedItemId: value, setSelectedItemId, selectedItemIdUpdatedAt })
+
     return (
         <List
             selectedItemId={selectedItemId}
-            onSelectionChange={value =>
-                onSelectionChange({
-                    selectedItemId: value,
-                    setSelectedItemId,
-                    selectedItemIdUpdatedAt
-                })
-            }
+            onSelectionChange={changeSelection}
             searchText={searchText}
             onSearchTextChange={value =>
                 onSearchTextChange({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })

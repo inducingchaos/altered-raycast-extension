@@ -6,7 +6,7 @@ import { Dispatch, MutableRefObject, SetStateAction } from "react"
 import { debug, shouldShowDebug } from "../../shared/TEMP"
 import { thoughtsSchema } from "../../shared/data/system/schemas/thoughts"
 
-export function onSelectionChange({
+export function changeSelection({
     selectedItemId,
     setSelectedItemId,
     selectedItemIdUpdatedAt

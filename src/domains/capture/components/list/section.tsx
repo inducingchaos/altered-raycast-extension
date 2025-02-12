@@ -3,7 +3,7 @@
  */
 
 import { List } from "@raycast/api"
-import { useCapture } from "../provider"
+import { useCapture } from "../context"
 import { DataColumnListItem } from "./item"
 
 export function DataColumnListSection(): JSX.Element {

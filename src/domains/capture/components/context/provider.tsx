@@ -4,13 +4,21 @@
 
 "use client"
 
-import { useMemo, useRef, useState, type JSX } from "react"
+import { ReactNode, useMemo, useRef, useState, type JSX } from "react"
+import { SerializableDataSchema } from "~/domains/shared/data/definitions"
+import { CaptureContext } from "."
+import { changeSelection } from "../../handlers"
 import { DataStore } from "../../types"
-import { CaptureContext } from "./context"
-import type { CaptureContextProviderProps } from "./types"
-import { onSelectionChange } from "../../handlers"
 
-export function CaptureContextProvider({ config, children }: CaptureContextProviderProps): JSX.Element {
+export function CaptureContextProvider({
+    config,
+    children
+}: {
+    config: {
+        schema: SerializableDataSchema
+    }
+    children: ReactNode
+}): JSX.Element {
     const [dataStore, setDataStore] = useState<DataStore>(new Map())
     const dataStoreUpdatedAt = useRef<number | undefined>()
 
@@ -40,7 +48,7 @@ export function CaptureContextProvider({ config, children }: CaptureContextProvi
                 id: selectedItemId,
                 updatedAt: selectedItemIdUpdatedAt.current,
                 set: (id: string | undefined) =>
-                    onSelectionChange({ selectedItemId: id ?? null, setSelectedItemId, selectedItemIdUpdatedAt })
+                    changeSelection({ selectedItemId: id ?? null, setSelectedItemId, selectedItemIdUpdatedAt })
             }
         }),
         [dataStore, selectedItemId]
@@ -67,5 +75,3 @@ export function CaptureContextProvider({ config, children }: CaptureContextProvi
         </CaptureContext.Provider>
     )
 }
-
-export * from "./use"

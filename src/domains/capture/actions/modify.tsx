@@ -1,9 +1,9 @@
 /**
- *
+ * @todo Extract actions out to SDKit.
  */
 
 import { Action, ActionPanel, Icon } from "@raycast/api"
-import { useCapture } from "../components/provider"
+import { useCapture } from "../components/context/provider"
 
 export function ModifyActions(): JSX.Element {
     const { setDataStore } = useCapture()

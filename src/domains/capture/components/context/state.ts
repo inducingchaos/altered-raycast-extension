@@ -3,8 +3,8 @@
  */
 
 import { Dispatch, MutableRefObject, SetStateAction } from "react"
-import { SerializableDataColumn } from "../../../../shared/data/definitions"
-import { DataStore } from "../../../types"
+import { SerializableDataColumn } from "../../../shared/data/definitions"
+import { DataStore } from "../../types"
 
 export type CaptureContextState = {
     dataStore: DataStore

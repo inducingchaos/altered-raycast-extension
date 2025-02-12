@@ -124,3 +124,9 @@ export const thoughtsSchema: SerializableDataSchema = {
         }
     ]
 }
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const serializableSchema = {}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// const deserializeSchema = (schema: SerializableSchema) => {}

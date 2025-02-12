@@ -7,7 +7,7 @@ import { useMemo } from "react"
 import { dataTypes, SerializableDataColumn } from "../../../shared/data/definitions"
 import { CaptureActions } from "../../actions"
 import { createDataColumnListItemAccessories } from "../../utils"
-import { useCapture } from "../provider"
+import { useCapture } from "../context"
 
 export function DataColumnListItem({ column }: { column: SerializableDataColumn }): JSX.Element {
     const { dataStore, selectedItemId } = useCapture()

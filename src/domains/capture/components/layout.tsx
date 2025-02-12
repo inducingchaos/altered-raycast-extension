@@ -4,9 +4,9 @@
 
 import { thoughtsSchema } from "~/domains/shared/data/system"
 import { DataColumnList } from "./list"
-import { CaptureContextProvider } from "./provider"
+import { CaptureContextProvider } from "./context/provider"
 
-export function CaptureLayout() {
+export function CaptureForm() {
     return (
         <CaptureContextProvider config={{ schema: thoughtsSchema }}>
             <DataColumnList />

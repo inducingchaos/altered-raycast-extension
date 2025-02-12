@@ -1,14 +1,14 @@
 /**
- *
+ * @todo Extract actions out to SDKit.
  */
 
 import { Action, ActionPanel, closeMainWindow, Icon, showToast, Toast } from "@raycast/api"
 import { Dispatch, SetStateAction } from "react"
 import { setTimeout } from "timers/promises"
-import { DataStore } from "../../types"
-import { SerializableDataColumn } from "../../../shared/data/definitions"
-import { validateStore } from "../../../shared/data/utils/rules/validate/store"
-import { useCapture } from "../../components/provider"
+import { DataStore } from "../types"
+import { SerializableDataColumn } from "../../shared/data/definitions"
+import { validateStore } from "../../shared/data/utils/rules/validate/store"
+import { useCapture } from "../components/context/provider"
 
 export function SubmitActions(): JSX.Element {
     const { columns, dataStore, setDataStore } = useCapture()

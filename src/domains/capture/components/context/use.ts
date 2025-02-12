@@ -3,8 +3,8 @@
  */
 
 import { useContext } from "react"
-import { CaptureContext } from "./context"
-import type { CaptureContextState } from "./types"
+import { CaptureContext } from "."
+import type { CaptureContextState } from "./state"
 
 export function useCapture(): CaptureContextState {
     const context = useContext(CaptureContext)
