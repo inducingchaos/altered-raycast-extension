@@ -32,6 +32,10 @@ export function CaptureContextProvider({ config, children }: CaptureContextProvi
 
     const state = useMemo(
         () => ({
+            store: {
+                value: dataStore,
+                set: (value: (prev: DataStore) => DataStore) => setDataStore(prev => new Map(value(prev)))
+            },
             selection: {
                 id: selectedItemId,
                 updatedAt: selectedItemIdUpdatedAt.current,
@@ -39,7 +43,7 @@ export function CaptureContextProvider({ config, children }: CaptureContextProvi
                     onSelectionChange({ selectedItemId: id ?? null, setSelectedItemId, selectedItemIdUpdatedAt })
             }
         }),
-        [selectedItemId]
+        [dataStore, selectedItemId]
     )
 
     return (

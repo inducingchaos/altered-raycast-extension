@@ -26,6 +26,10 @@ export type CaptureContextState = {
     searchBarPlaceholder: string
 
     state: {
+        store: {
+            value: DataStore
+            set: (value: (prev: DataStore) => DataStore) => void
+        }
         selection: {
             id: string | undefined
             updatedAt: number | undefined

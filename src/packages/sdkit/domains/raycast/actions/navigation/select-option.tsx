@@ -4,10 +4,7 @@
 
 import { Action, Icon } from "@raycast/api"
 import { FormItem } from "@sdkit/domains/raycast/meta"
-import { navigateArray } from "@sdkit/utils"
-import { Dispatch } from "react"
 import { DataStore } from "~/domains/capture/types"
-import { SerializableDataColumn } from "~/domains/shared/data/definitions"
 
 export type SelectOptionActionProps = {
     direction: "next" | "previous"
@@ -15,7 +12,7 @@ export type SelectOptionActionProps = {
     state: {
         store: {
             value: DataStore
-            set: (value: DataStore) => void
+            set: (value: (prev: DataStore) => DataStore) => void
         }
         selection: {
             id: string | undefined
@@ -29,55 +26,47 @@ export function SelectOptionAction({ direction, schema, state }: SelectOptionAct
             title={direction === "next" ? "Next Option" : "Previous Option"}
             icon={direction === "next" ? Icon.ArrowRightCircle : Icon.ArrowLeftCircle}
             shortcut={{ modifiers: direction === "next" ? ["ctrl"] : ["shift", "ctrl"], key: "tab" }}
-            onAction={() => 
-                
-                state.store.set(prev => prev.set(
-                    
-                )
-
-                )
-                selectOption({ direction, schema, state })}
+            onAction={() => oldSelectOption({ direction, schema, state })}
         />
     )
 }
 
-const selectOption = ({ direction, schema, state }: SelectOptionActionProps) => {
-    //  Get the type, so we can get the options, and get possible options off schema
+// const selectOption = ({ direction, schema, state }: SelectOptionActionProps) => {
+//     //  Get the type, so we can get the options, and get possible options off schema
 
-    const { options } = schema.items.find(item => item.id === state.selection.id)
+//     const { options } = schema.items.find(item => item.id === state.selection.id)
 
-    navigateArray({
-        source: schema.items,
-        current: ({ id }) => id === state.selection.id,
-        direction
-    })
-    selectOption({
-        inDirection: "next",
-        columns,
-        dataStore,
-        setDataStore,
-        selectedItemId: state.selection.id
-    })
-}
+//     navigateArray({
+//         source: schema.items,
+//         current: ({ id }) => id === state.selection.id,
+//         direction
+//     })
+//     selectOption({
+//         inDirection: "next",
+//         columns,
+//         dataStore,
+//         setDataStore,
+//         selectedItemId: state.selection.id
+//     })
+// }
 
-function navigateMap<Item>({
-    source,
-    current,
-    direction
-}: {
-    inDirection: "next" | "previous"
-    columns: SerializableDataColumn[]
-    dataStore: DataStore
-    setDataStore: Dispatch<SetStateAction<DataStore>>
-    selectedItemId: string | undefined
-}) {
-    if (columns.find(column => column.id === selectedItemId)?.type !== "boolean") return
+function oldSelectOption({
+    direction,
+    schema,
+    state: {
+        store,
+        selection: { id: selectionId }
+    }
+}: SelectOptionActionProps) {
+    if (schema.items.find(item => item.id === selectionId)?.type !== "boolean") return
 
-    if (!selectedItemId) return
+    if (!selectionId) return
 
-    const currentValue = dataStore.get(selectedItemId)?.value
+    // logic for just boolean - replace with dynamic
+
+    const currentValue = store.value.get(selectionId)?.value
     const nextValue =
-        inDirection === "next"
+        direction === "next"
             ? currentValue?.toLowerCase() === "true"
                 ? "False"
                 : "True"
@@ -85,5 +74,5 @@ function navigateMap<Item>({
               ? "True"
               : "False"
 
-    setDataStore(prev => new Map(prev).set(selectedItemId, { value: nextValue, errors: [] }))
+    store.set(prev => prev.set(selectionId, { value: nextValue, errors: [] }))
 }
