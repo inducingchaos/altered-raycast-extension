@@ -3,6 +3,8 @@
  */
 
 import { DataConstraintID } from "../definitions/ids"
+import { maxLengthConstraint } from "./max-length"
+import { optionsConstraint } from "./options"
 import { rangeConstraint } from "./range"
 import { requiredConstraint } from "./required"
 
@@ -10,9 +12,9 @@ type VerifyDataConstraintKeys = { [Key in DataConstraintID]: { id: Key } }
 
 export const dataConstraints = {
     required: requiredConstraint,
-    range: rangeConstraint
-
-    // "max-length": { id: "max-length" },
+    range: rangeConstraint,
+    options: optionsConstraint,
+    "max-length": maxLengthConstraint
     // "min-length": { id: "min-length" },
     // "max-value": { id: "max-value" },
     // "min-value": { id: "min-value" }

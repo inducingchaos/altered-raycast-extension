@@ -14,25 +14,26 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
     description: "A collection of the thoughts in your ALTERED brain.",
 
     columns: [
-        // {
-        //     name: "Content",
-        //     description: "The description of your thought.",
-        //     type: dataTypes.string.id,
-        //     required: true,
-        //     constraints: [
-        //         {
-        //             id: dataConstraints.maxLength.id,
-        //             parameters: {
-        //                 value: 255
-        //             }
-        //         }
-        // },
-        // {
-        //     name: "Alias",
-        //     description: "A name for your thought.",
-        //     type: dataTypes.string.id,
-        //     required: false
-        // },
+        {
+            name: "Content",
+            description: "The description of your thought.",
+            type: dataTypes.string.id,
+            required: true,
+            constraints: [
+                createSerializableDataConstraint({
+                    id: dataConstraints["max-length"].id,
+                    parameters: {
+                        value: 255
+                    }
+                })
+            ]
+        },
+        {
+            name: "Alias",
+            description: "A name for your thought.",
+            type: dataTypes.string.id,
+            required: false
+        },
         {
             name: "Priority",
             description: "Level of significance.",
@@ -51,28 +52,29 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                     }
                 })
             ]
+        },
+        {
+            name: "Sensitive",
+            description: "Whether the thought is sensitive.",
+            type: dataTypes.boolean.id,
+            required: true,
+            default: "false"
+        },
+        {
+            name: "Options Test",
+            description: "Allows multiple options.",
+            type: dataTypes.string.id,
+            required: true,
+            default: "now",
+            constraints: [
+                createSerializableDataConstraint({
+                    id: dataConstraints.options.id,
+                    parameters: {
+                        values: ["now", "soon", "later"]
+                    }
+                })
+            ]
         }
-        // {
-        //     name: "Sensitive",
-        //     description: "Whether the thought is sensitive.",
-        //     type: dataTypes.boolean.id,
-        //     required: true,
-        //     default: "false"
-        // },
-        // {
-        //     name: "Options Test",
-        //     description: "The date and time the thought was created.",
-        //     type: dataTypes.string.id,
-        //     required: true,
-        //     default: "now",
-        //     constraints: [
-        //         {
-        //             id: dataConstraints.enum.id,
-        //             parameters: {
-        //                 values: ["now", "soon", "later"]
-        //             }
-        //         }
-        // }
     ]
 }
 

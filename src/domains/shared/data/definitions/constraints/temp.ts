@@ -57,29 +57,6 @@
 // //     }
 // // }),
 
-// // "max-length": createDataConstraint({
-// //     id: "max-length",
-// //     name: "Max Length",
-// //     description: "The maximum length of the value.",
-
-// //     optionsSchema: z.object({
-// //         value: z.number({ coerce: true })
-// //     }),
-// //     systemOnly: false,
-// //     forTypes: ["string"],
-// //     supersedes: [],
-
-// //     info: {
-// //         label: (options: { value: number }) => `Max Length: ${options.value}`,
-// //         description: (options: { value: number }) =>
-// //             `The content must be ${options.value} character${options.value === 1 ? "" : "s"} or less.`,
-
-// //         error: {
-// //             label: "Exceeds Max Length"
-// //         }
-// //     }
-// // }),
-
 // // "min-value": createDataConstraint({
 // //     id: "min-value",
 // //     name: "Min Value",
