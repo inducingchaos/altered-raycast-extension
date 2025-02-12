@@ -3,12 +3,12 @@
  */
 
 import { type } from "arktype"
-import { DataType } from "."
+import { createDataType, dataTypeIdConfig } from ".."
 
-export const stringType: DataType = {
-    id: "string",
+export const stringType = createDataType({
+    id: dataTypeIdConfig.string,
     info: {
-        name: "Text",
+        name: "String",
         label: "Text",
         description: "A string of text.",
         error: {
@@ -17,4 +17,4 @@ export const stringType: DataType = {
         }
     },
     schema: type("string > 1")
-}
+})

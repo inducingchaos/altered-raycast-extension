@@ -18,7 +18,11 @@ export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.
     const isEmpty = value === undefined || value === ""
 
     const title = isSelected || !isEmpty ? column.name : ""
-    const subtitle = isSelected ? dataTypes[column.type].name : !isEmpty ? undefined : column.name
+    const subtitle = isSelected
+        ? Object.values(dataTypes).find(type => type.id === column.type)?.info.name
+        : !isEmpty
+          ? undefined
+          : column.name
 
     return (
         <List.Item

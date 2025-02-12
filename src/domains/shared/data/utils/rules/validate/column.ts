@@ -2,9 +2,9 @@
  *
  */
 
-import { SerializableDataColumn } from "../../../definitions/column"
+import { SerializableDataColumn } from "../../../definitions/columns"
 import { DataRuleError } from "../../../definitions/rule"
-import { dataTypes } from "../../../definitions/type"
+import { dataTypes } from "../../../definitions/types"
 import { validateRule } from "./rule"
 import { validateType } from "./type"
 
@@ -24,14 +24,26 @@ export function validateDataColumn({ value, column }: { value: string; column: S
 
     if (!column.required && !value.length) return { success: true, errors: [] }
 
-    const typeError = !validateType({ id: column.type, value }) ? dataTypes[column.type].error : undefined
+    const typeError = !validateType({ id: column.type, value })
+        ? dataTypes[column.type as keyof typeof dataTypes].info.error
+        : undefined
 
-    if (typeError) return { success: false, errors: [typeError] }
+    // fix data rule error key conflict
+    if (typeError)
+        return {
+            success: false,
+            errors: [
+                {
+                    label: typeError.title,
+                    description: typeError.message
+                }
+            ]
+        }
 
-    const ruleErrors = column?.rules.reduce((store, rule) => {
+    const ruleErrors = column?.rules?.reduce((store, rule) => {
         if (validateRule({ id: rule.id, value })) return store
         return [...store, rule.error]
     }, [] as DataRuleError[])
 
-    return { success: ruleErrors.length === 0, errors: ruleErrors }
+    return { success: !ruleErrors?.length, errors: ruleErrors ?? [] }
 }

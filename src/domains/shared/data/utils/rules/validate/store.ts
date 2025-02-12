@@ -3,8 +3,8 @@
  */
 
 import { Dispatch, SetStateAction } from "react"
+import { SafeDataColumn } from "~/domains/shared/data"
 import { DataStore } from "../../../../../capture"
-import { SerializableDataColumn } from "../../../definitions"
 import { validateDataColumn } from "./column"
 
 export function validateStore({
@@ -12,7 +12,7 @@ export function validateStore({
     dataStore,
     setDataStore
 }: {
-    columns: SerializableDataColumn[]
+    columns: SafeDataColumn[]
     dataStore: DataStore
     setDataStore: Dispatch<SetStateAction<DataStore>>
 }): boolean {

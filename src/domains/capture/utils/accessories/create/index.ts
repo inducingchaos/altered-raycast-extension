@@ -22,7 +22,7 @@ export function createDataColumnListItemAccessories({
 }): List.Item.Accessory[] {
     return isSelected
         ? [
-              ...createDataColumnListItemRuleAccessories({ rules: column.rules }),
+              ...createDataColumnListItemRuleAccessories({ rules: column.rules ?? [] }),
               ...createDataColumnListItemRequiredAccessories({ isRequired: column.required }),
               createDataColumnListItemSpacerAccessory()
           ]

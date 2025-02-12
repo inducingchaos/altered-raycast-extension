@@ -3,7 +3,7 @@
  */
 
 import { Type } from "arktype"
-import { DataType } from "~/domains/shared/data/definitions/type"
+import { DataType, DataTypeIDKey } from "~/domains/shared/data/definitions/types"
 import { DataConstraintID } from "./ids"
 import { DataConstraintOptions, InferSchemaFromOptions } from "./options"
 
@@ -20,7 +20,7 @@ export type DataConstraint<ID extends DataConstraintID, Options extends DataCons
     }
 
     system?: boolean
-    types: DataType["id"][]
+    types: (DataType["id"] | DataTypeIDKey)[]
     supersedes: DataConstraintID[]
     options: Options | null
 

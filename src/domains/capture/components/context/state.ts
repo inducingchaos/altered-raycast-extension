@@ -27,6 +27,7 @@ export type CaptureContextState = {
         store: {
             value: DataStore
             set: (value: (prev: DataStore) => DataStore) => void
+            reset: () => void
         }
         selection: {
             id: string | undefined

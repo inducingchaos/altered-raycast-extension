@@ -51,7 +51,8 @@ export function CaptureContextProvider({
         () => ({
             store: {
                 value: dataStore,
-                set: (value: (prev: DataStore) => DataStore) => setDataStore(prev => new Map(value(prev)))
+                set: (value: (prev: DataStore) => DataStore) => setDataStore(prev => new Map(value(prev))),
+                reset: () => setDataStore(new Map())
             },
             selection: {
                 id: selectedItemId,

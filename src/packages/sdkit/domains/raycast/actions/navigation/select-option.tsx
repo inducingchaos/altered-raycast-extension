@@ -4,7 +4,9 @@
 
 import { Action, Icon } from "@raycast/api"
 import { DataStore } from "~/domains/capture/types"
-import { SafeDataSchema } from "~/domains/shared/data"
+import { dataTypes, SafeDataSchema } from "~/domains/shared/data"
+
+// fix bug where you cant escape if you select option before typing
 
 export type SelectOptionActionProps = {
     direction: "next" | "previous"
@@ -58,7 +60,7 @@ function oldSelectOption({
         selection: { id: selectionId }
     }
 }: SelectOptionActionProps) {
-    if (schema.columns.find(column => column.id === selectionId)?.type !== "boolean") return
+    if (schema.columns.find(column => column.id === selectionId)?.type !== dataTypes.boolean.id) return
 
     if (!selectionId) return
 

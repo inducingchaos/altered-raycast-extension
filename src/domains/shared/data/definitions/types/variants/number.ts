@@ -3,13 +3,12 @@
  */
 
 import { type } from "arktype"
-import { DataType } from "."
+import { createDataType, dataTypeIdConfig } from ".."
 
-export const numberType: DataType = {
-    id: "number",
+export const numberType = createDataType({
+    id: dataTypeIdConfig.number,
     info: {
         name: "Number",
-        label: "Number",
         description: "A numerical value used for calculations.",
         error: {
             title: "Incorrect Type",
@@ -17,4 +16,4 @@ export const numberType: DataType = {
         }
     },
     schema: type("number")
-}
+})

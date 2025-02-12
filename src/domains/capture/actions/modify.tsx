@@ -6,7 +6,7 @@ import { Action, ActionPanel, Icon } from "@raycast/api"
 import { useCapture } from "../components/context"
 
 export function ModifyActions(): JSX.Element {
-    const { setDataStore } = useCapture()
+    const { state } = useCapture()
 
     return (
         <ActionPanel.Section title="Modify">
@@ -14,9 +14,7 @@ export function ModifyActions(): JSX.Element {
                 title="Clear All"
                 icon={Icon.Trash}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "r" }}
-                onAction={() => {
-                    setDataStore(new Map())
-                }}
+                onAction={state.store.reset}
             />
         </ActionPanel.Section>
     )

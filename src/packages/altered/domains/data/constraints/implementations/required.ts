@@ -3,7 +3,7 @@
  */
 
 import { createDataConstraint } from ".."
-import { dataTypeIDs } from "~/domains/shared/data/definitions"
+import { dataTypeIds } from "~/domains/shared/data/definitions"
 
 export const requiredConstraint = createDataConstraint({
     id: "required",
@@ -13,7 +13,7 @@ export const requiredConstraint = createDataConstraint({
     instructions: "This value is required.",
 
     system: true,
-    types: [...dataTypeIDs],
+    types: [...dataTypeIds],
     supersedes: [],
 
     options: null,

@@ -2,7 +2,7 @@
 //  *
 //  */
 
-import { DataType } from "./type"
+import { DataType } from "./types"
 
 // export type LengthDataRuleID = "required" | "max-length" | "min-length"
 
