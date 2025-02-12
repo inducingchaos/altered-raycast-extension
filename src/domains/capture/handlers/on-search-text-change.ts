@@ -3,9 +3,9 @@
  */
 
 import { Dispatch, MutableRefObject, SetStateAction } from "react"
-import { SerializableDataColumn } from "../../shared/data/definitions"
-import { validateDataColumn } from "../../shared/data/utils"
-import { debug, shouldShowDebug } from "../../shared/TEMP"
+import { SafeDataColumn } from "~/domains/shared/data"
+import { validateDataColumn } from "~/domains/shared/data/utils"
+import { debug, shouldShowDebug } from "~/domains/shared/TEMP"
 import { DataStore } from "../types"
 
 export function onSearchTextChange({
@@ -15,7 +15,7 @@ export function onSearchTextChange({
     dataStoreUpdatedAt
 }: {
     searchText: string
-    selectedColumn: SerializableDataColumn | undefined
+    selectedColumn: SafeDataColumn | undefined
     setDataStore: Dispatch<SetStateAction<DataStore>>
     dataStoreUpdatedAt: MutableRefObject<number | undefined>
 }): void {

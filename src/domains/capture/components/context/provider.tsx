@@ -20,19 +20,17 @@ export function CaptureContextProvider({
     }
     children: ReactNode
 }): JSX.Element {
-    const schema = {
-        ...config.schema,
-        id: config.schema.id ?? nanoid(),
-        columns: config.schema.columns.map(column => ({
-            ...column,
-            id: column.id ?? nanoid()
-        }))
-    }
+    const schema = useMemo(() => {
+        return {
+            ...config.schema,
+            id: config.schema.id ?? nanoid(),
+            columns: config.schema.columns.map(column => ({
+                ...column,
+                id: column.id ?? nanoid()
+            }))
+        }
+    }, [config.schema])
 
-    config.schema.columns.map(column => ({
-        ...column,
-        id: column.id ?? nanoid()
-    }))
     const [dataStore, setDataStore] = useState<DataStore>(new Map())
     const dataStoreUpdatedAt = useRef<number | undefined>()
 
