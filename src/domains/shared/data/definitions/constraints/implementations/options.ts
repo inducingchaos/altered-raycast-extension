@@ -4,6 +4,7 @@
 
 import { type } from "arktype"
 import { createDataConstraint } from ".."
+import { navigateArray } from "@sdkit/utils"
 
 export const optionsConstraint = createDataConstraint({
     id: "options",
@@ -32,8 +33,16 @@ export const optionsConstraint = createDataConstraint({
         }
     },
 
-    validate: (value, options) => {
-        const schema = type.enumerated(options.values)
+    select: ({ value, params, direction }) => {
+        return navigateArray({
+            source: params.values,
+            current: item => item === value,
+            direction
+        })
+    },
+
+    validate: ({ value, params }) => {
+        const schema = type.enumerated(params.values)
         const result = schema(value)
 
         if (result instanceof type.errors) {
