@@ -74,6 +74,13 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                     }
                 })
             ]
+        },
+        {
+            name: "Number Select Test",
+            description: "Allows selecting a number.",
+            type: dataTypes.number.id,
+            required: true,
+            default: "7"
         }
     ]
 } as const

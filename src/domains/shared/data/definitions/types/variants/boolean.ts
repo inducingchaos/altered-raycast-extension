@@ -16,5 +16,6 @@ export const booleanType = createDataType({
             message: column => `'${column.name}' must be true or false.`
         }
     },
-    schema: type("boolean")
+    schema: type("boolean"),
+    select: ({ value }) => (value === "true" ? "false" : "true")
 })

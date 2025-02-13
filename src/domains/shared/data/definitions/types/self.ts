@@ -11,6 +11,7 @@ export type DataType<ID extends DataTypeID = DataTypeID, Schema extends Type = T
     id: ID
     info: DataTypeInfo
     schema: Schema
+    select?: (props: { value: string | undefined; direction: "previous" | "next" }) => string
 }
 
 export function createDataType<ID extends DataTypeID, Schema extends Type>(
