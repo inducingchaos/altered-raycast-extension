@@ -2,9 +2,10 @@
  *
  */
 
-type Base = { value: number }
-type BoundsWithMin = { bounds: { min: number; max?: number; wrap?: false } }
-type BoundsWithMax = { bounds: { min?: number; max: number; wrap?: false } }
+type Base = { value?: number }
+type Bounds = { bounds: { min?: number; max?: number; wrap?: boolean } }
+type BoundsWithMin = { bounds: { min: number; max?: number; wrap?: boolean } }
+type BoundsWithMax = { bounds: { min?: number; max: number; wrap?: boolean } }
 type BoundsWithMinMax = { bounds: { min: number; max: number; wrap?: boolean } }
 type Step = { step?: { size: number; offset: number } }
 type NullStep = { step: null }
@@ -12,11 +13,13 @@ type StepDirections = "previous" | "next" | "nearest"
 type BoundsDirections = "start" | "end"
 
 type WithoutStep =
+    | (Bounds & { direction?: "none" })
     | (BoundsWithMin & { direction?: "start" | "none" })
     | (BoundsWithMax & { direction?: "end" | "none" })
     | (BoundsWithMinMax & { direction?: BoundsDirections | "none" })
 
 type WithStep =
+    | (Bounds & { direction: StepDirections })
     | (BoundsWithMin & { direction: "start" | StepDirections })
     | (BoundsWithMax & { direction: "end" | StepDirections })
     | (BoundsWithMinMax & { direction: BoundsDirections | StepDirections })
@@ -40,8 +43,10 @@ export function traverse(options: TraverseOptions & { debug?: boolean }): number
 
     //  Configure globals.
 
+    const _isClosedRange = !!options.bounds.min && !!options.bounds.max
+
     const {
-        value = 0,
+        value = _isClosedRange ? options.bounds.min! : 0,
         bounds: { min, max, wrap = false },
         step: { size = 1, offset = 0 },
         direction = "none",
@@ -52,7 +57,7 @@ export function traverse(options: TraverseOptions & { debug?: boolean }): number
         step: { ...options.step }
     }
 
-    const isClosedRange = min && max
+    const isClosedRange = !!min && !!max
     const isStepped = options.step !== null && size !== 0
 
     if (debug)
@@ -64,6 +69,10 @@ export function traverse(options: TraverseOptions & { debug?: boolean }): number
             isClosedRange,
             isStepped
         })
+
+    //  Guard conditions.
+
+    if (wrap && (min === null || max === null)) throw new Error("Cannot wrap an open range.")
 
     //  Resolve bounds. Corrects the range if reversed.
 

@@ -46,7 +46,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                         min: 1.9,
                         max: 11.05,
                         step: {
-                            value: 2,
+                            size: 2,
                             offset: 0.25
                         }
                     }
