@@ -5,6 +5,7 @@
 import { Action, Icon } from "@raycast/api"
 import { DataStore } from "~/domains/capture/types"
 import { dataTypes, SafeDataSchema } from "~/domains/shared/data"
+import { dataConstraints, InferSchemaFromOptions } from "~/domains/shared/data/definitions/constraints"
 
 // fix bug where you cant escape if you select option before typing
 
@@ -60,13 +61,33 @@ function oldSelectOption({
         selection: { id: selectionId }
     }
 }: SelectOptionActionProps) {
-    if (schema.columns.find(column => column.id === selectionId)?.type !== dataTypes.boolean.id) return
-
     if (!selectionId) return
+    const currentValue = store.value.get(selectionId)?.value
+
+    const column = schema.columns.find(column => column.id === selectionId)
+    if (!column) throw new Error(`Column with id ${selectionId} not found`)
+
+    const serializableConstraintIds = column.constraints?.map(constraint => constraint.id) ?? []
+    const constraint = Object.values(dataConstraints).find(
+        constraint => serializableConstraintIds.includes(constraint.id) && constraint.cycle
+    )
+    if (!constraint) throw new Error(`Constraint with cycler ${serializableConstraintIds} not found - could probably skip`)
+
+    const serializableConstraint = column.constraints?.find(constraint => serializableConstraintIds.includes(constraint.id))
+    if (!serializableConstraint) throw new Error(`No parameters found for constraint ${serializableConstraintIds}`)
+
+    const cycle = constraint?.cycle
+
+    if (cycle) {
+        const nextValue = cycle(currentValue, serializableConstraint.parameters, direction)
+        store.set(prev => prev.set(selectionId, { value: nextValue, errors: [] }))
+        return
+    }
 
     // logic for just boolean - replace with dynamic
 
-    const currentValue = store.value.get(selectionId)?.value
+    if (schema.columns.find(column => column.id === selectionId)?.type !== dataTypes.boolean.id) return
+
     const nextValue =
         direction === "next"
             ? currentValue?.toLowerCase() === "true"

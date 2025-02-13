@@ -43,8 +43,8 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                 createSerializableDataConstraint({
                     id: dataConstraints.range.id,
                     parameters: {
-                        min: 1,
-                        max: 11,
+                        min: 1.9,
+                        max: 11.05,
                         step: {
                             value: 2,
                             offset: 0.25

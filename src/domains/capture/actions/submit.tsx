@@ -48,13 +48,16 @@ export async function onCreateAction({
     dataStore: DataStore
     setDataStore: Dispatch<SetStateAction<DataStore>>
 }): Promise<void> {
-    const isReady = validateStore({ columns, dataStore, setDataStore })
+    const { success, errors } = validateStore({ columns, dataStore, setDataStore })
 
-    if (!isReady) {
+    if (!success) {
         await showToast({
             style: Toast.Style.Failure,
-            title: "Error Uploading Thought",
-            message: "Please complete the form."
+            title: errors[0].label,
+            message: errors[0].description
+
+            // title: "Error Uploading Thought",
+            // message: "Please complete the form."
         })
 
         return

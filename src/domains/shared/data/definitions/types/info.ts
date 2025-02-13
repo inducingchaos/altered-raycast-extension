@@ -2,6 +2,8 @@
  *
  */
 
+import { SafeDataColumn } from ".."
+
 export type DataTypeInfo = {
     name: string
     label?: string
@@ -9,6 +11,6 @@ export type DataTypeInfo = {
 
     error?: {
         title: string
-        message: string
+        message: string | ((column: SafeDataColumn) => string)
     }
 }

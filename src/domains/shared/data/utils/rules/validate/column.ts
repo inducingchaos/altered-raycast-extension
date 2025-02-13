@@ -2,13 +2,13 @@
  *
  */
 
-import { SerializableDataColumn } from "../../../definitions/columns"
+import { SafeDataColumn } from "../../../definitions"
 import { DataRuleError } from "../../../definitions/rule"
 import { dataTypes } from "../../../definitions/types"
 import { validateRule } from "./rule"
 import { validateType } from "./type"
 
-export function validateDataColumn({ value, column }: { value: string; column: SerializableDataColumn }): {
+export function validateDataColumn({ value, column }: { value: string; column: SafeDataColumn }): {
     success: boolean
     errors: DataRuleError[]
 } {
@@ -35,7 +35,7 @@ export function validateDataColumn({ value, column }: { value: string; column: S
             errors: [
                 {
                     label: typeError.title,
-                    description: typeError.message
+                    description: typeof typeError.message === "function" ? typeError.message(column) : typeError.message
                 }
             ]
         }

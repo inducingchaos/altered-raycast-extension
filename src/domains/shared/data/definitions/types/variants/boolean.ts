@@ -13,7 +13,7 @@ export const booleanType = createDataType({
         description: "A true/false value.",
         error: {
             title: "Incorrect Type",
-            message: "The value must be true or false."
+            message: column => `'${column.name}' must be true or false.`
         }
     },
     schema: type("boolean")

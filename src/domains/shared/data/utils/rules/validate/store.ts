@@ -7,6 +7,16 @@ import { SafeDataColumn } from "~/domains/shared/data"
 import { DataStore } from "../../../../../capture"
 import { validateDataColumn } from "./column"
 
+export type DataValidationResult =
+    | {
+          success: true
+          errors: null
+      }
+    | {
+          success: false
+          errors: { label: string; description: string }[]
+      }
+
 export function validateStore({
     columns,
     dataStore,
@@ -15,9 +25,9 @@ export function validateStore({
     columns: SafeDataColumn[]
     dataStore: DataStore
     setDataStore: Dispatch<SetStateAction<DataStore>>
-}): boolean {
-    const { success } = columns.reduce(
-        (result, column) => {
+}): DataValidationResult {
+    const result = columns.reduce<DataValidationResult>(
+        (acc, column) => {
             const state = dataStore.get(column.id)
 
             const { success, errors } = validateDataColumn({
@@ -32,11 +42,27 @@ export function validateStore({
                 })
             )
 
-            if (result.success) return { success }
-            else return result
+            // If we already have a failure, just accumulate errors
+            if (!acc.success) {
+                return {
+                    success: false,
+                    errors: [...acc.errors, ...errors]
+                }
+            }
+
+            // If this validation failed, transition to failure state
+            if (!success) {
+                return {
+                    success: false,
+                    errors: errors
+                }
+            }
+
+            // Stay in success state
+            return acc
         },
-        { success: true }
+        { success: true, errors: null }
     )
 
-    return success
+    return result
 }

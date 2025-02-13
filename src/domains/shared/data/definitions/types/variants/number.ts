@@ -12,7 +12,7 @@ export const numberType = createDataType({
         description: "A numerical value used for calculations.",
         error: {
             title: "Incorrect Type",
-            message: "The value must be a number."
+            message: column => `'${column.name}' must be a number.`
         }
     },
     schema: type("number")
