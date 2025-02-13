@@ -76,7 +76,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             ]
         }
     ]
-}
+} as const
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const serializableSchema = {}

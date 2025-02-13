@@ -5,7 +5,13 @@
 import { Action, Icon } from "@raycast/api"
 import { DataStore } from "~/domains/capture/types"
 import { dataTypes, SafeDataSchema } from "~/domains/shared/data"
-import { dataConstraints, InferSchemaFromOptions } from "~/domains/shared/data/definitions/constraints"
+import {
+    DataConstraintID,
+    DataConstraint,
+    dataConstraints,
+    DataConstraintOptions
+} from "~/domains/shared/data/definitions/constraints"
+import { parseDataConstraintParameters } from "~/domains/shared/utils/test"
 
 // fix bug where you cant escape if you select option before typing
 
@@ -68,24 +74,35 @@ function oldSelectOption({
     if (!column) throw new Error(`Column with id ${selectionId} not found`)
 
     const serializableConstraintIds = column.constraints?.map(constraint => constraint.id) ?? []
-    const constraint = Object.values(dataConstraints).find(
-        constraint => serializableConstraintIds.includes(constraint.id) && constraint.cycle
-    )
-    if (!constraint) throw new Error(`Constraint with cycler ${serializableConstraintIds} not found - could probably skip`)
 
-    const serializableConstraint = column.constraints?.find(constraint => serializableConstraintIds.includes(constraint.id))
-    if (!serializableConstraint) throw new Error(`No parameters found for constraint ${serializableConstraintIds}`)
+    // Find both the constraint definition and its serialized instance together
+    const constraintPair = Object.entries(dataConstraints).find(([id, constraint]) => {
+        return serializableConstraintIds.includes(id as DataConstraintID) && constraint.select
+    })
+    if (!constraintPair) throw new Error(`No constraint with cycler found for ${serializableConstraintIds}`)
 
-    const cycle = constraint?.cycle
+    const [constraintId, constraint] = constraintPair as [
+        DataConstraintID,
+        DataConstraint<DataConstraintID, DataConstraintOptions>
+    ]
+    const serializableConstraint = column.constraints?.find(c => c.id === constraintId)
+    if (!serializableConstraint) throw new Error(`No parameters found for constraint ${constraintId}`)
 
-    if (cycle) {
-        const nextValue = cycle(currentValue, serializableConstraint.parameters, direction)
+    const optionsSchema = constraint.options
+    if (!optionsSchema) throw new Error(`No options schema found for constraint ${constraintId}`)
+
+    // Since we know these types align at runtime, we can safely assert the type
+    const parsedParameters = parseDataConstraintParameters(optionsSchema, serializableConstraint.parameters)
+
+    if (constraint.select) {
+        // We know these parameters match the constraint's expected type
+        type Params = Parameters<typeof constraint.select>[1]
+        const nextValue = constraint.select(currentValue, parsedParameters as Params, direction)
         store.set(prev => prev.set(selectionId, { value: nextValue, errors: [] }))
         return
     }
 
     // logic for just boolean - replace with dynamic
-
     if (schema.columns.find(column => column.id === selectionId)?.type !== dataTypes.boolean.id) return
 
     const nextValue =

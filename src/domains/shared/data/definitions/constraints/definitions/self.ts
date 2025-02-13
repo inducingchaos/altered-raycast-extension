@@ -24,7 +24,7 @@ export type DataConstraint<ID extends DataConstraintID, Options extends DataCons
     supersedes: DataConstraintID[]
     options: Options | null
 
-    cycle?: (value: string | undefined, options: InferSchemaFromOptions<Options>, direction: "previous" | "next") => string
+    select?: (value: string | undefined, options: InferSchemaFromOptions<Options>, direction: "previous" | "next") => string
 
     validate: (value: string, options: InferSchemaFromOptions<Options>) => boolean
 }

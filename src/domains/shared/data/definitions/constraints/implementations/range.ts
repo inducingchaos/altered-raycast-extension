@@ -69,7 +69,7 @@ export const rangeConstraint = createDataConstraint({
         }
     },
 
-    cycle: (value, params, direction) => {
+    select: (value, params, direction) => {
         const number = value ? Number(value.trim()) : undefined
         const isNumber = number && !isNaN(number)
         const safeNumber = isNumber ? number : undefined
