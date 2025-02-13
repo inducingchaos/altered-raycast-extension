@@ -31,8 +31,8 @@ export const maxLengthConstraint = createDataConstraint({
         }
     },
 
-    validate: (value, options) => {
-        const schema = type(`string < ${options.value}`)
+    validate: ({ value, params }) => {
+        const schema = type(`string < ${params.value}`)
         const result = schema(value)
 
         if (result instanceof type.errors) {

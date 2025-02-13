@@ -3,26 +3,23 @@
  */
 
 import { SafeDataColumn } from "../../../definitions"
-import { DataRuleError } from "../../../definitions/rule"
+import { configureDataConstraint } from "../../../definitions/constraints"
 import { dataTypes } from "../../../definitions/types"
-import { validateRule } from "./rule"
+import { DataValidationError, DataValidationResult } from "./store"
 import { validateType } from "./type"
 
-export function validateDataColumn({ value, column }: { value: string; column: SafeDataColumn }): {
-    success: boolean
-    errors: DataRuleError[]
-} {
+export function validateDataColumn({ value, column }: { value: string; column: SafeDataColumn }): DataValidationResult {
     const requiredError =
         column.required && !value.length
             ? {
-                  label: "Required",
-                  description: "This value is required."
+                  title: "Required",
+                  message: "This value is required."
               }
             : undefined
 
     if (column.required && requiredError) return { success: false, errors: [requiredError] }
 
-    if (!column.required && !value.length) return { success: true, errors: [] }
+    if (!column.required && !value.length) return { success: true, errors: null }
 
     const typeError = !validateType({ id: column.type, value })
         ? Object.values(dataTypes).find(type => type.id === column.type)?.info.error
@@ -34,16 +31,20 @@ export function validateDataColumn({ value, column }: { value: string; column: S
             success: false,
             errors: [
                 {
-                    label: typeError.title,
-                    description: typeof typeError.message === "function" ? typeError.message(column) : typeError.message
+                    title: typeError.title,
+                    message: typeof typeError.message === "function" ? typeError.message(column) : typeError.message
                 }
             ]
         }
 
-    const ruleErrors = column?.rules?.reduce((store, rule) => {
-        if (validateRule({ id: rule.id, value })) return store
-        return [...store, rule.error]
-    }, [] as DataRuleError[])
+    const ruleErrors = column?.constraints?.reduce((store, constraint) => {
+        const { error, validate } = configureDataConstraint({ constraint })
 
-    return { success: !ruleErrors?.length, errors: ruleErrors ?? [] }
+        if (validate({ value })) return store
+        return [...store, error]
+    }, [] as DataValidationError[])
+
+    if (ruleErrors?.length) return { success: false, errors: ruleErrors }
+
+    return { success: true, errors: null }
 }

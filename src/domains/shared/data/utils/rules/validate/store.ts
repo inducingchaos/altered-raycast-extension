@@ -7,6 +7,8 @@ import { SafeDataColumn } from "~/domains/shared/data"
 import { DataStore } from "../../../../../capture"
 import { validateDataColumn } from "./column"
 
+export type DataValidationError = { title: string; message: string }
+
 export type DataValidationResult =
     | {
           success: true
@@ -14,7 +16,7 @@ export type DataValidationResult =
       }
     | {
           success: false
-          errors: { label: string; description: string }[]
+          errors: DataValidationError[]
       }
 
 export function validateStore({
@@ -38,7 +40,7 @@ export function validateStore({
             setDataStore(prev =>
                 new Map(prev).set(column.id, {
                     value: state?.value ?? column.default ?? "",
-                    errors: errors
+                    errors: errors ?? []
                 })
             )
 
@@ -46,7 +48,7 @@ export function validateStore({
             if (!acc.success) {
                 return {
                     success: false,
-                    errors: [...acc.errors, ...errors]
+                    errors: [...acc.errors, ...(errors ?? [])]
                 }
             }
 

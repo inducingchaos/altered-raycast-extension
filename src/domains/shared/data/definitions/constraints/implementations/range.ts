@@ -69,7 +69,7 @@ export const rangeConstraint = createDataConstraint({
         }
     },
 
-    select: (value, params, direction) => {
+    select: ({ value, params, direction }) => {
         const number = value ? Number(value.trim()) : undefined
         const isNumber = number && !isNaN(number)
         const safeNumber = isNumber ? number : undefined
@@ -88,17 +88,17 @@ export const rangeConstraint = createDataConstraint({
         return result.toString()
     },
 
-    validate: (value, options) => {
-        if (options.min === null && options.max === null && options.step === null) return true
+    validate: ({ value, params }) => {
+        if (params.min === null && params.max === null && params.step === null) return true
 
         const schema =
-            options.min === null && options.max === null
+            params.min === null && params.max === null
                 ? type(`number`)
-                : options.min === null
-                  ? type(`number < ${options.max!}`)
-                  : options.max === null
-                    ? type(`number > ${options.min!}`)
-                    : type(`${options.min} < number < ${options.max}`)
+                : params.min === null
+                  ? type(`number < ${params.max!}`)
+                  : params.max === null
+                    ? type(`number > ${params.min!}`)
+                    : type(`${params.min} < number < ${params.max}`)
 
         const result = schema(value)
 
@@ -107,10 +107,10 @@ export const rangeConstraint = createDataConstraint({
             return false
         }
 
-        if (options.step) {
-            const offsetValue = result + (options.step.offset ?? 0)
+        if (params.step) {
+            const offsetValue = result + (params.step.offset ?? 0)
 
-            const interval = offsetValue % options.step.size
+            const interval = offsetValue % params.step.size
 
             return interval === 0
         }

@@ -48,8 +48,8 @@
             "mode": "view"
         },
         {
-            "name": "test",
-            "title": "Test",
+            "name": "experimental",
+            "title": "Experimental",
             "subtitle": "ALTERED Developer",
             "description": "A command for running scripts and implementation code.",
             "mode": "no-view"

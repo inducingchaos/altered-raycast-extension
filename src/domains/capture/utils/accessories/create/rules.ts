@@ -3,13 +3,21 @@
  */
 
 import { Color, List } from "@raycast/api"
-import { DataRule } from "../../../../shared/data/definitions"
+import { configureDataConstraint, SerializableDataConstraint } from "~/domains/shared/data/definitions/constraints"
 
-export function createDataColumnListItemRuleAccessories({ rules }: { rules: DataRule[] }): List.Item.Accessory[] {
-    if (!rules.length) return []
+export function createDataColumnListItemRuleAccessories({
+    constraints
+}: {
+    constraints: SerializableDataConstraint[]
+}): List.Item.Accessory[] {
+    if (!constraints.length) return []
 
-    return rules.map(rule => ({
-        tag: { value: rule.name, color: Color.SecondaryText },
-        tooltip: rule.description
-    }))
+    return constraints.map(constraint => {
+        const { label, instructions } = configureDataConstraint({ constraint })
+
+        return {
+            tag: { value: label, color: Color.SecondaryText },
+            tooltip: instructions
+        }
+    })
 }

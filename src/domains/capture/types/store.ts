@@ -2,11 +2,11 @@
  *
  */
 
-import { DataRuleError } from "../../shared/data/definitions"
+import { DataValidationError } from "../../shared/data/utils/rules/validate/store"
 
 export type DataStoreState = {
     value: string
-    errors: DataRuleError[]
+    errors: DataValidationError[]
 }
 
 export type DataStore = Map<string, DataStoreState>

@@ -31,7 +31,7 @@ export function onSearchTextChange({
         setDataStore(prev =>
             new Map(prev).set(selectedColumn.id, {
                 value: searchText,
-                errors: errors
+                errors: errors ?? []
             })
         )
         dataStoreUpdatedAt.current = Date.now()
