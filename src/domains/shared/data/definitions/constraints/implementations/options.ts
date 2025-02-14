@@ -119,7 +119,7 @@ function createVariadicRecord<Schema extends Type>(props: VariadicRecord<Schema>
     return props
 }
 
-function constraintOption<Schema extends Type>(props: InnerVariadicRecord<Schema>): InnerVariadicRecord<Schema> {
+function constraintOption<Schema extends Type>(props: InnerVariadicRecord<Schema>) {
     return props
 }
 
