@@ -17,6 +17,7 @@ export type DataConstraintOption<Schema extends Type = Type> = {
     | {
           type: "value"
           schema: Schema
+          //  Since we are not hoisting the `Schema` generic to the creation function (doing so would inhibit separate sibling schemas during definition), the default may not be of type `Schema["infer"]`. We should always verify the default at runtime.
           default?: Schema["infer"]
       }
 )

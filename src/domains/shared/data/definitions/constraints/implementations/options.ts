@@ -2,86 +2,9 @@
  *
  */
 
-import { createDataConstraint } from ".."
 import { navigateArray } from "@sdkit/utils"
-
-import { Type, type } from "arktype"
-
-export type DataConstraintOption<DataType extends Type, InnerDataType extends Type> = {
-    name: string
-    description: string
-    required: boolean
-} & (
-    | {
-          type: "group"
-          options: DataConstraintOptions<InnerDataType>
-      }
-    | {
-          type: "value"
-          schema: DataType
-          default?: DataType["infer"]
-      }
-)
-
-export type DataConstraintOptions<DataType extends Type, InnerDataType extends Type = Type> = Record<
-    string,
-    DataConstraintOption<DataType, InnerDataType>
->
-
-function createDataConstraintOptions<DataType extends Type, InnerDataType extends Type>(
-    props: DataConstraintOptions<DataType, InnerDataType>
-): DataConstraintOptions<DataType, InnerDataType> {
-    return props
-}
-
-export const test = createDataConstraintOptions({
-    test: {
-        name: "GOOD: Works as Intended",
-        description: "`default` should error on `false`, as it is correctly inferred as a string.",
-        type: "value",
-        required: true,
-
-        schema: type("string"),
-        default: false
-    },
-    siblingTest: {
-        name: "BAD: Inherits `DataType` generic from `test`",
-        description: "`schema` should not error, and `default` should not be inferred as a string.",
-        type: "value",
-        required: true,
-
-        schema: type("boolean"),
-        default: true
-    },
-    groupTest: {
-        name: "GOOD: Works as Intended",
-        description: "Groups allow nested options.",
-        type: "group",
-        required: true,
-
-        options: {
-            nestedTest: {
-                name: "GOOD: Works as Intended",
-                description: '`default` should error on `"test"`, as it is correctly inferred as a boolean.',
-                type: "value",
-                required: true,
-
-                schema: type("boolean"),
-                default: "test"
-            },
-
-            nestedSiblingTest: {
-                name: "BAD: Inherits `DataType` generic from `nestedTest`",
-                description: "`schema` should not error, and `default` should not be inferred as a boolean.",
-                type: "value",
-                required: true,
-
-                schema: type("number"),
-                default: 1
-            }
-        }
-    }
-})
+import { type } from "arktype"
+import { createDataConstraint } from ".."
 
 export const optionsConstraint = createDataConstraint({
     id: "options",
