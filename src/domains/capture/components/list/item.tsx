@@ -30,6 +30,7 @@ export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.
             id={column.id}
             title={title}
             subtitle={subtitle}
+            // subtitle={TEMP_createSubtitleAccessories({ constraints: column.constraints })}
             actions={<CaptureActions />}
             accessories={createDataColumnListItemAccessories({ column, state: dataStore.get(column.id), isSelected })}
         />

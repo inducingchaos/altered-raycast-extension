@@ -21,3 +21,19 @@ export function createDataColumnListItemRuleAccessories({
         }
     })
 }
+
+export function TEMP_createSubtitleAccessories({
+    constraints
+}: {
+    constraints?: SerializableDataConstraint[]
+}): string | undefined {
+    if (!constraints?.length) return undefined
+
+    return constraints
+        .map(constraint => {
+            const { label } = configureDataConstraint({ constraint })
+
+            return label
+        })
+        .join(" — ")
+}

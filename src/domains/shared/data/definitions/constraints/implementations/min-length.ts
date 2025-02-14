@@ -5,14 +5,14 @@
 import { type } from "arktype"
 import { createDataConstraint } from ".."
 
-export const maxLengthConstraint = createDataConstraint({
-    id: "max-length",
-    name: "Max Length",
-    description: "The maximum length of the value.",
+export const minLengthConstraint = createDataConstraint({
+    id: "min-length",
+    name: "Min Length",
+    description: "The minimum length of the value.",
     label: options => {
-        return `Max Length: ${options.value}`
+        return `Min Length: ${options.value}`
     },
-    instructions: options => `The value must be ${options.value} characters or less.`,
+    instructions: options => `The value must be ${options.value} characters or more.`,
     error: {
         label: "Exceeds Range"
     },
@@ -24,7 +24,7 @@ export const maxLengthConstraint = createDataConstraint({
         value: {
             type: "value",
             name: "Value",
-            description: "The maximum length of the value.",
+            description: "The minimum length of the value.",
 
             required: true,
             schema: type("number")
@@ -32,7 +32,7 @@ export const maxLengthConstraint = createDataConstraint({
     },
 
     validate: ({ value, params }) => {
-        const schema = type(`string <= ${params.value}`)
+        const schema = type(`string >= ${params.value}`)
         const result = schema(value)
 
         if (result instanceof type.errors) {

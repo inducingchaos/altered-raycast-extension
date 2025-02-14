@@ -2,19 +2,162 @@
  *
  */
 
-import { type } from "arktype"
+import { Type, type } from "arktype"
 import { createDataConstraint } from ".."
 import { navigateArray } from "@sdkit/utils"
+
+type Base<T extends Type = Type> = {
+    s: T
+    n: T["infer"]
+}
+
+// type Example = Base & Partial<{ [key: string]: Example }>
+
+function createBase<T extends Type>(props: Base<T>): Base<T> {
+    return props
+}
+
+const test = createBase({
+    s: type("boolean"),
+    n: ""
+})
+
+export type DataConstraintOption<Schema extends Type = Type, X extends Type = Type> = {
+    name: string
+    description: string
+    required: boolean
+} & (
+    | {
+          type: "group"
+          options: DataConstraintOptions<X>
+      }
+    | {
+          type: "value"
+          schema: Schema
+          default?: Schema["infer"]
+      }
+)
+
+export type DataConstraintOptions<Schema extends Type = Type, X extends Type = Type> = Record<
+    string,
+    DataConstraintOption<Schema, X>
+>
+
+//
+//
+
+function createDataConstraintOptionsWorking<Schema extends Type, X extends Type>(
+    props: DataConstraintOptions<Schema, X>
+): DataConstraintOptions<Schema, X> {
+    return props
+}
+
+const test = createDataConstraintOptionsWorking({
+    test: {
+        name: "Test",
+        description: "The test option.",
+        required: true,
+
+        type: "value",
+        schema: type("string"),
+        default: false
+    },
+    test2: {
+        name: "Test",
+        description: "The test option.",
+        required: true,
+
+        type: "value",
+        schema: type("number"),
+        default: true
+    },
+    values: {
+        name: "Values",
+        description: "The allowed options.",
+        required: true,
+
+        type: "group",
+
+        options: {
+            a: {
+                name: "A",
+                description: "The allowed options.",
+                required: true,
+
+                type: "value",
+                schema: type("boolean"),
+                default: "test"
+            },
+
+            b: {
+                name: "B",
+                description: "The allowed options.",
+                required: true,
+
+                type: "value",
+                schema: type("number"),
+                default: 1
+            }
+        }
+    }
+})
+
+type Wrapper<Options extends DataConstraintOptions = DataConstraintOptions> = {
+    wrapper: Options
+}
+
+function createDataConstraintOptions<Options extends DataConstraintOptions = DataConstraintOptions>(
+    props: Wrapper<Options>
+): Wrapper<Options> {
+    return props
+}
+
+const test = createDataConstraintOptions({
+    wrapper: {
+        values: {
+            name: "Values",
+            description: "The allowed options.",
+            required: true,
+
+            type: "group",
+
+            options: {
+                a: {
+                    name: "A",
+                    description: "The allowed options.",
+                    required: true,
+
+                    type: "value",
+                    schema: type("boolean"),
+                    default: false
+                },
+
+                b: {
+                    name: "B",
+                    description: "The allowed options.",
+                    required: true,
+
+                    type: "value",
+                    schema: type("number"),
+                    default: "false"
+                }
+            }
+        }
+    }
+})
 
 export const optionsConstraint = createDataConstraint({
     id: "options",
     name: "Options",
     description: "The allowed options for the value.",
-    label: options => {
-        return `Options: ${options.values.join(" | ")}`
-    },
+    // label: options =>
+    //     `Options: ${options.values
+    //         .map(value => `'${value}'`)
+    //         .slice(0, -1)
+    //         .join(", ")}, or ${options.values.map(value => `'${value}'`).slice(-1)[0]}`,
+    label: options => `${options.values.join(" ｜ ")}`,
     instructions: options =>
-        `The value must be one of the following: '${options.values?.slice(0, -1).join("', '")}', or '${options.values?.[options.values.length - 1]}'.`,
+        `The value must be one of the following: '${options.values.slice(0, -1).join("', '")}', or '${options.values[options.values.length - 1]}'.`,
     error: {
         label: "Invalid Option"
     },
@@ -30,6 +173,16 @@ export const optionsConstraint = createDataConstraint({
 
             required: true,
             schema: type("string[]")
+        },
+        caseSensitive: {
+            type: "value",
+            name: "Case Sensitive",
+            description: "Whether the options are case sensitive.",
+
+            required: false,
+
+            schema: type("boolean"),
+            default: "true"
         }
     },
 

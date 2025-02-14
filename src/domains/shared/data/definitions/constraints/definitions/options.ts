@@ -17,6 +17,7 @@ export type DataConstraintOption<Schema extends Type = Type> = {
     | {
           type: "value"
           schema: Schema
+          default?: Schema["infer"]
       }
 )
 
