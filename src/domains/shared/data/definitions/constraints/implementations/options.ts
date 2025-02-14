@@ -102,6 +102,70 @@ const test = createDataConstraintOptionsWorking({
     }
 })
 
+//
+// SIMPLE VARIADIC RECORD
+
+type VariadicRecord<Schemas extends Type, Key extends string = string> = {
+    [key in Key]: InnerVariadicRecord<Schemas>
+}
+
+type InnerVariadicRecord<Schemas extends Type> = {
+    c: Schemas
+    d: Schemas["infer"]
+    nested?: VariadicRecord<Schemas>
+}
+
+function createVariadicRecord<Schema extends Type>(props: VariadicRecord<Schema>): VariadicRecord<Schema> {
+    return props
+}
+
+function constraintOption<Schema extends Type>(props: InnerVariadicRecord<Schema>): InnerVariadicRecord<Schema> {
+    return props
+}
+
+// function createVariadicRecord<Schemas extends Array<Type>>(
+//     cons: VariadicRecord<[...Schemas]>
+// ): {
+//     [K in keyof Schemas]: Schemas[K] extends Type ? Schemas[K] : never
+// }
+// function createVariadicRecord(cons: VariadicRecord<Type[]>): unknown[] {
+//     return cons
+// }
+
+const Test2 = createVariadicRecord({
+    a: constraintOption({
+        c: type("boolean"),
+        // infer d from c, individually
+        d: false
+    }),
+    b: constraintOption({
+        c: type("number"),
+        d: 5,
+        nested: {
+            x: constraintOption({
+                c: type("string"),
+                d: true
+            }),
+            y: constraintOption({
+                c: type("boolean"),
+                d: false,
+                nested: {
+                    z: constraintOption({
+                        c: type("number"),
+                        d: "10"
+                    }),
+                    z2: constraintOption({
+                        c: type("string"),
+                        d: false
+                    })
+                }
+            })
+        }
+    })
+})
+
+//
+//
 type Wrapper<Options extends DataConstraintOptions = DataConstraintOptions> = {
     wrapper: Options
 }
