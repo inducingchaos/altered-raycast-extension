@@ -53,11 +53,12 @@ type GroupDataConstraintParamConfig = DataConstraintParamConfigBase & {
 
 export type DataConstraintParamConfig = ValueDataConstraintParamConfig | GroupDataConstraintParamConfig
 export type DataConstraintParamsConfig = Record<string, DataConstraintParamConfig>
+export type NullableDataConstraintParamsConfig = DataConstraintParamsConfig | null
 
 /**
  * Re-maps the named keys of the parameter configurations to their respective inferred values.
  */
-export type InferDataConstraintParams<Params extends DataConstraintParamsConfig> = Expand<{
+export type InferDataConstraintParams<Params extends NullableDataConstraintParamsConfig> = Expand<{
     [Key in keyof Params]: Params[Key] extends ValueDataConstraintParamConfig
         ? Params[Key]["required"] extends true
             ? Params[Key]["schema"]["infer"]

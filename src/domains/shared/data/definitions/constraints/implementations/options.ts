@@ -20,12 +20,12 @@ export const optionsConstraint = createDataConstraint({
 
     label: ({ constraint, params }) => `${constraint.name}: ${params.options.join(", ")}`,
     instructions: ({ constraint, params: { multipleOptions, options } }) =>
-        `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params!.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`,
+        `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`,
     error: {
         label: "Invalid Option"
     },
 
-    types: ["string"],
+    types: ["string", "number"],
     supersedes: [],
 
     params: {
@@ -72,7 +72,7 @@ export const optionsConstraint = createDataConstraint({
 
     select: ({ value, params, direction }) => {
         return navigateArray({
-            source: params.values,
+            source: params.options,
             current: item => item === value,
             direction
         })
@@ -80,7 +80,10 @@ export const optionsConstraint = createDataConstraint({
 
     validate:
         ({ constraint, params }) =>
-        value => {
+        ({ value: initialValue }) => {
+            const isNumber = typeof initialValue === "number"
+            const value = isNumber ? initialValue.toString() : initialValue
+
             const separators =
                 params.multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default
             const options = separators.flatMap(separator => value.split(separator))
