@@ -2,6 +2,8 @@
  *
  */
 
+import { type, Type } from "arktype"
+
 /**
  * Expands branded types for better readability. Preserves built-in types.
  */
@@ -47,14 +49,37 @@ type InferDynamicType<Name extends DynamicTypeName> = Name extends `${infer Infe
       ? DynamicTypePrimitiveMap[Name]
       : never
 
-type DynamicType<T extends DynamicTypeName = DynamicTypeName> = {
-    name: T
-    infer: InferDynamicType<T>
+/* --- */
+
+//  Demo implementation of a `DynamicType` that is not based on ArkType.
+
+// type DynamicType<Name extends DynamicTypeName = DynamicTypeName> = {
+//     name: Name
+//     infer: InferDynamicType<Name>
+// }
+
+// function createDynamicType<Name extends DynamicTypeName>(name: Name): DynamicType<Name> {
+//     return { name } as DynamicType<Name>
+// }
+
+//  Workaround to carry an ArkType schema.
+
+type DynamicType<Name extends DynamicTypeName = DynamicTypeName> = {
+    name: Name
+    infer: InferDynamicType<Name>
+    schema: Type<InferDynamicType<Name>>
 }
 
-function createDynamicType<T extends DynamicTypeName>(name: T): DynamicType<T> {
-    return { name } as DynamicType<T>
+function createDynamicType<Name extends DynamicTypeName>(name: Name): DynamicType<Name> {
+    return { name, schema: type(name as Parameters<typeof type>[0]) } as DynamicType<Name>
 }
+
+//  Try uncommenting the following aliases... they should work (in the same way that the previous implementation does, but they don't). All parameters are inferred as `unknown` - see errors.
+
+// type DynamicType = Type
+// const createDynamicType = type
+
+/* --- */
 
 //  Types for the `DataConstraint` parameter configurations.
 
