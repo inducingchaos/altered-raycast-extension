@@ -2,9 +2,8 @@
  *
  */
 
-import { navigateArray } from "@sdkit/utils"
-import { type } from "arktype"
-import { createDataConstraint } from ".."
+import { createTypeSchema, navigateArray } from "@sdkit/utils"
+import { createDataConstraint } from "../definitions"
 
 export const optionsConstraint = createDataConstraint({
     id: "options",
@@ -20,8 +19,8 @@ export const optionsConstraint = createDataConstraint({
     //     `The value must be one of the following: '${options.values.slice(0, -1).join("', '")}', or '${options.values[options.values.length - 1]}'.`,
 
     label: ({ constraint, params }) => `${constraint.name}: ${params.options.join(", ")}`,
-    instructions: ({ constraint, params }) =>
-        `The value can contain ${params.multipleOptions?.limit ? `up to ${params.multipleOptions?.limit}` : params.multipleOptions?.limit === 1 ? "one" : "any"} of the following options${params.multipleOptions?.limit ? `, separated by '${(params.multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${params.options.join(", ")}`,
+    instructions: ({ constraint, params: { multipleOptions, options } }) =>
+        `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params!.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`,
     error: {
         label: "Invalid Option"
     },
@@ -35,14 +34,14 @@ export const optionsConstraint = createDataConstraint({
             description: "The allowed options for the value. ",
             type: "value",
             required: true,
-            schema: createDynamicType("string[]")
+            schema: createTypeSchema("string[]")
         },
         caseSensitive: {
             name: "Case Sensitive",
             description: "Whether the options should be case sensitive.",
             type: "value",
             required: false,
-            schema: createDynamicType("boolean"),
+            schema: createTypeSchema("boolean"),
             default: true
         },
         multipleOptions: {
@@ -56,7 +55,7 @@ export const optionsConstraint = createDataConstraint({
                     description: "The maximum number of options that can be specified.",
                     type: "value",
                     required: false,
-                    schema: createDynamicType("number"),
+                    schema: createTypeSchema("number"),
                     default: 1
                 },
                 separators: {
@@ -64,7 +63,7 @@ export const optionsConstraint = createDataConstraint({
                     description: "The allowed delimiters for separating the options.",
                     type: "value",
                     required: false,
-                    schema: createDynamicType("string[]"),
+                    schema: createTypeSchema("string[]"),
                     default: [", ", " "]
                 }
             }

@@ -2,41 +2,51 @@
  *
  */
 
-import { Type } from "arktype"
+import { Expand, TypeSchema } from "@sdkit/utils"
 import { DataType, DataTypeIDKey } from "~/domains/shared/data/definitions/types"
 import { DataConstraintID } from "./ids"
-import { DataConstraintOptions, InferSchemaFromOptions } from "./options"
+import { DataConstraintParamsConfig, InferDataConstraintParams, ValidateDataConstraintParamsConfig } from "./params"
 
-export type DataConstraint<ID extends DataConstraintID, Options extends DataConstraintOptions> = {
+type DataConstraintGenerator<
+    ParamsConfig extends DataConstraintParamsConfig,
+    Type extends TypeSchema,
+    Result = string,
+    Params = InferDataConstraintParams<ParamsConfig>
+> = (props: { constraint: DataConstraint<ParamsConfig, Type>; params: Params }) => Result
+
+export type DataConstraint<
+    ParamsConfig extends DataConstraintParamsConfig = DataConstraintParamsConfig,
+    Type extends TypeSchema = TypeSchema,
+    ID extends DataConstraintID = DataConstraintID
+> = {
     id: ID
     name: string
-    description: string | ((options: InferSchemaFromOptions<Options>) => string)
+    description: string | DataConstraintGenerator<ParamsConfig, Type>
 
-    label?: string | ((options: InferSchemaFromOptions<Options>) => string)
-    instructions: string | ((options: InferSchemaFromOptions<Options>) => string)
+    label?: string | DataConstraintGenerator<ParamsConfig, Type>
+    instructions: string | DataConstraintGenerator<ParamsConfig, Type>
     error?: {
-        label?: string | ((options: InferSchemaFromOptions<Options>) => string)
-        description?: string | ((options: InferSchemaFromOptions<Options>) => string)
+        label?: string | DataConstraintGenerator<ParamsConfig, Type>
+        description?: string | DataConstraintGenerator<ParamsConfig, Type>
     }
 
-    system?: boolean
     types: (DataType["id"] | DataTypeIDKey)[]
     supersedes: DataConstraintID[]
-    options: Options | null
+    params: ParamsConfig | null
 
     select?: (props: {
         value: string | undefined
-        params: InferSchemaFromOptions<Options>
+        params: InferDataConstraintParams<ParamsConfig>
         direction: "previous" | "next"
     }) => string
-
-    validate: (props: { value: string; params: InferSchemaFromOptions<Options> }) => boolean
+    validate?: DataConstraintGenerator<ParamsConfig, Type, (value: Type["infer"]) => boolean>
 }
 
 export function createDataConstraint<
     ID extends DataConstraintID,
-    Options extends DataConstraintOptions<OptionType>,
-    OptionType extends Type
->(props: DataConstraint<ID, Options>): DataConstraint<ID, Options> {
-    return props
+    Type extends TypeSchema,
+    Params extends ValidateDataConstraintParamsConfig<Params>,
+    Result extends Expand<DataConstraint<Params, Type, ID>, TypeSchema>
+>(props: DataConstraint<Params, Type, ID>): Result {
+    return props as Result
 }

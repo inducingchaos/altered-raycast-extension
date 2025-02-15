@@ -4,178 +4,31 @@
 
 import { type, Type } from "arktype"
 
-/**
- * Expands branded types for better readability. Preserves built-in types.
- */
-export type Expand<Type, Except = never> = Type extends Except
-    ? Type
-    : Type extends Array<infer Item>
-      ? Array<Expand<Item, Except>>
-      : Type extends (...args: never[]) => unknown
-        ? Type
-        : Type extends Date
-          ? Date
-          : Type extends RegExp
-            ? RegExp
-            : Type extends Map<infer Key, infer Value>
-              ? Map<Expand<Key, Except>, Expand<Value, Except>>
-              : Type extends Set<infer Item>
-                ? Set<Expand<Item, Except>>
-                : Type extends object
-                  ? {
-                        [Key in keyof Type as Key extends string ? (string extends Key ? never : Key) : Key]: Expand<
-                            Type[Key],
-                            Except
-                        >
-                    }
-                  : Type
-
 //  Drop-in replacement to mock the behavior of an ArkType `Type`, for demonstration purposes.
-
-type DynamicTypePrimitiveMap = {
-    string: string
-    number: number
-    boolean: boolean
-    unknown: unknown
-}
-
-type DynamicTypePrimitiveName = Expand<keyof DynamicTypePrimitiveMap>
-type DynamicTypeArrayName = `${DynamicTypePrimitiveName}[]`
-type DynamicTypeName = DynamicTypePrimitiveName | DynamicTypeArrayName
-
-type InferDynamicType<Name extends DynamicTypeName> = Name extends `${infer InferredName extends DynamicTypePrimitiveName}[]`
-    ? DynamicTypePrimitiveMap[InferredName][]
-    : Name extends DynamicTypePrimitiveName
-      ? DynamicTypePrimitiveMap[Name]
-      : never
-
-/* --- */
-
-//  Demo implementation of a `DynamicType` that is not based on ArkType.
-
-// type DynamicType<Name extends DynamicTypeName = DynamicTypeName> = {
-//     name: Name
-//     infer: InferDynamicType<Name>
-// }
-
-// function createDynamicType<Name extends DynamicTypeName>(name: Name): DynamicType<Name> {
-//     return { name } as DynamicType<Name>
-// }
-
-//  Workaround to carry an ArkType schema.
-
-type DynamicType<Name extends DynamicTypeName = DynamicTypeName> = {
-    name: Name
-    infer: InferDynamicType<Name>
-    schema: Type<InferDynamicType<Name>>
-}
-
-function createDynamicType<Name extends DynamicTypeName>(name: Name): DynamicType<Name> {
-    return { name, schema: type(name as Parameters<typeof type>[0]) } as DynamicType<Name>
-}
-
-//  Try uncommenting the following aliases... they should work (in the same way that the previous implementation does, but they don't). All parameters are inferred as `unknown` - see errors.
-
-// type DynamicType = Type
-// const createDynamicType = type
-
-/* --- */
 
 //  Types for the `DataConstraint` parameter configurations.
 
-type DataConstraintParamConfigBase = { name: string; description: string }
-
-type ValueDataConstraintParamConfigBase = { type: "value"; schema: DynamicType }
-type OptionalValueDataConstraintParamConfig = DataConstraintParamConfigBase &
-    ValueDataConstraintParamConfigBase & { required: false; default: DynamicType["infer"] | null }
-type RequiredValueDataConstraintParamConfig = DataConstraintParamConfigBase &
-    ValueDataConstraintParamConfigBase & { required: true }
-type ValueDataConstraintParamConfig = OptionalValueDataConstraintParamConfig | RequiredValueDataConstraintParamConfig
-
-type GroupDataConstraintParamConfig = DataConstraintParamConfigBase & {
-    type: "group"
-    required: boolean
-    options: Record<string, DataConstraintParamConfig>
-}
-
-type DataConstraintParamConfig = ValueDataConstraintParamConfig | GroupDataConstraintParamConfig
-type DataConstraintParamsConfig = Record<string, DataConstraintParamConfig>
-
-/**
- * Re-maps the named keys of the parameter configurations to their respective inferred values.
- */
-type InferDataConstraintParams<Params extends DataConstraintParamsConfig> = Expand<{
-    [Key in keyof Params]: Params[Key] extends ValueDataConstraintParamConfig
-        ? Params[Key]["required"] extends true
-            ? Params[Key]["schema"]["infer"]
-            : Params[Key]["schema"]["infer"] | null
-        : Params[Key] extends GroupDataConstraintParamConfig
-          ? Params[Key]["required"] extends true
-              ? InferDataConstraintParams<Params[Key]["options"]>
-              : InferDataConstraintParams<Params[Key]["options"]> | null
-          : never
-}>
-
 //  The core constraint configuration.
-
-type DataConstraintConfig<
-    ParamsConfig extends DataConstraintParamsConfig = DataConstraintParamsConfig,
-    Type extends DynamicType = DynamicType,
-    Params = InferDataConstraintParams<ParamsConfig>
-> = {
-    name: string
-    type: Type
-    params: ParamsConfig
-    label?: (props: { config: DataConstraintConfig<ParamsConfig, Type, Params>; params: Params }) => string
-    instructions?: (props: { config: DataConstraintConfig<ParamsConfig, Type, Params>; params: Params }) => string
-    validate?: (props: {
-        config: DataConstraintConfig<ParamsConfig, Type, Params>
-        params: Params
-    }) => (value: Type["infer"]) => boolean
-}
-
-type ValidateDataConstraintParamConfig<Param extends DataConstraintParamConfig> = Param extends ValueDataConstraintParamConfig
-    ? Param extends RequiredValueDataConstraintParamConfig
-        ? Omit<Param, "default"> & { default?: `\`never\` when \`required\` is set to \`true\`` }
-        : Omit<ValueDataConstraintParamConfig, "default"> & { default: Param["schema"]["infer"] | null }
-    : Param extends GroupDataConstraintParamConfig
-      ? Omit<GroupDataConstraintParamConfig, "options"> & { options: ValidateDataConstraintParamsConfig<Param["options"]> }
-      : DataConstraintParamConfig
-
-/**
- * Recursively validates all parameter configurations.
- */
-type ValidateDataConstraintParamsConfig<Params extends DataConstraintParamsConfig> = {
-    [Key in keyof Params]: ValidateDataConstraintParamConfig<Params[Key]>
-}
-
-function createDataConstraintConfig<
-    Type extends DynamicType,
-    Params extends ValidateDataConstraintParamsConfig<Params>,
-    Result extends Expand<DataConstraintConfig<Params, Type>, DynamicType>
->(props: DataConstraintConfig<Params, Type>): Result {
-    return props as Result
-}
 
 //  The implementation.
 
-export const enumConstraintConfig = createDataConstraintConfig({
+export const enumConstraintConfig = createDataConstraint({
     name: "Enum",
-    type: createDynamicType("string"),
+    type: createTypeSchema("string"),
     params: {
         options: {
             name: "Options",
             description: "The allowed options for the value. ",
             type: "value",
             required: true,
-            schema: createDynamicType("string[]")
+            schema: createTypeSchema("string[]")
         },
         caseSensitive: {
             name: "Case Sensitive",
             description: "Whether the options should be case sensitive.",
             type: "value",
             required: false,
-            schema: createDynamicType("boolean"),
+            schema: createTypeSchema("boolean"),
             default: true
         },
         multipleOptions: {
@@ -189,7 +42,7 @@ export const enumConstraintConfig = createDataConstraintConfig({
                     description: "The maximum number of options that can be specified.",
                     type: "value",
                     required: false,
-                    schema: createDynamicType("number"),
+                    schema: createTypeSchema("number"),
                     default: 1
                 },
                 separators: {
@@ -197,7 +50,7 @@ export const enumConstraintConfig = createDataConstraintConfig({
                     description: "The allowed delimiters for separating the options.",
                     type: "value",
                     required: false,
-                    schema: createDynamicType("string[]"),
+                    schema: createTypeSchema("string[]"),
                     default: [", ", " "]
                 }
             }

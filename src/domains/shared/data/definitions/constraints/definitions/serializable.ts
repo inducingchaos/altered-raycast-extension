@@ -4,7 +4,7 @@
 
 import { DataConstraints } from "../implementations"
 import { DataConstraintID } from "./ids"
-import { DataConstraintOptions, InferSchemaFromOptions } from "./options"
+import { DataConstraintOptions, InferSchemaFromOptions } from "./params"
 
 export type SerializableDataConstraint<
     ID extends DataConstraintID = DataConstraintID,
