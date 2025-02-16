@@ -2,8 +2,8 @@
  *
  */
 
+import { dataTypeIdKeys } from "~/domains/shared/data/definitions"
 import { createDataConstraint } from ".."
-import { dataTypeIds } from "~/domains/shared/data/definitions"
 
 export const requiredConstraint = createDataConstraint({
     id: "required",
@@ -13,10 +13,15 @@ export const requiredConstraint = createDataConstraint({
     instructions: "This value is required.",
 
     system: true,
-    types: [...dataTypeIds],
+    types: [...dataTypeIdKeys],
     supersedes: [],
 
-    options: null,
+    params: null,
 
-    validate: value => !!value
+    validate:
+        () =>
+        ({ value }) =>
+            !!value
 })
+
+// In the future, when we know how required will be used, consider passing (for constraints with multiple types) the type details to the constraint - actually - it can be any, and we won't know until the constraint is configured, so just pass all and test at runtime. We can just use the Type generic to pass in a prop to something like description, label, etc.

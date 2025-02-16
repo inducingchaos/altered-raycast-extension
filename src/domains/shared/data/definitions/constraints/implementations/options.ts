@@ -21,9 +21,7 @@ export const optionsConstraint = createDataConstraint({
     label: ({ constraint, params }) => `${constraint.name}: ${params.options.join(", ")}`,
     instructions: ({ constraint, params: { multipleOptions, options } }) =>
         `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`,
-    error: {
-        label: "Invalid Option"
-    },
+    error: { label: "Invalid Option" },
 
     types: ["string", "number"],
     supersedes: [],

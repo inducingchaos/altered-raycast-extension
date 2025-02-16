@@ -2,49 +2,47 @@
  *
  */
 
-import { traverse } from "@sdkit/utils"
+import { createTypeSchema, traverse } from "@sdkit/utils"
 import { type } from "arktype"
-import { createDataConstraint } from ".."
+import { createDataConstraint } from "../definitions"
 
 export const rangeConstraint = createDataConstraint({
     id: "range",
     name: "Range",
     description: "The range of the value.",
-    label: options => {
-        return `Range: ${options.min}-${options.max}${options.step?.size ? `, Step: ${options.step.size}` : ""}`
+
+    label: ({ params: { min, max, step } }) => {
+        return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}${step?.size ? `Step: ${step.size}, ` : ""}`
     },
-    instructions: options =>
-        `The value must be between ${options.min} and ${options.max}${
-            options.step?.size ? `, with a step of ${options.step.size}` : ""
-        }.`,
-    error: {
-        label: "Exceeds Range"
-    },
+    instructions: ({ params: { min, max, step } }) =>
+        `The value must be ${min ? `a minimum of ${min} ` : ""}${max ? `and a maximum of ${max}` : ""}${step?.size ? `, on a step of ${step.size}` : ""}${step?.offset ? `, offset by ${step.offset}` : ""}.`,
+    error: { label: "Exceeds Range" },
 
     types: ["number"],
     supersedes: [],
-    // supersedes: ["min-value", "max-value"],
 
-    options: {
+    params: {
         min: {
             type: "value",
-            name: "Minimum",
+            name: "Minimum Value",
             description: "The minimum value allowed.",
 
             required: false,
-            schema: type("number")
+            schema: createTypeSchema("number"),
+            default: null
         },
         max: {
             type: "value",
-            name: "Maximum",
+            name: "Maximum Value",
             description: "The maximum value allowed.",
 
             required: false,
-            schema: type("number")
+            schema: createTypeSchema("number"),
+            default: null
         },
         step: {
             type: "group",
-            name: "Step",
+            name: "Stepping",
             description: "Configure stepping behavior for the range.",
 
             required: false,
@@ -55,7 +53,7 @@ export const rangeConstraint = createDataConstraint({
                     description: "The increment between allowed values.",
 
                     required: true,
-                    schema: type("number")
+                    schema: createTypeSchema("number")
                 },
                 offset: {
                     type: "value",
@@ -63,7 +61,8 @@ export const rangeConstraint = createDataConstraint({
                     description: "The starting point for step calculations.",
 
                     required: false,
-                    schema: type("number")
+                    schema: createTypeSchema("number"),
+                    default: 0
                 }
             }
         }
@@ -88,33 +87,35 @@ export const rangeConstraint = createDataConstraint({
         return result.toString()
     },
 
-    validate: ({ value, params }) => {
-        if (params.min === null && params.max === null && params.step === null) return true
+    validate:
+        ({ params }) =>
+        ({ value }) => {
+            if (params.min === null && params.max === null && params.step === null) return true
 
-        const schema =
-            params.min === null && params.max === null
-                ? type(`number`)
-                : params.min === null
-                  ? type(`number < ${params.max!}`)
-                  : params.max === null
-                    ? type(`number > ${params.min!}`)
-                    : type(`${params.min} < number < ${params.max}`)
+            const schema =
+                params.min === null && params.max === null
+                    ? type(`number`)
+                    : params.min === null
+                      ? type(`number < ${params.max!}`)
+                      : params.max === null
+                        ? type(`number > ${params.min!}`)
+                        : type(`${params.min} < number < ${params.max}`)
 
-        const result = schema(value)
+            const result = schema(value)
 
-        if (result instanceof type.errors) {
-            console.error(result)
-            return false
+            if (result instanceof type.errors) {
+                console.error(result)
+                return false
+            }
+
+            if (params.step) {
+                const offsetValue = result + (params.step.offset ?? 0)
+
+                const interval = offsetValue % params.step.size
+
+                return interval === 0
+            }
+
+            return true
         }
-
-        if (params.step) {
-            const offsetValue = result + (params.step.offset ?? 0)
-
-            const interval = offsetValue % params.step.size
-
-            return interval === 0
-        }
-
-        return true
-    }
 })

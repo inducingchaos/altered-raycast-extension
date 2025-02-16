@@ -21,16 +21,9 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             required: true,
             constraints: [
                 createSerializableDataConstraint({
-                    id: dataConstraints["min-length"].id,
+                    id: dataConstraints.length.id,
                     parameters: {
-                        value: 1
-                    }
-                }),
-
-                createSerializableDataConstraint({
-                    id: dataConstraints["max-length"].id,
-                    parameters: {
-                        value: 255
+                        max: 255
                     }
                 })
             ]
@@ -78,11 +71,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                     id: dataConstraints.options.id,
                     parameters: {
                         options: ["now", "soon", "later", "After", "Before"],
-                        caseSensitive: true,
-                        multipleOptions: {
-                            limit: 3,
-                            separators: ["and", "or"]
-                        }
+                        caseSensitive: true
                     }
                 })
             ]

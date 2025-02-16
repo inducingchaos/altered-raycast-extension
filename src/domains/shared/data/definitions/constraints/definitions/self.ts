@@ -39,6 +39,7 @@ export type DataConstraint<
         description?: string | DataConstraintPropertyGenerator<Type, ParamsConfig>
     }
 
+    system?: boolean
     types: DataTypeIDs
     supersedes: DataConstraintID[]
     params: ParamsConfig
