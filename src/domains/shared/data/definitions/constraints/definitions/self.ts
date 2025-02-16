@@ -7,7 +7,7 @@ import { DataTypeIDKey, dataTypes } from "~/domains/shared/data/definitions/type
 import { DataConstraintID } from "./ids"
 import {
     DataConstraintParamsConfig,
-    InferDataConstraintParams,
+    InferDataConstraintParamsOutput,
     NullableDataConstraintParamsConfig,
     ValidateDataConstraintParamsConfig
 } from "./params"
@@ -16,7 +16,7 @@ type DataConstraintPropertyGenerator<
     Type extends InferDataType,
     ParamsConfig extends DataConstraintParamsConfig | null,
     Result = string,
-    Params = InferDataConstraintParams<ParamsConfig>
+    Params = InferDataConstraintParamsOutput<ParamsConfig>
 > = (props: { constraint: DataConstraint<DataConstraintID, DataTypeIDKey[], Type, ParamsConfig>; params: Params }) => Result
 
 export type InferDataType<DataTypeIDs extends DataTypeIDKey[] = DataTypeIDKey[]> =
@@ -45,7 +45,7 @@ export type DataConstraint<
 
     select?: (props: {
         value: string | undefined
-        params: InferDataConstraintParams<ParamsConfig>
+        params: InferDataConstraintParamsOutput<ParamsConfig>
         direction: "previous" | "next"
     }) => string
 

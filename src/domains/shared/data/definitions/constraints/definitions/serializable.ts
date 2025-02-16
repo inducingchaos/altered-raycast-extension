@@ -4,14 +4,15 @@
 
 import { DataConstraints } from "../implementations"
 import { DataConstraintID } from "./ids"
-import { DataConstraintOptions, InferSchemaFromOptions } from "./params"
+import { InferDataConstraintParamsInput } from "./params"
 
 export type SerializableDataConstraint<
     ID extends DataConstraintID = DataConstraintID,
-    Options = DataConstraints[ID]["options"]
+    ParamsConfig extends DataConstraints[ID]["params"] = DataConstraints[ID]["params"],
+    Params extends InferDataConstraintParamsInput<ParamsConfig> = InferDataConstraintParamsInput<ParamsConfig>
 > = {
     id: ID
-    parameters: Options extends DataConstraintOptions ? InferSchemaFromOptions<Options> : never
+    parameters: Params
 }
 
 export function createSerializableDataConstraint<ID extends DataConstraintID>(

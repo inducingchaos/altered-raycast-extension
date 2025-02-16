@@ -77,7 +77,12 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                 createSerializableDataConstraint({
                     id: dataConstraints.options.id,
                     parameters: {
-                        values: ["now", "soon", "later", "After", "Before"]
+                        options: ["now", "soon", "later", "After", "Before"],
+                        caseSensitive: true,
+                        multipleOptions: {
+                            limit: 3,
+                            separators: ["and", "or"]
+                        }
                     }
                 })
             ]
