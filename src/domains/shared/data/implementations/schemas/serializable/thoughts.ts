@@ -65,7 +65,6 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             description: "Allows multiple options.",
             type: dataTypes.string.id,
             required: true,
-            default: "now",
             constraints: [
                 createSerializableDataConstraint({
                     id: dataConstraints.options.id,

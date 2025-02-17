@@ -54,7 +54,7 @@ export async function onCreateAction({
     if (!success) {
         await showToast({
             style: Toast.Style.Failure,
-            title: `${columns.find(column => column.id === errors[0].metadata.columnId)?.name}${THIN_PIPE}${errors[0].title}`,
+            title: `${columns.find(column => column.id === errors[0].metadata.columnId)?.name}`,
             message: errors[0].message
 
             // title: "Error Uploading Thought",

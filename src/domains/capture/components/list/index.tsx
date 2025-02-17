@@ -3,7 +3,7 @@
  */
 
 import { List } from "@raycast/api"
-import { onSearchTextChange, changeSelection as _changeSelection } from "../../handlers"
+import { setContent, changeSelection as _changeSelection } from "../../handlers"
 import { useCapture } from "../context"
 import { DataColumnListSection } from "./section"
 
@@ -33,9 +33,7 @@ export function DataColumnList() {
             selectedItemId={selectedItemId}
             onSelectionChange={changeSelection}
             searchText={searchText}
-            onSearchTextChange={value =>
-                onSearchTextChange({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })
-            }
+            onSearchTextChange={value => setContent({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })}
             searchBarPlaceholder={searchBarPlaceholder}
         >
             <DataColumnListSection />

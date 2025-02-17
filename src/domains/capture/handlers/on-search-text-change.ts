@@ -8,7 +8,7 @@ import { validateDataColumn } from "~/domains/shared/data/utils"
 import { debug, shouldShowDebug } from "~/domains/shared/TEMP"
 import { DataStore } from "../types"
 
-export function onSearchTextChange({
+export function setContent({
     searchText,
     selectedColumn,
     setDataStore,
@@ -27,6 +27,10 @@ export function onSearchTextChange({
 
     if (selectedColumn && canUpdate) {
         const { errors } = validateDataColumn({ value: searchText, column: selectedColumn })
+
+        console.log({ errors })
+
+        console.log({ searchText, selectedColumn })
 
         setDataStore(prev =>
             new Map(prev).set(selectedColumn.id, {

@@ -84,7 +84,7 @@ export const optionsConstraint = createDataConstraint({
         const value = isNumber ? initialValue.toString() : initialValue
 
         const separators = params.multipleOptions?.separators ?? constraint.params!.multipleOptions.options.separators.default
-        const options = separators.flatMap(separator => value.split(separator))
+        const options = separators.reduce((acc, separator) => acc.flatMap(str => str.split(separator)), [value])
         const casedOptions = params.caseSensitive ? options : options.map(option => option.toLowerCase())
 
         const allowedOptions = params.options
@@ -94,6 +94,8 @@ export const optionsConstraint = createDataConstraint({
 
         const limit = params.multipleOptions?.limit ?? constraint.params!.multipleOptions.options.limit.default
         const isLimitReached = !!limit && options.length > limit
+
+        console.log({ isMatching, isLimitReached, value, options, allowedOptions })
 
         return isMatching && !isLimitReached
     }

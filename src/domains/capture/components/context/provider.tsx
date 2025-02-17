@@ -7,7 +7,7 @@
 import { ReactNode, useMemo, useRef, useState, type JSX } from "react"
 import { SerializableDataSchema } from "~/domains/shared/data/definitions"
 import { CaptureContext } from "."
-import { changeSelection } from "../../handlers"
+import { changeSelection, setContent } from "../../handlers"
 import { DataStore } from "../../types"
 import { nanoid } from "nanoid"
 
@@ -53,6 +53,10 @@ export function CaptureContextProvider({
                 value: dataStore,
                 set: (value: (prev: DataStore) => DataStore) => setDataStore(prev => new Map(value(prev))),
                 reset: () => setDataStore(new Map())
+            },
+            content: {
+                searchText,
+                set: (value: string) => setContent({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })
             },
             selection: {
                 id: selectedItemId,

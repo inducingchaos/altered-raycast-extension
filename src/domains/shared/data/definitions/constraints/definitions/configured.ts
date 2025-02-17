@@ -70,7 +70,7 @@ export function configureDataConstraint({
               }
             : undefined,
         validate: ({ value }) => {
-            return constraintDefinition.validate({ constraint: constraintDefinition, value, params: parsedParams }) ?? true
+            return constraintDefinition.validate({ constraint: constraintDefinition, value, params: parsedParams })
         }
     }
 

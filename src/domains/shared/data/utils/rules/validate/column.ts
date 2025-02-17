@@ -50,6 +50,8 @@ export function validateDataColumn({ value, column }: { value: string; column: S
         return [...store, { ...error, metadata: { columnId: column.id } }]
     }, [] as DataValidationError[])
 
+    console.log({ ruleErrors, value, column })
+
     if (ruleErrors?.length) return { success: false, errors: ruleErrors }
 
     return { success: true, errors: null }

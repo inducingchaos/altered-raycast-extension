@@ -3,4 +3,4 @@
  */
 
 export const THIN_PIPE = "｜"
-export const THIN_BAR = " ⎻ "
+export const THIN_BAR = "⎻"

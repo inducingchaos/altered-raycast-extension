@@ -3,7 +3,7 @@
  */
 
 import { Action, Icon } from "@raycast/api"
-import { DataStore } from "~/domains/capture/types"
+import { CaptureContextState } from "~/domains/capture/components/context/state"
 import { dataTypes, SafeDataSchema } from "~/domains/shared/data"
 import { configureDataConstraint, DataConstraintKey, dataConstraints } from "~/domains/shared/data/definitions/constraints"
 
@@ -12,15 +12,7 @@ import { configureDataConstraint, DataConstraintKey, dataConstraints } from "~/d
 export type SelectOptionActionProps = {
     direction: "next" | "previous"
     schema: SafeDataSchema
-    state: {
-        store: {
-            value: DataStore
-            set: (value: (prev: DataStore) => DataStore) => void
-        }
-        selection: {
-            id: string | undefined
-        }
-    }
+    state: CaptureContextState["state"]
 }
 
 export function SelectOptionAction({ direction, schema, state }: SelectOptionActionProps): JSX.Element {
@@ -53,18 +45,11 @@ export function SelectOptionAction({ direction, schema, state }: SelectOptionAct
 //     })
 // }
 
-function oldSelectOption({
-    direction,
-    schema,
-    state: {
-        store,
-        selection: { id: selectionId }
-    }
-}: SelectOptionActionProps) {
-    if (!selectionId) return
+function oldSelectOption({ direction, schema, state }: SelectOptionActionProps) {
+    if (!state.selection.id) return
 
-    const value = store.value.get(selectionId)?.value
-    const column = schema.columns.find(column => column.id === selectionId)
+    const value = state.store.value.get(state.selection.id)?.value
+    const column = schema.columns.find(column => column.id === state.selection.id)
 
     const constraintIds = column?.constraints?.map(constraint => constraint.id) ?? []
     const [constraintId] =
@@ -77,7 +62,9 @@ function oldSelectOption({
     if (select) {
         const nextValue = select({ value, direction })
 
-        store.set(prev => prev.set(selectionId, { value: nextValue, errors: [] }))
+        // state.store.set(prev => prev.set(state.selection.id, { value: nextValue, errors: [] }))
+
+        state.content.set(nextValue)
 
         return
     }
@@ -87,7 +74,8 @@ function oldSelectOption({
     if (type?.select) {
         const nextValue = type.select({ value, direction })
 
-        store.set(prev => prev.set(selectionId, { value: nextValue, errors: [] }))
+        // store.set(prev => prev.set(selectionId, { value: nextValue, errors: [] }))
+        state.content.set(nextValue)
     }
 
     return
