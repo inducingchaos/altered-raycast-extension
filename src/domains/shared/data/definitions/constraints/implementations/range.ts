@@ -69,9 +69,13 @@ export const rangeConstraint = createDataConstraint({
     },
 
     select: ({ value, params, direction }) => {
+        console.log("LOOKOUT 1", value, params, direction)
+
         const number = value ? Number(value.trim()) : undefined
         const isNumber = number && !isNaN(number)
         const safeNumber = isNumber ? number : undefined
+
+        console.log("LOOKOUT 2", params.min, params.max, value)
 
         const result = traverse({
             value: safeNumber,
@@ -87,35 +91,33 @@ export const rangeConstraint = createDataConstraint({
         return result.toString()
     },
 
-    validate:
-        ({ params }) =>
-        ({ value }) => {
-            if (params.min === null && params.max === null && params.step === null) return true
+    validate: ({ params, value }) => {
+        if (params.min === null && params.max === null && params.step === null) return true
 
-            const schema =
-                params.min === null && params.max === null
-                    ? type(`number`)
-                    : params.min === null
-                      ? type(`number < ${params.max!}`)
-                      : params.max === null
-                        ? type(`number > ${params.min!}`)
-                        : type(`${params.min} < number < ${params.max}`)
+        const schema =
+            params.min === null && params.max === null
+                ? type(`number`)
+                : params.min === null
+                  ? type(`number < ${params.max!}`)
+                  : params.max === null
+                    ? type(`number > ${params.min!}`)
+                    : type(`${params.min} < number < ${params.max}`)
 
-            const result = schema(value)
+        const result = schema(value)
 
-            if (result instanceof type.errors) {
-                console.error(result)
-                return false
-            }
-
-            if (params.step) {
-                const offsetValue = result + (params.step.offset ?? 0)
-
-                const interval = offsetValue % params.step.size
-
-                return interval === 0
-            }
-
-            return true
+        if (result instanceof type.errors) {
+            console.error(result)
+            return false
         }
+
+        if (params.step) {
+            const offsetValue = result + (params.step.offset ?? 0)
+
+            const interval = offsetValue % params.step.size
+
+            return interval === 0
+        }
+
+        return true
+    }
 })

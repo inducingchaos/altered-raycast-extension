@@ -3,11 +3,11 @@
  */
 
 import { type } from "arktype"
-import { createDataType, dataTypeIdConfig } from ".."
+import { createDataType, dataTypeIdMap } from ".."
 import { traverse } from "@sdkit/utils"
 
 export const numberType = createDataType({
-    id: dataTypeIdConfig.number,
+    id: dataTypeIdMap.number,
     info: {
         name: "Number",
         description: "A numerical value used for calculations.",

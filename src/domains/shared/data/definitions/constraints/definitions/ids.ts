@@ -4,7 +4,10 @@
 
 // spell-checker: disable
 
-export const dataConstraintUids = {
+export const dataConstraintKeys = ["required", "length", "range", "options"] as const
+export type DataConstraintKey = (typeof dataConstraintKeys)[number]
+
+export const dataConstraintIdMap = {
     required: "QFWPHA5M6P5Xw9sROR3w9",
 
     length: "x_TXxF1Ver4jz9prlbgBc",
@@ -14,7 +17,9 @@ export const dataConstraintUids = {
 
     range: "3Ilbtz7WRBP77q8zU3iyw",
     options: "aO5qoD7kkNEmxbMIJYlED"
-} as const
+} as const satisfies { [key in DataConstraintKey]: string }
 
-export const dataConstraintIds = Object.keys(dataConstraintUids)
-export type DataConstraintID = keyof typeof dataConstraintUids
+export type DataConstraintIDMap = typeof dataConstraintIdMap
+
+export const dataConstraintIds = Object.values(dataConstraintIdMap)
+export type DataConstraintID = (typeof dataConstraintIds)[number]

@@ -38,7 +38,7 @@ export function validateDataColumn({ value, column }: { value: string; column: S
         }
 
     const ruleErrors = column?.constraints?.reduce((store, constraint) => {
-        const { error, validate } = configureDataConstraint({ constraint })
+        const { error, validate } = configureDataConstraint({ ...constraint })
 
         if (validate({ value })) return store
         return [...store, error]

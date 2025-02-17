@@ -3,8 +3,8 @@
  */
 
 import { Expand, TypeSchema } from "@sdkit/utils"
-import { DataTypeIDKey, dataTypes } from "~/domains/shared/data/definitions/types"
-import { DataConstraintID } from "./ids"
+import { DataTypeKey, dataTypes } from "~/domains/shared/data/definitions/types"
+import { DataConstraintKey } from "./ids"
 import {
     DataConstraintParamsConfig,
     InferDataConstraintParamsOutput,
@@ -15,16 +15,19 @@ import {
 type DataConstraintPropertyGenerator<
     Type extends InferDataType,
     ParamsConfig extends DataConstraintParamsConfig | null,
+    ExtraProps extends object = object,
     Result = string,
     Params = InferDataConstraintParamsOutput<ParamsConfig>
-> = (props: { constraint: DataConstraint<DataConstraintID, DataTypeIDKey[], Type, ParamsConfig>; params: Params }) => Result
+> = (
+    props: { constraint: DataConstraint<DataConstraintKey, DataTypeKey[], Type, ParamsConfig>; params: Params } & ExtraProps
+) => Result
 
-export type InferDataType<DataTypeIDs extends DataTypeIDKey[] = DataTypeIDKey[]> =
+export type InferDataType<DataTypeIDs extends DataTypeKey[] = DataTypeKey[]> =
     (typeof dataTypes)[DataTypeIDs[number]]["schema"]["infer"]
 
 export type DataConstraint<
-    ID extends DataConstraintID = DataConstraintID,
-    DataTypeIDs extends DataTypeIDKey[] = DataTypeIDKey[],
+    ID extends DataConstraintKey = DataConstraintKey,
+    DataTypeIDs extends DataTypeKey[] = DataTypeKey[],
     Type extends InferDataType<DataTypeIDs> = InferDataType<DataTypeIDs>,
     ParamsConfig extends NullableDataConstraintParamsConfig = NullableDataConstraintParamsConfig
 > = {
@@ -41,21 +44,17 @@ export type DataConstraint<
 
     system?: boolean
     types: DataTypeIDs
-    supersedes: DataConstraintID[]
+    supersedes: DataConstraintKey[]
     params: ParamsConfig
 
-    select?: (props: {
-        value: string | undefined
-        params: InferDataConstraintParamsOutput<ParamsConfig>
-        direction: "previous" | "next"
-    }) => string
+    select?: DataConstraintPropertyGenerator<Type, ParamsConfig, { value: string | undefined; direction: "previous" | "next" }>
 
-    validate?: DataConstraintPropertyGenerator<Type, ParamsConfig, (props: { value: Type }) => boolean>
+    validate: DataConstraintPropertyGenerator<Type, ParamsConfig, { value: Type }, boolean>
 }
 
 export function createDataConstraint<
-    ID extends DataConstraintID,
-    DataTypeIDs extends DataTypeIDKey[],
+    ID extends DataConstraintKey,
+    DataTypeIDs extends DataTypeKey[],
     Type extends InferDataType<DataTypeIDs>,
     ParamsConfig extends ValidateDataConstraintParamsConfig<ParamsConfig>,
     Result extends Expand<DataConstraint<ID, DataTypeIDs, Type, ParamsConfig>, TypeSchema>

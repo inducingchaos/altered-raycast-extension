@@ -3,7 +3,7 @@
  */
 
 import { type Type } from "arktype"
-import { DataTypeID, DataTypeIDConfig, DataTypeIDKey } from "./ids"
+import { DataTypeID, DataTypeIDMap, DataTypeKey } from "./ids"
 import { DataTypeInfo } from "./info"
 import { booleanType, numberType, stringType } from "./variants"
 
@@ -20,7 +20,7 @@ export function createDataType<ID extends DataTypeID, Schema extends Type>(
     return options
 }
 
-type VerifyDataTypeKeys = { [Key in DataTypeIDKey]: { id: DataTypeIDConfig[Key] } }
+type VerifyDataTypeKeys = { [Key in DataTypeKey]: { id: DataTypeIDMap[Key] } }
 
 export const dataTypes = {
     string: stringType,

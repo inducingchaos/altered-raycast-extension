@@ -76,27 +76,22 @@ export const optionsConstraint = createDataConstraint({
         })
     },
 
-    validate:
-        ({ constraint, params }) =>
-        ({ value: initialValue }) => {
-            const isNumber = typeof initialValue === "number"
-            const value = isNumber ? initialValue.toString() : initialValue
+    validate: ({ value: initialValue, constraint, params }) => {
+        const isNumber = typeof initialValue === "number"
+        const value = isNumber ? initialValue.toString() : initialValue
 
-            const separators =
-                params.multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default
-            const options = separators.flatMap(separator => value.split(separator))
-            const casedOptions = params.caseSensitive ? options : options.map(option => option.toLowerCase())
+        const separators = params.multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default
+        const options = separators.flatMap(separator => value.split(separator))
+        const casedOptions = params.caseSensitive ? options : options.map(option => option.toLowerCase())
 
-            const allowedOptions = params.options
-            const casedAllowedOptions = params.caseSensitive
-                ? allowedOptions
-                : allowedOptions.map(option => option.toLowerCase())
+        const allowedOptions = params.options
+        const casedAllowedOptions = params.caseSensitive ? allowedOptions : allowedOptions.map(option => option.toLowerCase())
 
-            const isMatching = casedOptions.every(option => casedAllowedOptions.includes(option))
+        const isMatching = casedOptions.every(option => casedAllowedOptions.includes(option))
 
-            const limit = params.multipleOptions?.limit ?? constraint.params.multipleOptions.options.limit.default
-            const isLimitReached = !!limit && options.length > limit
+        const limit = params.multipleOptions?.limit ?? constraint.params.multipleOptions.options.limit.default
+        const isLimitReached = !!limit && options.length > limit
 
-            return isMatching && !isLimitReached
-        }
+        return isMatching && !isLimitReached
+    }
 })

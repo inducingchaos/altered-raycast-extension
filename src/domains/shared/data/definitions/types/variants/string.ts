@@ -3,10 +3,10 @@
  */
 
 import { type } from "arktype"
-import { createDataType, dataTypeIdConfig } from ".."
+import { createDataType, dataTypeIdMap } from ".."
 
 export const stringType = createDataType({
-    id: dataTypeIdConfig.string,
+    id: dataTypeIdMap.string,
     info: {
         name: "String",
         label: "Text",

@@ -13,7 +13,7 @@ export function createDataColumnListItemRuleAccessories({
     if (!constraints.length) return []
 
     return constraints.map(constraint => {
-        const { label, instructions } = configureDataConstraint({ constraint })
+        const { label, instructions } = configureDataConstraint({ ...constraint })
 
         return {
             tag: { value: label, color: Color.SecondaryText },
@@ -31,7 +31,7 @@ export function TEMP_createSubtitleAccessories({
 
     return constraints
         .map(constraint => {
-            const { label } = configureDataConstraint({ constraint })
+            const { label } = configureDataConstraint({ ...constraint })
 
             return label
         })

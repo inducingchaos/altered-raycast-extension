@@ -40,14 +40,13 @@ export const lengthConstraint = createDataConstraint({
         }
     },
 
-    validate:
-        ({ params: { min, max } }) =>
-        ({ value }) => {
-            const length = value.length
+    validate: ({ params: { min, max }, value }) => {
+        console.log("LOOKOUT", min, max, value)
+        const length = value.length
 
-            const isMinimumLength = min ? length >= min : true
-            const isMaximumLength = max ? length <= max : true
+        const isMinimumLength = min ? length >= min : true
+        const isMaximumLength = max ? length <= max : true
 
-            return isMinimumLength && isMaximumLength
-        }
+        return isMinimumLength && isMaximumLength
+    }
 })

@@ -34,9 +34,9 @@ type InferTypeSchema<Name extends TypeSchemaName> = Name extends `${infer Inferr
 export type TypeSchema<Name extends TypeSchemaName = TypeSchemaName> = {
     name: Name
     infer: InferTypeSchema<Name>
-    schema: Type<InferTypeSchema<Name>>
+    definition: Type<InferTypeSchema<Name>>
 }
 
 export function createTypeSchema<Name extends TypeSchemaName>(name: Name): TypeSchema<Name> {
-    return { name, schema: type(name as Parameters<typeof type>[0]) } as TypeSchema<Name>
+    return { name, definition: type(name as Parameters<typeof type>[0]) } as TypeSchema<Name>
 }

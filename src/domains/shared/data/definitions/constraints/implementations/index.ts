@@ -2,12 +2,12 @@
  *
  */
 
-import { DataConstraintID } from "../definitions/ids"
+import { DataConstraintKey } from "../definitions/ids"
 import { optionsConstraint } from "./options"
 import { rangeConstraint } from "./range"
 import { lengthConstraint } from "./length"
 import { requiredConstraint } from "./required"
-type VerifyDataConstraintKeys = { [Key in DataConstraintID]: { id: Key } }
+type VerifyDataConstraintKeys = { [Key in DataConstraintKey]: { id: Key } }
 
 export const dataConstraints = {
     required: requiredConstraint,

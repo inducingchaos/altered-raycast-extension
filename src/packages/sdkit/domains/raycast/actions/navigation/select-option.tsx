@@ -5,7 +5,7 @@
 import { Action, Icon } from "@raycast/api"
 import { DataStore } from "~/domains/capture/types"
 import { dataTypes, SafeDataSchema } from "~/domains/shared/data"
-import { configureDataConstraint, DataConstraintID, dataConstraints } from "~/domains/shared/data/definitions/constraints"
+import { configureDataConstraint, DataConstraintKey, dataConstraints } from "~/domains/shared/data/definitions/constraints"
 
 // fix bug where you cant escape if you select option before typing
 
@@ -69,11 +69,11 @@ function oldSelectOption({
     const constraintIds = column?.constraints?.map(constraint => constraint.id) ?? []
     const [constraintId] =
         Object.entries(dataConstraints).find(
-            ([id, constraint]) => constraintIds.includes(id as DataConstraintID) && constraint.select
+            ([id, constraint]) => constraintIds.includes(id as DataConstraintKey) && constraint.select
         ) ?? []
     const constraint = column?.constraints?.find(c => constraintId === c.id)
 
-    const { select } = constraint ? configureDataConstraint({ constraint }) : {}
+    const { select } = constraint ? configureDataConstraint({ ...constraint }) : {}
     if (select) {
         const nextValue = select({ value, direction })
 

@@ -2,16 +2,19 @@
  *
  */
 
-import { ArkErrors, Type } from "arktype"
-import { DataConstraintOptions, InferSchemaFromOptions } from "../data/definitions/constraints"
+import { ArkErrors } from "arktype"
+import { DataConstraintParamsConfig, InferDataConstraintParams } from "../data/definitions/constraints"
 
 export function parseDataConstraintParameters<
-    Options extends DataConstraintOptions<Type>,
-    Result extends InferSchemaFromOptions<Options>
->(schema: Options, params: unknown): Result {
+    Params extends DataConstraintParamsConfig | null,
+    Result extends InferDataConstraintParams<Params>
+>(schema: Params, params: unknown): Result {
     if (!schema || typeof params !== "object" || params === null) {
+        console.error(schema, params)
         throw new Error("Invalid schema or parameters")
     }
+
+    console.log("LOOKOUT 7", schema, params)
 
     // Validate that all param keys exist in schema
     const paramKeys = Object.keys(params as object)
@@ -24,23 +27,23 @@ export function parseDataConstraintParameters<
     const result = {} as Result
 
     // Process all schema keys to ensure we handle required fields
-    for (const [key, option] of Object.entries(schema)) {
+    for (const [key, param] of Object.entries(schema)) {
         const paramValue = params[key as keyof typeof params]
 
-        if (option.required && paramValue === undefined) {
+        if (param.required && paramValue === undefined) {
             throw new Error(`Missing required parameter: ${key}`)
         }
 
-        if (option.type === "group") {
+        if (param.type === "group") {
             if (paramValue !== undefined) {
                 if (typeof paramValue !== "object" || paramValue === null) {
                     throw new Error(`Invalid group parameter value for ${key}`)
                 }
-                result[key as keyof Result] = parseDataConstraintParameters(option.options, paramValue) as Result[keyof Result]
+                result[key as keyof Result] = parseDataConstraintParameters(param.options, paramValue) as Result[keyof Result]
             }
-        } else if (option.type === "value") {
+        } else if (param.type === "value") {
             if (paramValue !== undefined) {
-                const parsed = option.schema(paramValue)
+                const parsed = param.schema.definition(paramValue)
                 if (parsed instanceof ArkErrors) {
                     throw new Error(`Invalid value for ${key}: ${parsed.message}`)
                 }
@@ -48,6 +51,8 @@ export function parseDataConstraintParameters<
             }
         }
     }
+
+    console.log("DONE", result)
 
     return result
 }

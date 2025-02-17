@@ -3,10 +3,10 @@
  */
 
 import { type } from "arktype"
-import { createDataType, dataTypeIdConfig } from ".."
+import { createDataType, dataTypeIdMap } from ".."
 
 export const booleanType = createDataType({
-    id: dataTypeIdConfig.boolean,
+    id: dataTypeIdMap.boolean,
     info: {
         name: "Boolean",
         label: "True/False",

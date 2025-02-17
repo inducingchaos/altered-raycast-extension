@@ -2,50 +2,66 @@
  *
  */
 
-import { DataConstraint, DataConstraintID, DataConstraintOptions, dataConstraints, SerializableDataConstraint } from ".."
 import { parseDataConstraintParameters, resolveGenerator } from "~/domains/shared/utils"
+import { DataConstraint, DataConstraintID, DataConstraintKey, DataConstraintParams, dataConstraints } from ".."
 
-export function configureDataConstraint({ constraint }: { constraint: SerializableDataConstraint }): ConfiguredDataConstraint {
-    const constraintDefinitionEntry = Object.entries(dataConstraints).find(([id]) => {
-        return id === constraint.id
+export function configureDataConstraint({
+    id,
+    parameters
+}: {
+    id: DataConstraintKey | DataConstraintID
+    parameters: DataConstraintParams
+}): ConfiguredDataConstraint {
+    // console.log(id)
+    const constraintDefinitionEntry = Object.entries(dataConstraints).find(([constraintId]) => {
+        return constraintId === id
     })
-    if (!constraintDefinitionEntry) throw new Error(`No constraint with cycler found for ${constraint.id}`)
+    // console.log(constraintDefinitionEntry)
+    if (!constraintDefinitionEntry) throw new Error(`No constraint with cycler found for ${id}`)
 
-    const [, constraintDefinition] = constraintDefinitionEntry as [
-        DataConstraintID,
-        DataConstraint<DataConstraintID, DataConstraintOptions>
-    ]
+    const [, constraintDefinition] = constraintDefinitionEntry as [DataConstraintKey, DataConstraint<DataConstraintKey>]
 
-    const parameters = constraintDefinition.options
-        ? parseDataConstraintParameters(constraintDefinition.options, constraint.parameters)
-        : {}
+    // console.log(constraintDefinition.params, constraintDefinition.id, constraintDefinition.name, parameters)
+    const parsedParams = parseDataConstraintParameters(constraintDefinition.params, parameters)
 
-    return {
+    console.log("BEFORE FINISH", parsedParams)
+
+    const a: ConfiguredDataConstraint = {
         id: constraintDefinition.id,
         name: constraintDefinition.name,
-        description: resolveGenerator<string>({ value: constraintDefinition.description, params: parameters }),
-        label: resolveGenerator({ value: constraintDefinition.label, params: parameters }) ?? constraintDefinition.name,
-        instructions: resolveGenerator<string>({ value: constraintDefinition.instructions, params: parameters }),
+        description: resolveGenerator({ generator: constraintDefinition.description, args: parsedParams }),
+        label: resolveGenerator({ generator: constraintDefinition.label, args: parsedParams }) ?? constraintDefinition.name,
+        instructions: resolveGenerator({ generator: constraintDefinition.instructions, args: parsedParams }),
         error: {
             title:
-                resolveGenerator({ value: constraintDefinition.error?.label, params: parameters }) ?? constraintDefinition.name,
+                resolveGenerator({ generator: constraintDefinition.error?.label, args: parsedParams }) ??
+                constraintDefinition.name,
             message:
-                resolveGenerator({ value: constraintDefinition.error?.description, params: parameters }) ??
-                resolveGenerator<string>({ value: constraintDefinition.instructions, params: parameters })
+                resolveGenerator({ generator: constraintDefinition.error?.description, args: parsedParams }) ??
+                resolveGenerator({ generator: constraintDefinition.instructions, args: parsedParams })
         },
         select: constraintDefinition.select
             ? ({ value, direction }) => {
-                  return constraintDefinition.select!({ value, params: parameters, direction })
+                  return constraintDefinition.select!({
+                      constraint: constraintDefinition,
+                      value,
+                      params: parsedParams,
+                      direction
+                  })
               }
             : undefined,
         validate: ({ value }) => {
-            return constraintDefinition.validate({ value, params: parameters })
+            return constraintDefinition.validate({ constraint: constraintDefinition, value, params: parsedParams }) ?? true
         }
     }
+
+    console.log("AFTER FINISH", a)
+
+    return a
 }
 
 export type ConfiguredDataConstraint = {
-    id: DataConstraintID
+    id: DataConstraintKey
     name: string
     description: string
     label: string
