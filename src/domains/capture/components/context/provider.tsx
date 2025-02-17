@@ -37,6 +37,8 @@ export function CaptureContextProvider({
     const [selectedItemId, setSelectedItemId] = useState<string | undefined>()
     const selectedItemIdUpdatedAt = useRef<number | undefined>()
 
+    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
+
     const columns = schema.columns
 
     const selectedColumn = columns.find(column => column.id === selectedItemId)
@@ -68,9 +70,17 @@ export function CaptureContextProvider({
                 updatedAt: selectedItemIdUpdatedAt.current,
                 set: (id: string | undefined) =>
                     changeSelection({ selectedItemId: id ?? null, setSelectedItemId, selectedItemIdUpdatedAt, schema })
+            },
+            view: {
+                inspector: {
+                    isVisible: inspectorVisibility === "visible",
+                    toggle: () => setInspectorVisibility(prev => (prev === "visible" ? "hidden" : "visible")),
+                    show: () => setInspectorVisibility("visible"),
+                    hide: () => setInspectorVisibility("hidden")
+                }
             }
         }),
-        [dataStore, selectedItemId]
+        [dataStore, selectedItemId, inspectorVisibility]
     )
 
     return (

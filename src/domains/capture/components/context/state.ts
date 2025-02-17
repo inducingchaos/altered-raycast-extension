@@ -38,5 +38,13 @@ export type CaptureContextState = {
             updatedAt: number | undefined
             set: (id: string) => void
         }
+        view: {
+            inspector: {
+                isVisible: boolean
+                toggle: () => void
+                show: () => void
+                hide: () => void
+            }
+        }
     }
 }

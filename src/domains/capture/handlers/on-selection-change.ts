@@ -28,7 +28,7 @@ export function changeSelection({
     //  Debounce selections to avoid the erratic re-render behavior caused by dynamically changing the list items.
 
     const now = Date.now()
-    if (selectedItemIdUpdatedAt.current && now - selectedItemIdUpdatedAt.current < 25) return
+    if (selectedItemIdUpdatedAt.current && now - selectedItemIdUpdatedAt.current < 50) return
     selectedItemIdUpdatedAt.current = now
 
     setSelectedItemId(selectedItemId)

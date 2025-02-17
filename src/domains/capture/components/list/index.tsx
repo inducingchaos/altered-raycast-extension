@@ -22,7 +22,9 @@ export function DataColumnList() {
         searchText,
         searchBarPlaceholder,
 
-        schema
+        schema,
+
+        state: { view }
     } = useCapture()
 
     const changeSelection = (value: string | null) =>
@@ -35,6 +37,7 @@ export function DataColumnList() {
             searchText={searchText}
             onSearchTextChange={value => setContent({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })}
             searchBarPlaceholder={searchBarPlaceholder}
+            isShowingDetail={view.inspector.isVisible}
         >
             <DataColumnListSection />
         </List>

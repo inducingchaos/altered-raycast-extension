@@ -19,7 +19,7 @@ export function CaptureActions(): JSX.Element {
                     title="Inspect"
                     icon={Icon.Eye}
                     shortcut={{ modifiers: ["cmd"], key: "i" }}
-                    onAction={() => console.log("Inspect")}
+                    onAction={() => captureContext.state.view.inspector.toggle()}
                 />
             </ActionPanel.Section>
             <ModifyActions />
