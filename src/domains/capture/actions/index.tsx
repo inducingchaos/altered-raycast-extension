@@ -2,7 +2,7 @@
  *
  */
 
-import { ActionPanel } from "@raycast/api"
+import { Action, ActionPanel, Icon } from "@raycast/api"
 import { SelectItemAction, SelectOptionAction } from "@sdkit/domains/raycast/actions"
 import { useCapture } from "../components/context"
 import { ModifyActions } from "./modify"
@@ -14,8 +14,15 @@ export function CaptureActions(): JSX.Element {
     return (
         <ActionPanel>
             <SubmitActions />
+            <ActionPanel.Section title="View">
+                <Action
+                    title="Inspect"
+                    icon={Icon.Eye}
+                    shortcut={{ modifiers: ["cmd"], key: "i" }}
+                    onAction={() => console.log("Inspect")}
+                />
+            </ActionPanel.Section>
             <ModifyActions />
-
             <ActionPanel.Section title="Navigate">
                 <SelectItemAction direction="next" {...captureContext} />
                 <SelectItemAction direction="previous" {...captureContext} />

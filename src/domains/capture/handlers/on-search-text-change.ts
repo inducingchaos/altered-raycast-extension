@@ -23,10 +23,12 @@ export function setContent({
     if (shouldShowDebug({ for: "onSearchTextChange" }))
         console.log(`#${debug.state.onSearchTextChange.count}, in 'onSearchTextChange': ${searchText}`)
 
-    // do we need?
-    // const canUpdate = dataStoreUpdatedAt.current || searchText.length > 0
+    /**
+     * This is necessary to avoid the content being involuntarily set by Raycast upon initialization.
+     */
+    const canUpdate = dataStoreUpdatedAt.current || searchText.length > 0
 
-    if (selectedColumn /* && canUpdate*/) {
+    if (selectedColumn && canUpdate) {
         const { errors } = validateDataColumn({ value: searchText, column: selectedColumn })
 
         setDataStore(prev =>
