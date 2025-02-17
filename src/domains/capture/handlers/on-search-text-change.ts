@@ -23,14 +23,11 @@ export function setContent({
     if (shouldShowDebug({ for: "onSearchTextChange" }))
         console.log(`#${debug.state.onSearchTextChange.count}, in 'onSearchTextChange': ${searchText}`)
 
-    const canUpdate = dataStoreUpdatedAt.current || searchText.length > 0
+    // do we need?
+    // const canUpdate = dataStoreUpdatedAt.current || searchText.length > 0
 
-    if (selectedColumn && canUpdate) {
+    if (selectedColumn /* && canUpdate*/) {
         const { errors } = validateDataColumn({ value: searchText, column: selectedColumn })
-
-        console.log({ errors })
-
-        console.log({ searchText, selectedColumn })
 
         setDataStore(prev =>
             new Map(prev).set(selectedColumn.id, {

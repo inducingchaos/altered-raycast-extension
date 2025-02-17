@@ -51,7 +51,12 @@ export function CaptureContextProvider({
         () => ({
             store: {
                 value: dataStore,
-                set: (value: (prev: DataStore) => DataStore) => setDataStore(prev => new Map(value(prev))),
+                set: (value: (prev: DataStore) => DataStore) => {
+                    setDataStore(prev => new Map(value(prev)))
+                    dataStoreUpdatedAt.current = Date.now()
+
+                    return
+                },
                 reset: () => setDataStore(new Map())
             },
             content: {

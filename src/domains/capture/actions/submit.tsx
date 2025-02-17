@@ -2,25 +2,19 @@
  * @todo Extract actions out to SDKit.
  */
 
-import { Action, ActionPanel, closeMainWindow, Icon, showToast, Toast } from "@raycast/api"
-import { Dispatch, SetStateAction } from "react"
+import { Action, ActionPanel, closeMainWindow, Icon, popToRoot, showToast, Toast } from "@raycast/api"
 import { setTimeout } from "timers/promises"
-import { DataStore } from "../types"
 import { SafeDataColumn } from "../../shared/data/definitions"
 import { validateStore } from "../../shared/data/utils/rules/validate/store"
 import { useCapture } from "../components/context"
-import { THIN_PIPE } from "~/domains/shared/utils"
+import { CaptureContextState } from "../components/context/state"
 
 export function SubmitActions(): JSX.Element {
-    const { columns, dataStore, setDataStore } = useCapture()
+    const { columns, state } = useCapture()
 
     return (
         <ActionPanel.Section title="Submit">
-            <Action
-                title="Create"
-                icon={Icon.PlusCircle}
-                onAction={() => onCreateAction({ columns, dataStore, setDataStore })}
-            />
+            <Action title="Create" icon={Icon.PlusCircle} onAction={() => onCreateAction({ columns, state })} />
             <Action title="Create & Validate" icon={Icon.CheckCircle} onAction={() => console.log("Create & Validate")} />
 
             <Action
@@ -42,14 +36,12 @@ export function SubmitActions(): JSX.Element {
 
 export async function onCreateAction({
     columns,
-    dataStore,
-    setDataStore
+    state
 }: {
     columns: SafeDataColumn[]
-    dataStore: DataStore
-    setDataStore: Dispatch<SetStateAction<DataStore>>
+    state: CaptureContextState["state"]
 }): Promise<void> {
-    const { success, errors } = validateStore({ columns, dataStore, setDataStore })
+    const { success, errors } = validateStore({ columns, state })
 
     if (!success) {
         await showToast({
@@ -66,7 +58,7 @@ export async function onCreateAction({
 
     console.log("Create")
 
-    const data = Object.fromEntries(columns.map(column => [column.id, dataStore.get(column.id)?.value]))
+    const data = Object.fromEntries(columns.map(column => [column.id, state.store.value.get(column.id)?.value]))
 
     console.log(data)
 
@@ -76,6 +68,8 @@ export async function onCreateAction({
         title: "Uploading Thought"
     })
     await setTimeout(2000)
+
+    popToRoot({ clearSearchBar: true })
 
     toast.style = Toast.Style.Success
     toast.title = "Created Thought"

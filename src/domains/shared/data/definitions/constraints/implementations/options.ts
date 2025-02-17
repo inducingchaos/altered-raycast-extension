@@ -95,8 +95,6 @@ export const optionsConstraint = createDataConstraint({
         const limit = params.multipleOptions?.limit ?? constraint.params!.multipleOptions.options.limit.default
         const isLimitReached = !!limit && options.length > limit
 
-        console.log({ isMatching, isLimitReached, value, options, allowedOptions })
-
         return isMatching && !isLimitReached
     }
 })

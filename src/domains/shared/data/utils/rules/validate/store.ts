@@ -2,9 +2,8 @@
  *
  */
 
-import { Dispatch, SetStateAction } from "react"
+import { CaptureContextState } from "~/domains/capture/components/context/state"
 import { SafeDataColumn } from "~/domains/shared/data"
-import { DataStore } from "../../../../../capture"
 import { validateDataColumn } from "./column"
 
 export type DataValidationError = { title: string; message: string; metadata: Record<string, string> }
@@ -21,25 +20,23 @@ export type DataValidationResult =
 
 export function validateStore({
     columns,
-    dataStore,
-    setDataStore
+    state
 }: {
     columns: SafeDataColumn[]
-    dataStore: DataStore
-    setDataStore: Dispatch<SetStateAction<DataStore>>
+    state: CaptureContextState["state"]
 }): DataValidationResult {
     const result = columns.reduce<DataValidationResult>(
         (acc, column) => {
-            const state = dataStore.get(column.id)
+            const current = state.store.value.get(column.id)
 
             const { success, errors } = validateDataColumn({
-                value: state?.value ?? column.default ?? "",
+                value: current?.value ?? column.default ?? "",
                 column
             })
 
-            setDataStore(prev =>
+            state.store.set(prev =>
                 new Map(prev).set(column.id, {
-                    value: state?.value ?? column.default ?? "",
+                    value: current?.value ?? column.default ?? "",
                     errors: errors ?? []
                 })
             )

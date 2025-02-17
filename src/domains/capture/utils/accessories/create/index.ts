@@ -23,7 +23,7 @@ export function createDataColumnListItemAccessories({
     return isSelected
         ? [
               ...createDataColumnListItemRuleAccessories({ constraints: column.constraints ?? [] }),
-              ...createDataColumnListItemRequiredAccessories({ isRequired: column.required }),
+              ...createDataColumnListItemRequiredAccessories({ isRequired: column.required && !column.default }),
               createDataColumnListItemSpacerAccessory()
           ]
         : [

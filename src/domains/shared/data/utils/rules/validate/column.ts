@@ -10,7 +10,7 @@ import { validateType } from "./type"
 
 export function validateDataColumn({ value, column }: { value: string; column: SafeDataColumn }): DataValidationResult {
     const requiredError =
-        column.required && !value.length
+        column.required && !column.default && !value.length
             ? {
                   title: "Required",
                   message: "This value is required.",
@@ -49,8 +49,6 @@ export function validateDataColumn({ value, column }: { value: string; column: S
         if (validate({ value })) return store
         return [...store, { ...error, metadata: { columnId: column.id } }]
     }, [] as DataValidationError[])
-
-    console.log({ ruleErrors, value, column })
 
     if (ruleErrors?.length) return { success: false, errors: ruleErrors }
 
