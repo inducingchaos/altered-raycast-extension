@@ -26,8 +26,7 @@ export const lengthConstraint = createDataConstraint({
             description: "The minimum length of the value.",
 
             required: false,
-            schema: createTypeSchema("number"),
-            default: null
+            schema: createTypeSchema("number")
         },
         max: {
             type: "value",

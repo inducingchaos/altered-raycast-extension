@@ -18,12 +18,11 @@ export const optionsConstraint = createDataConstraint({
     // instructions: options =>
     //     `The value must be one of the following: '${options.values.slice(0, -1).join("', '")}', or '${options.values[options.values.length - 1]}'.`,
 
-    instructions: ({ constraint, params: { options, multipleOptions } }) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const test: "boolean" = constraint.label
-        return `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`
-    },
-    // label: "boolean",
+    label: ({ constraint, params }) => `${constraint.name}: ${params.options.join(", ")}`,
+
+    // add typing to resolve optional `constraint.params` in future
+    instructions: ({ constraint, params: { multipleOptions, options } }) =>
+        `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params!.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`,
     error: { label: "Invalid Option" },
 
     types: ["string", "number"],
@@ -83,7 +82,7 @@ export const optionsConstraint = createDataConstraint({
         const isNumber = typeof initialValue === "number"
         const value = isNumber ? initialValue.toString() : initialValue
 
-        const separators = params.multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default
+        const separators = params.multipleOptions?.separators ?? constraint.params!.multipleOptions.options.separators.default
         const options = separators.flatMap(separator => value.split(separator))
         const casedOptions = params.caseSensitive ? options : options.map(option => option.toLowerCase())
 
@@ -92,7 +91,7 @@ export const optionsConstraint = createDataConstraint({
 
         const isMatching = casedOptions.every(option => casedAllowedOptions.includes(option))
 
-        const limit = params.multipleOptions?.limit ?? constraint.params.multipleOptions.options.limit.default
+        const limit = params.multipleOptions?.limit ?? constraint.params!.multipleOptions.options.limit.default
         const isLimitReached = !!limit && options.length > limit
 
         return isMatching && !isLimitReached
