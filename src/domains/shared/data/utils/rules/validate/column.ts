@@ -13,7 +13,10 @@ export function validateDataColumn({ value, column }: { value: string; column: S
         column.required && !value.length
             ? {
                   title: "Required",
-                  message: "This value is required."
+                  message: "This value is required.",
+                  metadata: {
+                      columnId: column.id
+                  }
               }
             : undefined
 
@@ -32,7 +35,10 @@ export function validateDataColumn({ value, column }: { value: string; column: S
             errors: [
                 {
                     title: typeError.title,
-                    message: typeof typeError.message === "function" ? typeError.message(column) : typeError.message
+                    message: typeof typeError.message === "function" ? typeError.message(column) : typeError.message,
+                    metadata: {
+                        columnId: column.id
+                    }
                 }
             ]
         }
@@ -41,7 +47,7 @@ export function validateDataColumn({ value, column }: { value: string; column: S
         const { error, validate } = configureDataConstraint({ ...constraint })
 
         if (validate({ value })) return store
-        return [...store, error]
+        return [...store, { ...error, metadata: { columnId: column.id } }]
     }, [] as DataValidationError[])
 
     if (ruleErrors?.length) return { success: false, errors: ruleErrors }

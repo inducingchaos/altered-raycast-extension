@@ -4,7 +4,7 @@
 
 import { createTypeSchema, traverse } from "@sdkit/utils"
 import { type } from "arktype"
-import { THIN_BAR, THIN_PIPE } from "~/domains/shared/utils"
+import { THIN_PIPE } from "~/domains/shared/utils"
 import { createDataConstraint } from "../definitions"
 
 export const rangeConstraint = createDataConstraint({
@@ -23,7 +23,7 @@ export const rangeConstraint = createDataConstraint({
                 description: constraint.params!.max.description
             },
             !!step && {
-                title: `Step  ${THIN_BAR}  Size: ${step?.size}${step?.offset ? ` ${THIN_PIPE} Offset: ${step?.offset}` : ""}`,
+                title: `Step: ${step?.size}${step?.offset ? ` ${THIN_PIPE} Offset: ${step?.offset}` : ""}`,
                 description: `${constraint.params!.step.name}: ${constraint.params!.step.description.toLowerCase()} Contains ${constraint.params!.step.options.size.name}: ${constraint.params!.step.options.size.description.toLowerCase()}, and ${constraint.params!.step.options.offset.name}: ${constraint.params!.step.options.offset.description.toLowerCase()}`
             }
         ].filter(Boolean) as { title: string; description: string }[],

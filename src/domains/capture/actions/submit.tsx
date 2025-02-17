@@ -9,6 +9,7 @@ import { DataStore } from "../types"
 import { SafeDataColumn } from "../../shared/data/definitions"
 import { validateStore } from "../../shared/data/utils/rules/validate/store"
 import { useCapture } from "../components/context"
+import { THIN_PIPE } from "~/domains/shared/utils"
 
 export function SubmitActions(): JSX.Element {
     const { columns, dataStore, setDataStore } = useCapture()
@@ -53,7 +54,7 @@ export async function onCreateAction({
     if (!success) {
         await showToast({
             style: Toast.Style.Failure,
-            title: errors[0].title,
+            title: `${columns.find(column => column.id === errors[0].metadata.columnId)?.name}${THIN_PIPE}${errors[0].title}`,
             message: errors[0].message
 
             // title: "Error Uploading Thought",

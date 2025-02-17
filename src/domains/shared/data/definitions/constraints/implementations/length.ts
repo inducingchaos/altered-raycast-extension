@@ -10,9 +10,16 @@ export const lengthConstraint = createDataConstraint({
     name: "Length",
     description: "The length of the value.",
 
-    label: ({ params: { min, max } }) => {
-        return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}`
+    info: ({ params: { min, max } }) => {
+        return [
+            !!min && { title: `Min: ${min}`, description: "The minimum length of the value." },
+            !!max && { title: `Max: ${max}`, description: "The maximum length of the value." }
+        ].filter(Boolean) as { title: string; description: string }[]
     },
+
+    // label: ({ params: { min, max } }) => {
+    //     return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}`
+    // },
     instructions: ({ params: { min, max } }) => {
         return `The value must be ${min ? `a minimum of ${min} characters` : ""} ${min && max ? "and" : ""} ${max ? `a maximum of ${max} characters` : ""} long.`
     },
