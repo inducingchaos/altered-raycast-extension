@@ -18,9 +18,12 @@ export const optionsConstraint = createDataConstraint({
     // instructions: options =>
     //     `The value must be one of the following: '${options.values.slice(0, -1).join("', '")}', or '${options.values[options.values.length - 1]}'.`,
 
-    label: ({ constraint, params }) => `${constraint.name}: ${params.options.join(", ")}`,
-    instructions: ({ constraint, params: { multipleOptions, options } }) =>
-        `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`,
+    instructions: ({ constraint, params: { options, multipleOptions } }) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const test: "boolean" = constraint.label
+        return `The value can contain ${multipleOptions?.limit ? `up to ${multipleOptions?.limit}` : multipleOptions?.limit === 1 ? "one" : "any"} of the following options${multipleOptions?.limit ? `, separated by '${(multipleOptions?.separators ?? constraint.params.multipleOptions.options.separators.default).join("', '")}'` : ""}: ${options.join(", ")}`
+    },
+    // label: "boolean",
     error: { label: "Invalid Option" },
 
     types: ["string", "number"],

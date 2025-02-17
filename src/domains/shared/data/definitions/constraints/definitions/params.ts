@@ -40,7 +40,7 @@ type DataConstraintParamConfigBase = { name: string; description: string }
 
 type ValueDataConstraintParamConfigBase = { type: "value"; schema: TypeSchema }
 type OptionalValueDataConstraintParamConfig = DataConstraintParamConfigBase &
-    ValueDataConstraintParamConfigBase & { required: false; default: TypeSchema["infer"] | null }
+    ValueDataConstraintParamConfigBase & { required: false; default?: TypeSchema["infer"] }
 type RequiredValueDataConstraintParamConfig = DataConstraintParamConfigBase &
     ValueDataConstraintParamConfigBase & { required: true }
 type ValueDataConstraintParamConfig = OptionalValueDataConstraintParamConfig | RequiredValueDataConstraintParamConfig
@@ -53,7 +53,6 @@ type GroupDataConstraintParamConfig = DataConstraintParamConfigBase & {
 
 export type DataConstraintParamConfig = ValueDataConstraintParamConfig | GroupDataConstraintParamConfig
 export type DataConstraintParamsConfig = Record<string, DataConstraintParamConfig>
-export type NullableDataConstraintParamsConfig = DataConstraintParamsConfig | null
 
 type IsRequiredKey<Param extends DataConstraintParamConfig, InferType extends "input" | "output"> = Param extends
     | ValueDataConstraintParamConfig
@@ -70,7 +69,7 @@ type IsRequiredKey<Param extends DataConstraintParamConfig, InferType extends "i
     : never
 
 type InferDataConstraintParamsKeys<
-    Params extends NullableDataConstraintParamsConfig,
+    Params extends DataConstraintParamsConfig,
     InferType extends "input" | "output",
     Type extends "required" | "optional"
 > = {
@@ -86,17 +85,17 @@ type InferDataConstraintParamsKeys<
 }[keyof Params]
 
 type InferDataConstraintParam<
-    Params extends NullableDataConstraintParamsConfig,
+    Params extends DataConstraintParamsConfig,
     InferType extends "input" | "output" = "output",
     Key extends keyof Params = keyof Params
 > = Params[Key] extends ValueDataConstraintParamConfig
     ? Params[Key]["required"] extends true
         ? Params[Key]["schema"]["infer"]
         : Params[Key] extends OptionalValueDataConstraintParamConfig
-          ? Params[Key]["default"] extends null
+          ? Params[Key]["default"] extends undefined
               ? InferType extends "input"
                   ? Params[Key]["schema"]["infer"]
-                  : Params[Key]["schema"]["infer"] | null
+                  : Params[Key]["schema"]["infer"] | undefined
               : Params[Key]["schema"]["infer"]
           : never
     : Params[Key] extends GroupDataConstraintParamConfig
@@ -104,18 +103,18 @@ type InferDataConstraintParam<
           ? InferDataConstraintParams<Params[Key]["options"], InferType>
           : InferType extends "input"
             ? InferDataConstraintParams<Params[Key]["options"], InferType>
-            : InferDataConstraintParams<Params[Key]["options"], InferType> | null
+            : InferDataConstraintParams<Params[Key]["options"], InferType> | undefined
       : never
 
 type InferRequiredDataConstraintParams<
-    Params extends NullableDataConstraintParamsConfig,
+    Params extends DataConstraintParamsConfig,
     InferType extends "input" | "output" = "output"
 > = {
     [Key in InferDataConstraintParamsKeys<Params, InferType, "required">]: InferDataConstraintParam<Params, InferType, Key>
 }
 
 type InferOptionalDataConstraintParams<
-    Params extends NullableDataConstraintParamsConfig,
+    Params extends DataConstraintParamsConfig,
     InferType extends "input" | "output" = "output"
 > = {
     [Key in InferDataConstraintParamsKeys<Params, InferType, "optional">]?: InferDataConstraintParam<Params, InferType, Key>
@@ -125,15 +124,15 @@ type InferOptionalDataConstraintParams<
  * Re-maps the named keys of the parameter configurations to their respective inferred values.
  */
 export type InferDataConstraintParams<
-    Params extends NullableDataConstraintParamsConfig,
+    Params extends DataConstraintParamsConfig,
     InferType extends "input" | "output" = "output"
 > = Expand<InferRequiredDataConstraintParams<Params, InferType> & InferOptionalDataConstraintParams<Params, InferType>>
 
-export type InferDataConstraintParamsInput<Params extends NullableDataConstraintParamsConfig> = InferDataConstraintParams<
+export type InferDataConstraintParamsInput<Params extends DataConstraintParamsConfig> = InferDataConstraintParams<
     Params,
     "input"
 >
-export type InferDataConstraintParamsOutput<Params extends NullableDataConstraintParamsConfig> = InferDataConstraintParams<
+export type InferDataConstraintParamsOutput<Params extends DataConstraintParamsConfig> = InferDataConstraintParams<
     Params,
     "output"
 >
@@ -141,7 +140,7 @@ export type InferDataConstraintParamsOutput<Params extends NullableDataConstrain
 type ValidateDataConstraintParamConfig<Param extends DataConstraintParamConfig> = Param extends ValueDataConstraintParamConfig
     ? Param extends RequiredValueDataConstraintParamConfig
         ? Omit<Param, "default"> & { default?: `\`default\` when \`required\` is set to \`true\`` }
-        : Omit<ValueDataConstraintParamConfig, "default"> & { default: Param["schema"]["infer"] | null }
+        : Omit<ValueDataConstraintParamConfig, "default"> & { default?: Param["schema"]["infer"] }
     : Param extends GroupDataConstraintParamConfig
       ? Omit<GroupDataConstraintParamConfig, "options"> & { options: ValidateDataConstraintParamsConfig<Param["options"]> }
       : DataConstraintParamConfig
