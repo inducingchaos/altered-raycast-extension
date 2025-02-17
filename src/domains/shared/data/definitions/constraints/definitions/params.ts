@@ -96,7 +96,7 @@ type InferDataConstraintParam<
               ? InferType extends "input"
                   ? Params[Key]["schema"]["infer"]
                   : Params[Key]["schema"]["infer"] | undefined
-              : Params[Key]["schema"]["infer"]
+              : Params[Key]["schema"]["infer"] | undefined
           : never
     : Params[Key] extends GroupDataConstraintParamConfig
       ? Params[Key]["required"] extends true

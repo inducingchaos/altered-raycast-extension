@@ -22,23 +22,43 @@ export function configureDataConstraint({
     const [, constraintDefinition] = constraintDefinitionEntry as [DataConstraintKey, DataConstraint<DataConstraintKey>]
 
     // console.log(constraintDefinition.params, constraintDefinition.id, constraintDefinition.name, parameters)
-    const parsedParams = parseDataConstraintParameters(constraintDefinition.params, parameters)
+    const parsedParams = constraintDefinition.params
+        ? parseDataConstraintParameters(constraintDefinition.params, parameters)
+        : {}
 
     console.log("BEFORE FINISH", parsedParams)
 
     const a: ConfiguredDataConstraint = {
         id: constraintDefinition.id,
         name: constraintDefinition.name,
-        description: resolveGenerator({ generator: constraintDefinition.description, args: parsedParams }),
-        label: resolveGenerator({ generator: constraintDefinition.label, args: parsedParams }) ?? constraintDefinition.name,
-        instructions: resolveGenerator({ generator: constraintDefinition.instructions, args: parsedParams }),
+        description: resolveGenerator({
+            generator: constraintDefinition.description,
+            args: { constraint: constraintDefinition, params: parsedParams }
+        }),
+        label:
+            resolveGenerator({
+                generator: constraintDefinition.label,
+                args: { constraint: constraintDefinition, params: parsedParams }
+            }) ?? constraintDefinition.name,
+        instructions: resolveGenerator({
+            generator: constraintDefinition.instructions,
+            args: { constraint: constraintDefinition, params: parsedParams }
+        }),
         error: {
             title:
-                resolveGenerator({ generator: constraintDefinition.error?.label, args: parsedParams }) ??
-                constraintDefinition.name,
+                resolveGenerator({
+                    generator: constraintDefinition.error?.label,
+                    args: { constraint: constraintDefinition, params: parsedParams }
+                }) ?? constraintDefinition.name,
             message:
-                resolveGenerator({ generator: constraintDefinition.error?.description, args: parsedParams }) ??
-                resolveGenerator({ generator: constraintDefinition.instructions, args: parsedParams })
+                resolveGenerator({
+                    generator: constraintDefinition.error?.description,
+                    args: { constraint: constraintDefinition, params: parsedParams }
+                }) ??
+                resolveGenerator({
+                    generator: constraintDefinition.instructions,
+                    args: { constraint: constraintDefinition, params: parsedParams }
+                })
         },
         select: constraintDefinition.select
             ? ({ value, direction }) => {

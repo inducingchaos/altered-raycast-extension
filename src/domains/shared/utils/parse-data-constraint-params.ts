@@ -6,7 +6,7 @@ import { ArkErrors } from "arktype"
 import { DataConstraintParamsConfig, InferDataConstraintParams } from "../data/definitions/constraints"
 
 export function parseDataConstraintParameters<
-    Params extends DataConstraintParamsConfig | null,
+    Params extends DataConstraintParamsConfig,
     Result extends InferDataConstraintParams<Params>
 >(schema: Params, params: unknown): Result {
     if (!schema || typeof params !== "object" || params === null) {

@@ -10,9 +10,14 @@ export const lengthConstraint = createDataConstraint({
     name: "Length",
     description: "The length of the value.",
 
-    label: ({ params: { min, max } }) => `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}`,
-    instructions: ({ params: { min, max } }) =>
-        `The value must be ${min ? `a minimum of ${min} characters` : ""} ${min && max ? "and" : ""} ${max ? `a maximum of ${max} characters` : ""} long.`,
+    label: ({ params: { min, max } }) => {
+        console.log("LOOKOUT 2", min, max)
+        return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}`
+    },
+    instructions: ({ params: { min, max } }) => {
+        console.log("LOOKOUT 3", min, max)
+        return `The value must be ${min ? `a minimum of ${min} characters` : ""} ${min && max ? "and" : ""} ${max ? `a maximum of ${max} characters` : ""} long.`
+    },
     error: { label: "Invalid Length" },
 
     types: ["string"],
