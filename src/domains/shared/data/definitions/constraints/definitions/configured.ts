@@ -12,21 +12,16 @@ export function configureDataConstraint({
     id: DataConstraintKey | DataConstraintID
     parameters: DataConstraintParams
 }): ConfiguredDataConstraint {
-    // console.log(id)
     const constraintDefinitionEntry = Object.entries(dataConstraints).find(([constraintId]) => {
         return constraintId === id
     })
-    // console.log(constraintDefinitionEntry)
     if (!constraintDefinitionEntry) throw new Error(`No constraint with cycler found for ${id}`)
 
     const [, constraintDefinition] = constraintDefinitionEntry as [DataConstraintKey, DataConstraint<DataConstraintKey>]
 
-    // console.log(constraintDefinition.params, constraintDefinition.id, constraintDefinition.name, parameters)
     const parsedParams = constraintDefinition.params
         ? parseDataConstraintParameters(constraintDefinition.params, parameters)
         : {}
-
-    console.log("BEFORE FINISH", parsedParams)
 
     const a: ConfiguredDataConstraint = {
         id: constraintDefinition.id,
@@ -78,8 +73,6 @@ export function configureDataConstraint({
             return constraintDefinition.validate({ constraint: constraintDefinition, value, params: parsedParams }) ?? true
         }
     }
-
-    console.log("AFTER FINISH", a)
 
     return a
 }

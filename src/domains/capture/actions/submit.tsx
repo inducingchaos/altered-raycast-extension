@@ -53,8 +53,8 @@ export async function onCreateAction({
     if (!success) {
         await showToast({
             style: Toast.Style.Failure,
-            title: errors[0].label,
-            message: errors[0].description
+            title: errors[0].title,
+            message: errors[0].message
 
             // title: "Error Uploading Thought",
             // message: "Please complete the form."

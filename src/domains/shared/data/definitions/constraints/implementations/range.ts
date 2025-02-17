@@ -84,13 +84,9 @@ export const rangeConstraint = createDataConstraint({
     },
 
     select: ({ value, params, direction }) => {
-        console.log("LOOKOUT 1", value, params, direction)
-
         const number = value ? Number(value.trim()) : undefined
         const isNumber = number && !isNaN(number)
         const safeNumber = isNumber ? number : undefined
-
-        console.log("LOOKOUT 2", params.min, params.max, value)
 
         const result = traverse({
             value: safeNumber,

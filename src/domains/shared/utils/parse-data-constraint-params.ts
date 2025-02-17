@@ -14,8 +14,6 @@ export function parseDataConstraintParameters<
         throw new Error("Invalid schema or parameters")
     }
 
-    console.log("LOOKOUT 7", schema, params)
-
     // Validate that all param keys exist in schema
     const paramKeys = Object.keys(params as object)
     const schemaKeys = Object.keys(schema)
@@ -51,8 +49,6 @@ export function parseDataConstraintParameters<
             }
         }
     }
-
-    console.log("DONE", result)
 
     return result
 }

@@ -10,11 +10,8 @@ export type ResolveGeneratorProps<Fn, Result> = {
 }
 
 export function resolveGenerator<Fn, Result>({ generator, args }: ResolveGeneratorProps<Fn, Result>): Result {
-    console.log("LOOKOUT 4", generator?.toString(), args)
-
     if (typeof generator === "function") {
         const a = generator(args)
-        console.log("LOOKOUT 5", a)
         return a
     }
     return generator as Result
