@@ -4,6 +4,7 @@
 
 import { createTypeSchema, navigateArray } from "@sdkit/utils"
 import { createDataConstraint } from "../definitions"
+import { THIN_PIPE } from "~/domains/shared/utils"
 
 export const optionsConstraint = createDataConstraint({
     id: "options",
@@ -18,7 +19,7 @@ export const optionsConstraint = createDataConstraint({
     // instructions: options =>
     //     `The value must be one of the following: '${options.values.slice(0, -1).join("', '")}', or '${options.values[options.values.length - 1]}'.`,
 
-    label: ({ constraint, params }) => `${constraint.name}: ${params.options.join(", ")}`,
+    label: ({ params }) => `${params.options.join(` ${THIN_PIPE} `)}`,
 
     // add typing to resolve optional `constraint.params` in future
     instructions: ({ constraint, params: { multipleOptions, options } }) =>

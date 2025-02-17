@@ -12,14 +12,23 @@ export function createDataColumnListItemRuleAccessories({
 }): List.Item.Accessory[] {
     if (!constraints.length) return []
 
-    return constraints.map(constraint => {
-        const { label, instructions } = configureDataConstraint({ ...constraint })
+    return constraints
+        .map(constraint => {
+            const { label, instructions, info } = configureDataConstraint({ ...constraint })
 
-        return {
-            tag: { value: label, color: Color.SecondaryText },
-            tooltip: instructions
-        }
-    })
+            return (
+                info?.map(info => {
+                    return {
+                        tag: { value: info.title, color: Color.SecondaryText },
+                        tooltip: info.description
+                    }
+                }) ?? {
+                    tag: { value: label, color: Color.SecondaryText },
+                    tooltip: instructions
+                }
+            )
+        })
+        .flat()
 }
 
 export function TEMP_createSubtitleAccessories({

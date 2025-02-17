@@ -35,6 +35,10 @@ export function configureDataConstraint({
             generator: constraintDefinition.description,
             args: { constraint: constraintDefinition, params: parsedParams }
         }),
+        info: resolveGenerator({
+            generator: constraintDefinition.info,
+            args: { constraint: constraintDefinition, params: parsedParams }
+        }),
         label:
             resolveGenerator({
                 generator: constraintDefinition.label,
@@ -84,6 +88,7 @@ export type ConfiguredDataConstraint = {
     id: DataConstraintKey
     name: string
     description: string
+    info?: { title: string; description: string }[]
     label: string
     instructions: string
     error: {

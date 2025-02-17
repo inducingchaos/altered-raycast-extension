@@ -4,6 +4,7 @@
 
 import { createTypeSchema, traverse } from "@sdkit/utils"
 import { type } from "arktype"
+import { THIN_BAR, THIN_PIPE } from "~/domains/shared/utils"
 import { createDataConstraint } from "../definitions"
 
 export const rangeConstraint = createDataConstraint({
@@ -11,8 +12,24 @@ export const rangeConstraint = createDataConstraint({
     name: "Range",
     description: "The range of the value.",
 
+    info: ({ constraint, params: { min, max, step } }) =>
+        [
+            !!min && {
+                title: `Min: ${min}`,
+                description: constraint.params!.min.description
+            },
+            !!max && {
+                title: `Max: ${max}`,
+                description: constraint.params!.max.description
+            },
+            !!step && {
+                title: `Step  ${THIN_BAR}  Size: ${step?.size}${step?.offset ? ` ${THIN_PIPE} Offset: ${step?.offset}` : ""}`,
+                description: `${constraint.params!.step.name}: ${constraint.params!.step.description.toLowerCase()} Contains ${constraint.params!.step.options.size.name}: ${constraint.params!.step.options.size.description.toLowerCase()}, and ${constraint.params!.step.options.offset.name}: ${constraint.params!.step.options.offset.description.toLowerCase()}`
+            }
+        ].filter(Boolean) as { title: string; description: string }[],
+
     label: ({ params: { min, max, step } }) => {
-        return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}${step?.size ? `Step: ${step.size}, ` : ""}`
+        return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}${step?.size ? `Step: ${step.size}` : ""}`
     },
     instructions: ({ params: { min, max, step } }) =>
         `The value must be ${min ? `a minimum of ${min} ` : ""}${max ? `and a maximum of ${max}` : ""}${step?.size ? `, on a step of ${step.size}` : ""}${step?.offset ? `, offset by ${step.offset}` : ""}.`,
@@ -25,20 +42,18 @@ export const rangeConstraint = createDataConstraint({
         min: {
             type: "value",
             name: "Minimum Value",
-            description: "The minimum value allowed.",
+            description: "The minimum allowed value.",
 
             required: false,
-            schema: createTypeSchema("number"),
-            default: null
+            schema: createTypeSchema("number")
         },
         max: {
             type: "value",
             name: "Maximum Value",
-            description: "The maximum value allowed.",
+            description: "The maximum allowed value.",
 
             required: false,
-            schema: createTypeSchema("number"),
-            default: null
+            schema: createTypeSchema("number")
         },
         step: {
             type: "group",
@@ -92,15 +107,15 @@ export const rangeConstraint = createDataConstraint({
     },
 
     validate: ({ params, value }) => {
-        if (params.min === null && params.max === null && params.step === null) return true
+        if (!params.min && !params.max && !params.step) return true
 
         const schema =
-            params.min === null && params.max === null
+            !params.min && !params.max
                 ? type(`number`)
-                : params.min === null
+                : !params.min
                   ? type(`number < ${params.max!}`)
-                  : params.max === null
-                    ? type(`number > ${params.min!}`)
+                  : !params.max
+                    ? type(`number > ${params.min}`)
                     : type(`${params.min} < number < ${params.max}`)
 
         const result = schema(value)

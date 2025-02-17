@@ -30,6 +30,8 @@ export type DataConstraint<
     name: string
     description: string | DataConstraintPropertyGenerator<Type, ParamsConfig>
 
+    info?: string | DataConstraintPropertyGenerator<Type, ParamsConfig, object, { title: string; description: string }[]>
+
     label?: string | DataConstraintPropertyGenerator<Type, ParamsConfig>
     instructions: string | DataConstraintPropertyGenerator<Type, ParamsConfig>
     error?: {

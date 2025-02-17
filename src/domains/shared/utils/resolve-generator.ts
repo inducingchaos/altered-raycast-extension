@@ -4,15 +4,12 @@
 
 // Fix this in configured.ts
 
-export type ResolveGeneratorProps<Result extends string | undefined, Params extends object, Fn> = {
+export type ResolveGeneratorProps<Fn, Result> = {
     generator?: Fn
-    args: Fn extends (args: infer P) => unknown ? P : never
+    args: Fn extends (args: infer P) => Result ? P : never
 }
 
-export function resolveGenerator<Result extends string | undefined, Params extends object, Fn>({
-    generator,
-    args
-}: ResolveGeneratorProps<Result, Params, Fn>): Result {
+export function resolveGenerator<Fn, Result>({ generator, args }: ResolveGeneratorProps<Fn, Result>): Result {
     console.log("LOOKOUT 4", generator?.toString(), args)
 
     if (typeof generator === "function") {
