@@ -62,7 +62,7 @@ export function CaptureContextProvider({
                 reset: () => setDataStore(new Map())
             },
             content: {
-                searchText,
+                value: searchText,
                 set: (value: string) => setContent({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })
             },
             selection: {

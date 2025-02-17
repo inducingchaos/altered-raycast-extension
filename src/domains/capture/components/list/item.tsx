@@ -2,15 +2,16 @@
  *
  */
 
-import { List } from "@raycast/api"
+import { Color, List } from "@raycast/api"
 import { useMemo } from "react"
 import { dataTypes, SafeDataColumn } from "../../../shared/data/definitions"
 import { CaptureActions } from "../../actions"
 import { createDataColumnListItemAccessories } from "../../utils"
 import { useCapture } from "../context"
+import { createDataColumnListItemRuleAccessories } from "../../utils/accessories/create/rules"
 
 export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.Element {
-    const { dataStore, selectedItemId } = useCapture()
+    const { dataStore, selectedItemId, state } = useCapture()
 
     const isSelected = selectedItemId === column.id
 
@@ -24,6 +25,8 @@ export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.
           ? undefined
           : column.name
 
+    const accessories = createDataColumnListItemAccessories({ column, state: dataStore.get(column.id), isSelected })
+
     return (
         <List.Item
             key={column.id}
@@ -35,15 +38,37 @@ export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.
             detail={
                 <List.Item.Detail
                     key={column.id}
+                    //                     markdown={`**${column.name}**
+
+                    // ${state.content.value}`}
                     metadata={
                         <List.Item.Detail.Metadata>
-                            <List.Item.Detail.Metadata.Label title="Types" />
-                            <List.Item.Detail.Metadata.Label title="Grass" icon="pokemon_types/grass.svg" />
-                            <List.Item.Detail.Metadata.Separator />
-                            <List.Item.Detail.Metadata.Label title="Poison" icon="pokemon_types/poison.svg" />
+                            <List.Item.Detail.Metadata.Label title="Name" text={column.name} />
+                            <List.Item.Detail.Metadata.Label
+                                title="Type"
+                                text={{
+                                    value: column.type,
+                                    color: Color.SecondaryText
+                                }}
+                            />
+                            <List.Item.Detail.Metadata.TagList title="Constraints">
+                                {createDataColumnListItemRuleAccessories({ constraints: column.constraints ?? [] }).map(
+                                    accessory => {
+                                        const tag = accessory as List.Item.Accessory & { tag: { value: string; color: Color } }
+
+                                        return (
+                                            <List.Item.Detail.Metadata.TagList.Item
+                                                key={tag.tag.value}
+                                                text={tag.tag.value}
+                                                color={tag.tag.color}
+                                            />
+                                        )
+                                    }
+                                )}
+                            </List.Item.Detail.Metadata.TagList>
                             <List.Item.Detail.Metadata.Separator />
                             <List.Item.Detail.Metadata.Label title="Characteristics" />
-                            <List.Item.Detail.Metadata.Label title="Height" text="70cm" />
+                            <List.Item.Detail.Metadata.Label title="Height" text={state.content.value} />
                             <List.Item.Detail.Metadata.Separator />
                             <List.Item.Detail.Metadata.Label title="Weight" text="6.9 kg" />
                             <List.Item.Detail.Metadata.Separator />
@@ -56,7 +81,7 @@ export function DataColumnListItem({ column }: { column: SafeDataColumn }): JSX.
                     }
                 />
             }
-            accessories={createDataColumnListItemAccessories({ column, state: dataStore.get(column.id), isSelected })}
+            accessories={accessories}
         />
     )
 }

@@ -28,7 +28,7 @@ export function createDataColumnListItemRuleAccessories({
                 }
             )
         })
-        .flat()
+        .flat() as List.Item.Accessory[]
 }
 
 export function TEMP_createSubtitleAccessories({

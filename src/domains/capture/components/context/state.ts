@@ -30,7 +30,7 @@ export type CaptureContextState = {
             reset: () => void
         }
         content: {
-            searchText: string
+            value: string
             set: (value: string) => void
         }
         selection: {
