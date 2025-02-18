@@ -32,6 +32,7 @@ export type CaptureContextState = {
         content: {
             value: string
             set: (value: string) => void
+            reset: () => void
         }
         selection: {
             id: string | undefined

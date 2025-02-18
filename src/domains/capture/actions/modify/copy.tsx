@@ -6,30 +6,30 @@ import { Action, Clipboard, Icon, Toast, showToast } from "@raycast/api"
 import { useCapture } from "~/domains/capture/components/context"
 import { CaptureContextState } from "../../components/context/state"
 
-export function CopyAction({ items }: { items: "all" | "selected" }): JSX.Element {
+export function CopyAction({ scope }: { scope: "selection" | "all" }): JSX.Element {
     const { state, columns } = useCapture()
 
     return (
         <Action
-            title={items === "selected" ? "Copy Selection" : "Copy Thought"}
-            icon={items === "selected" ? Icon.ShortParagraph : Icon.Paragraph}
-            shortcut={{ modifiers: items === "selected" ? ["cmd"] : ["shift", "cmd"], key: "c" }}
-            onAction={async () => handleCopy({ items, state, columns })}
+            title={scope === "selection" ? "Copy" : "Copy All"}
+            icon={scope === "selection" ? Icon.Clipboard : Icon.Clipboard}
+            shortcut={{ modifiers: scope === "selection" ? ["cmd"] : ["shift", "cmd"], key: "c" }}
+            onAction={async () => handleCopyAction({ scope, state, columns })}
         />
     )
 }
 
-export async function handleCopy({
-    items,
+export async function handleCopyAction({
+    scope,
     state,
     columns
 }: {
-    items: "all" | "selected"
+    scope: "all" | "selection"
     state: CaptureContextState["state"]
     columns: CaptureContextState["columns"]
 }): Promise<void> {
     const content =
-        items === "selected"
+        scope === "selection"
             ? state.content.value
             : Array.from(state.store.value.entries()).reduce((acc, [key, { value }], index, arr) => {
                   return (
@@ -41,8 +41,8 @@ export async function handleCopy({
     await Clipboard.copy(content)
 
     await showToast({
-        title: items === "selected" ? `Copied Selection` : "Copied Thought",
-        message: `The ${items === "selected" ? "selection" : "thought"} was copied to clipboard.`,
+        title: scope === "selection" ? `Copied Selection` : "Copied Capture",
+        message: `The ${scope === "selection" ? "selection" : "capture"} was copied to clipboard.`,
         style: Toast.Style.Success
     })
 }

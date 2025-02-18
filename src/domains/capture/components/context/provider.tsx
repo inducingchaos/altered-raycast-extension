@@ -63,7 +63,17 @@ export function CaptureContextProvider({
             },
             content: {
                 value: searchText,
-                set: (value: string) => setContent({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt })
+                set: (value: string) => setContent({ searchText: value, selectedColumn, setDataStore, dataStoreUpdatedAt }),
+                reset: () => {
+                    setDataStore(prev => {
+                        const newDataStore = new Map(prev)
+                        selectedItemId && newDataStore.delete(selectedItemId)
+                        return newDataStore
+                    })
+                    dataStoreUpdatedAt.current = Date.now()
+
+                    return
+                }
             },
             selection: {
                 id: selectedItemId,

@@ -6,7 +6,7 @@ import { Action, ActionPanel, Icon } from "@raycast/api"
 import { SelectItemAction, SelectOptionAction } from "./navigation"
 import { useCapture } from "../components/context"
 import { SubmitActions } from "./submit"
-import { CopyAction } from "./modify"
+import { ClearAction, CopyAction } from "./modify"
 
 export function CaptureActions(): JSX.Element {
     const captureContext = useCapture()
@@ -24,8 +24,10 @@ export function CaptureActions(): JSX.Element {
             </ActionPanel.Section>
 
             <ActionPanel.Section title="Modify">
-                <CopyAction items="selected" />
-                <CopyAction items="all" />
+                <CopyAction scope="selection" />
+                <CopyAction scope="all" />
+                <ClearAction scope="selection" />
+                <ClearAction scope="all" />
             </ActionPanel.Section>
             <ActionPanel.Section title="Navigate">
                 <SelectItemAction direction="next" {...captureContext} />
