@@ -3,10 +3,10 @@
  */
 
 import { Action, ActionPanel, Icon } from "@raycast/api"
-import { SelectItemAction, SelectOptionAction } from "@sdkit/domains/raycast/actions"
+import { SelectItemAction, SelectOptionAction } from "./navigation"
 import { useCapture } from "../components/context"
-import { ModifyActions } from "./modify"
 import { SubmitActions } from "./submit"
+import { CopyAction } from "./modify"
 
 export function CaptureActions(): JSX.Element {
     const captureContext = useCapture()
@@ -22,7 +22,11 @@ export function CaptureActions(): JSX.Element {
                     onAction={() => captureContext.state.view.inspector.toggle()}
                 />
             </ActionPanel.Section>
-            <ModifyActions />
+
+            <ActionPanel.Section title="Modify">
+                <CopyAction items="selected" />
+                <CopyAction items="all" />
+            </ActionPanel.Section>
             <ActionPanel.Section title="Navigate">
                 <SelectItemAction direction="next" {...captureContext} />
                 <SelectItemAction direction="previous" {...captureContext} />
