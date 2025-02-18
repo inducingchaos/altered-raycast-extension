@@ -3,19 +3,16 @@
  */
 
 import { Action, Icon } from "@raycast/api"
-import { CaptureContextState } from "~/domains/capture/components/context/state"
 import { dataTypes, SafeDataSchema } from "~/domains/shared/data"
 import { configureDataConstraint, DataConstraintKey, dataConstraints } from "~/domains/shared/data/definitions/constraints"
+import { useCapture } from "../../components/context"
+import { CaptureContextState } from "../../components/context/state"
 
 // fix bug where you cant escape if you select option before typing
 
-export type SelectOptionActionProps = {
-    direction: "next" | "previous"
-    schema: SafeDataSchema
-    state: CaptureContextState["state"]
-}
+export function SelectOptionAction({ direction }: { direction: "next" | "previous" }): JSX.Element {
+    const { state, schema } = useCapture()
 
-export function SelectOptionAction({ direction, schema, state }: SelectOptionActionProps): JSX.Element {
     return (
         <Action
             title={direction === "next" ? "Next Option" : "Previous Option"}
@@ -45,7 +42,15 @@ export function SelectOptionAction({ direction, schema, state }: SelectOptionAct
 //     })
 // }
 
-function oldSelectOption({ direction, schema, state }: SelectOptionActionProps) {
+function oldSelectOption({
+    direction,
+    schema,
+    state
+}: {
+    direction: "next" | "previous"
+    schema: SafeDataSchema
+    state: CaptureContextState["state"]
+}) {
     if (!state.selection.id) return
 
     const value = state.store.value.get(state.selection.id)?.value

@@ -30,10 +30,10 @@ export function CaptureActions(): JSX.Element {
                 <ClearAction scope="all" />
             </ActionPanel.Section>
             <ActionPanel.Section title="Navigate">
-                <SelectItemAction direction="next" {...captureContext} />
-                <SelectItemAction direction="previous" {...captureContext} />
-                <SelectOptionAction direction="next" {...captureContext} />
-                <SelectOptionAction direction="previous" {...captureContext} />
+                <SelectItemAction direction="next" />
+                <SelectItemAction direction="previous" />
+                <SelectOptionAction direction="next" />
+                <SelectOptionAction direction="previous" />
             </ActionPanel.Section>
         </ActionPanel>
     )

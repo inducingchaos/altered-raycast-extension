@@ -1,23 +1,10 @@
 /**
- *
+ * @validation: MG
  */
 
 import { Action, Clipboard, Icon, Toast, showToast } from "@raycast/api"
 import { useCapture } from "~/domains/capture/components/context"
 import { CaptureContextState } from "../../components/context/state"
-
-export function CopyAction({ scope }: { scope: "selection" | "all" }): JSX.Element {
-    const { state, columns } = useCapture()
-
-    return (
-        <Action
-            title={scope === "selection" ? "Copy" : "Copy All"}
-            icon={scope === "selection" ? Icon.Clipboard : Icon.Clipboard}
-            shortcut={{ modifiers: scope === "selection" ? ["cmd"] : ["shift", "cmd"], key: "c" }}
-            onAction={async () => handleCopyAction({ scope, state, columns })}
-        />
-    )
-}
 
 export async function handleCopyAction({
     scope,
@@ -45,4 +32,17 @@ export async function handleCopyAction({
         message: `The ${scope === "selection" ? "selection" : "capture"} was copied to clipboard.`,
         style: Toast.Style.Success
     })
+}
+
+export function CopyAction({ scope }: { scope: "selection" | "all" }): JSX.Element {
+    const { state, columns } = useCapture()
+
+    return (
+        <Action
+            title={scope === "selection" ? "Copy" : "Copy All"}
+            icon={Icon.Clipboard}
+            shortcut={{ modifiers: scope === "selection" ? ["cmd"] : ["shift", "cmd"], key: "c" }}
+            onAction={async () => handleCopyAction({ scope, state, columns })}
+        />
+    )
 }

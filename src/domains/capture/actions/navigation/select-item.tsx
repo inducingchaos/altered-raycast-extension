@@ -4,20 +4,11 @@
 
 import { Action, Icon } from "@raycast/api"
 import { navigateArray } from "@sdkit/utils"
-import { SafeDataSchema } from "~/domains/shared/data"
+import { useCapture } from "~/domains/capture/components/context"
 
-export type SelectItemActionProps = {
-    direction: "next" | "previous"
-    schema: SafeDataSchema
-    state: {
-        selection: {
-            id: string | undefined
-            set: (id: string) => void
-        }
-    }
-}
+export function SelectItemAction({ direction }: { direction: "next" | "previous" }): JSX.Element {
+    const { state, schema } = useCapture()
 
-export function SelectItemAction({ direction, schema, state }: SelectItemActionProps): JSX.Element {
     return (
         <Action
             title={direction === "next" ? "Next" : "Previous"}
