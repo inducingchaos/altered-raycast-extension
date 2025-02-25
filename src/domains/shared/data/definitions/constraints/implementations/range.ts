@@ -4,7 +4,7 @@
 
 import { createTypeSchema, traverse } from "@sdkit/utils"
 import { type } from "arktype"
-import { THIN_PIPE } from "~/domains/shared/utils"
+import { isValidNumber, parseNumberValue, THIN_PIPE } from "~/domains/shared/utils"
 import { createDataConstraint } from "../definitions"
 
 export const rangeConstraint = createDataConstraint({
@@ -89,6 +89,13 @@ export const rangeConstraint = createDataConstraint({
     select: ({ value, params, direction }) => {
         const safeNumber = parseNumberValue(value)
 
+        console.log(
+            "isValidNumber(params.min)",
+            isValidNumber(params.min),
+            "isValidNumber(params.max)",
+            isValidNumber(params.max)
+        )
+
         const result = traverse({
             value: safeNumber,
             bounds: {
@@ -103,27 +110,32 @@ export const rangeConstraint = createDataConstraint({
             direction
         })
 
+        console.log("result", result)
+
         return result.toString()
     },
 
     validate: ({ params, value }) => {
+        const numberValue = parseNumberValue(value)
+        if (!numberValue) return false
+
         if (!isValidNumber(params.min) && !isValidNumber(params.max) && !isValidNumber(params.step?.size)) return true
 
         const schema =
             !isValidNumber(params.min) && !isValidNumber(params.max)
                 ? type(`number`)
                 : !isValidNumber(params.min) && isValidNumber(params.max)
-                  ? type(`number < ${params.max}`)
+                  ? type(`number <= ${params.max}`)
                   : !isValidNumber(params.max) && isValidNumber(params.min)
-                    ? type(`number > ${params.min}`)
+                    ? type(`number >= ${params.min}`)
                     : isValidNumber(params.min) && isValidNumber(params.max)
-                      ? type(`${params.min} < number < ${params.max}`)
+                      ? type(`${params.min} <= number <= ${params.max}`)
                       : type(`number`)
 
-        const result = schema(value)
+        const result = schema(numberValue)
 
         if (result instanceof type.errors) {
-            console.error(result)
+            console.error(result.message)
             return false
         }
 
@@ -138,20 +150,3 @@ export const rangeConstraint = createDataConstraint({
         return true
     }
 })
-
-/**
- * Type predicate that checks if a value is a valid number (including zero)
- * This helps TypeScript understand the type narrowing
- */
-function isValidNumber(value: unknown): value is number {
-    return value !== undefined && value !== null && !isNaN(Number(value))
-}
-
-/**
- * Parses a string value into a number if possible
- */
-function parseNumberValue(value: unknown): number | undefined {
-    if (!value && value !== 0) return undefined
-    const number = Number(typeof value === "string" ? value.trim() : value)
-    return !isNaN(number) ? number : undefined
-}

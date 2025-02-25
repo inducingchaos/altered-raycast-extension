@@ -2,6 +2,8 @@
  *
  */
 
+import { isValidNumber } from "~/domains/shared/utils"
+
 type Base = { value?: number }
 type Bounds = { bounds: { min?: number; max?: number; wrap?: boolean } }
 type BoundsWithMin = { bounds: { min: number; max?: number; wrap?: boolean } }
@@ -43,7 +45,7 @@ export function traverse(options: TraverseOptions & { debug?: boolean }): number
 
     //  Configure globals.
 
-    const _isClosedRange = !!options.bounds.min && !!options.bounds.max
+    const _isClosedRange = isValidNumber(options.bounds.min) && isValidNumber(options.bounds.max)
 
     const {
         value = _isClosedRange ? options.bounds.min! : 0,
@@ -57,8 +59,8 @@ export function traverse(options: TraverseOptions & { debug?: boolean }): number
         step: { ...options.step }
     }
 
-    const isClosedRange = !!min && !!max
-    const isStepped = options.step !== null && size !== 0
+    const isClosedRange = isValidNumber(min) && isValidNumber(max)
+    const isStepped = isValidNumber(size) && size !== 0
 
     if (debug)
         console.log(debugStep++, "Configured globals:", {
@@ -72,7 +74,7 @@ export function traverse(options: TraverseOptions & { debug?: boolean }): number
 
     //  Guard conditions.
 
-    if (wrap && (min === null || max === null)) throw new Error("Cannot wrap an open range.")
+    if (wrap && (!isValidNumber(min) || !isValidNumber(max))) throw new Error("Cannot wrap an open range.")
 
     //  Resolve bounds. Corrects the range if reversed.
 
