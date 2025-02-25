@@ -71,9 +71,9 @@ export async function onCreateAction({
 
     const { "api-key": apiKey } = getPreferenceValues<Preferences>()
 
-    const response = await fetch("https://altered.app/api/thoughts", {
+    const response = await fetch("https://altered.app/api/thoughts/create", {
         method: "POST",
-        body: JSON.stringify(data),
+        body: JSON.stringify([data]),
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`
