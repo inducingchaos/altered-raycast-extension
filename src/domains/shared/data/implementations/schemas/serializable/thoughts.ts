@@ -57,26 +57,19 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             default: "false"
         },
         {
-            name: "Options Test",
-            description: "Allows multiple options.",
+            name: "Datasets",
+            description: "The sets that the thought belongs to.",
             type: dataTypes.string.id,
-            required: true,
+            required: false,
             constraints: [
                 createSerializableDataConstraint({
                     id: dataConstraints.options.id,
                     parameters: {
-                        options: ["now", "soon", "later", "After", "Before"],
+                        options: ["Altered", "App Features"],
                         caseSensitive: true
                     }
                 })
             ]
-        },
-        {
-            name: "Number Select Test",
-            description: "Allows selecting a number.",
-            type: dataTypes.number.id,
-            required: true,
-            default: "7"
         }
     ]
 } as const
