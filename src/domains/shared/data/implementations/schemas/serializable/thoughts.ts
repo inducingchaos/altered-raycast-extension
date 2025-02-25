@@ -15,6 +15,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
 
     columns: [
         {
+            id: "TEMP_content",
             name: "Content",
             description: "The description of your thought.",
             type: dataTypes.string.id,
@@ -29,12 +30,14 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             ]
         },
         {
+            id: "TEMP_alias",
             name: "Alias",
             description: "A name for your thought.",
             type: dataTypes.string.id,
             required: false
         },
         {
+            id: "TEMP_priority",
             name: "Priority",
             description: "Level of significance.",
             type: dataTypes.number.id,
@@ -50,6 +53,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             ]
         },
         {
+            id: "TEMP_sensitive",
             name: "Sensitive",
             description: "Whether the thought is sensitive.",
             type: dataTypes.boolean.id,
@@ -57,6 +61,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             default: "false"
         },
         {
+            id: "TEMP_datasets",
             name: "Datasets",
             description: "The sets that the thought belongs to.",
             type: dataTypes.string.id,
