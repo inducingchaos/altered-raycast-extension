@@ -2,8 +2,8 @@
  * @todo Extract actions out to SDKit.
  */
 
-import { Action, ActionPanel, closeMainWindow, Icon, popToRoot, showToast, Toast } from "@raycast/api"
-import { setTimeout } from "timers/promises"
+import { Action, ActionPanel, closeMainWindow, getPreferenceValues, Icon, popToRoot, showToast, Toast } from "@raycast/api"
+import { fetch } from "undici"
 import { SafeDataColumn } from "../../shared/data/definitions"
 import { validateStore } from "../../shared/data/utils/rules/validate/store"
 import { useCapture } from "../components/context"
@@ -63,11 +63,31 @@ export async function onCreateAction({
     console.log(data)
 
     await closeMainWindow()
+
     const toast = await showToast({
         style: Toast.Style.Animated,
         title: "Uploading Thought"
     })
-    await setTimeout(2000)
+
+    const { "api-key": apiKey } = getPreferenceValues<Preferences>()
+
+    const response = await fetch("https://altered.app/api/thoughts", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`
+        }
+    })
+
+    if (!response.ok) {
+        toast.style = Toast.Style.Failure
+        toast.title = "Error Uploading Thought"
+
+        console.error(response)
+
+        return
+    }
 
     popToRoot({ clearSearchBar: true })
 
