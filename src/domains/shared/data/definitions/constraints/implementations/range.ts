@@ -14,25 +14,28 @@ export const rangeConstraint = createDataConstraint({
 
     info: ({ constraint, params: { min, max, step } }) =>
         [
-            !!min && {
-                title: `Min: ${min}`,
-                description: constraint.params!.min.description
-            },
-            !!max && {
-                title: `Max: ${max}`,
-                description: constraint.params!.max.description
-            },
-            !!step && {
-                title: `Step: ${step?.size}${step?.offset ? ` ${THIN_PIPE} Offset: ${step?.offset}` : ""}`,
-                description: `${constraint.params!.step.name}: ${constraint.params!.step.description.toLowerCase()} Contains ${constraint.params!.step.options.size.name}: ${constraint.params!.step.options.size.description.toLowerCase()}, and ${constraint.params!.step.options.offset.name}: ${constraint.params!.step.options.offset.description.toLowerCase()}`
-            }
+            constraint.params &&
+                isValidNumber(min) && {
+                    title: `Min: ${min}`,
+                    description: constraint.params.min.description
+                },
+            constraint.params &&
+                isValidNumber(max) && {
+                    title: `Max: ${max}`,
+                    description: constraint.params.max.description
+                },
+            constraint.params &&
+                isValidNumber(step?.size) && {
+                    title: `Step: ${step.size}${isValidNumber(step?.offset) ? ` ${THIN_PIPE} Offset: ${step.offset}` : ""}`,
+                    description: `${constraint.params.step.name}: ${constraint.params.step.description.toLowerCase()} Contains ${constraint.params.step.options.size.name}: ${constraint.params.step.options.size.description.toLowerCase()}, and ${constraint.params.step.options.offset.name}: ${constraint.params.step.options.offset.description.toLowerCase()}`
+                }
         ].filter(Boolean) as { title: string; description: string }[],
 
     label: ({ params: { min, max, step } }) => {
-        return `${min ? `Min: ${min}, ` : ""}${max ? `Max: ${max}, ` : ""}${step?.size ? `Step: ${step.size}` : ""}`
+        return `${isValidNumber(min) ? `Min: ${min}, ` : ""}${isValidNumber(max) ? `Max: ${max}, ` : ""}${isValidNumber(step?.size) ? `Step: ${step!.size}` : ""}`
     },
     instructions: ({ params: { min, max, step } }) =>
-        `The value must be ${min ? `a minimum of ${min} ` : ""}${max ? `and a maximum of ${max}` : ""}${step?.size ? `, on a step of ${step.size}` : ""}${step?.offset ? `, offset by ${step.offset}` : ""}.`,
+        `The value must be ${isValidNumber(min) ? `a minimum of ${min} ` : ""}${isValidNumber(max) ? `and a maximum of ${max}` : ""}${isValidNumber(step?.size) ? `, on a step of ${step!.size}` : ""}${isValidNumber(step?.offset) ? `, offset by ${step!.offset}` : ""}.`,
     error: { label: "Exceeds Range" },
 
     types: ["number"],
@@ -84,18 +87,19 @@ export const rangeConstraint = createDataConstraint({
     },
 
     select: ({ value, params, direction }) => {
-        const number = value ? Number(value.trim()) : undefined
-        const isNumber = number && !isNaN(number)
-        const safeNumber = isNumber ? number : undefined
+        const safeNumber = parseNumberValue(value)
 
         const result = traverse({
             value: safeNumber,
             bounds: {
-                min: params.min ?? undefined,
-                max: params.max ?? undefined,
-                wrap: params.min !== null && params.max !== null
+                min: isValidNumber(params.min) ? params.min : undefined,
+                max: isValidNumber(params.max) ? params.max : undefined,
+                wrap: isValidNumber(params.min) && isValidNumber(params.max)
             },
-            step: { size: params.step?.size ?? 1, offset: params.step?.offset ?? 0 },
+            step: {
+                size: isValidNumber(params.step?.size) ? params.step!.size : 1,
+                offset: isValidNumber(params.step?.offset) ? params.step!.offset! : 0
+            },
             direction
         })
 
@@ -103,16 +107,18 @@ export const rangeConstraint = createDataConstraint({
     },
 
     validate: ({ params, value }) => {
-        if (!params.min && !params.max && !params.step) return true
+        if (!isValidNumber(params.min) && !isValidNumber(params.max) && !isValidNumber(params.step?.size)) return true
 
         const schema =
-            !params.min && !params.max
+            !isValidNumber(params.min) && !isValidNumber(params.max)
                 ? type(`number`)
-                : !params.min
-                  ? type(`number < ${params.max!}`)
-                  : !params.max
+                : !isValidNumber(params.min) && isValidNumber(params.max)
+                  ? type(`number < ${params.max}`)
+                  : !isValidNumber(params.max) && isValidNumber(params.min)
                     ? type(`number > ${params.min}`)
-                    : type(`${params.min} < number < ${params.max}`)
+                    : isValidNumber(params.min) && isValidNumber(params.max)
+                      ? type(`${params.min} < number < ${params.max}`)
+                      : type(`number`)
 
         const result = schema(value)
 
@@ -121,8 +127,8 @@ export const rangeConstraint = createDataConstraint({
             return false
         }
 
-        if (params.step) {
-            const offsetValue = result + (params.step.offset ?? 0)
+        if (isValidNumber(params.step?.size)) {
+            const offsetValue = result + (isValidNumber(params.step.offset) ? params.step.offset : 0)
 
             const interval = offsetValue % params.step.size
 
@@ -132,3 +138,20 @@ export const rangeConstraint = createDataConstraint({
         return true
     }
 })
+
+/**
+ * Type predicate that checks if a value is a valid number (including zero)
+ * This helps TypeScript understand the type narrowing
+ */
+function isValidNumber(value: unknown): value is number {
+    return value !== undefined && value !== null && !isNaN(Number(value))
+}
+
+/**
+ * Parses a string value into a number if possible
+ */
+function parseNumberValue(value: unknown): number | undefined {
+    if (!value && value !== 0) return undefined
+    const number = Number(typeof value === "string" ? value.trim() : value)
+    return !isNaN(number) ? number : undefined
+}
