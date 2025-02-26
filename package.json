@@ -25,6 +25,13 @@
             "mode": "view"
         },
         {
+            "name": "generate",
+            "title": "Generate",
+            "subtitle": "ALTERED Generate",
+            "description": "Generate content from your ALTERED server based on a prompt.",
+            "mode": "view"
+        },
+        {
             "name": "ingest",
             "title": "Ingest",
             "subtitle": "ALTERED Ingest",
@@ -66,8 +73,10 @@
         }
     ],
     "dependencies": {
+        "@ai-sdk/react": "^1.1.18",
         "@raycast/api": "^1.88.4",
         "@raycast/utils": "^1.17.0",
+        "ai": "^4.1.46",
         "arktype": "^2.0.4",
         "nanoid": "^5.0.9",
         "undici": "^7.3.0",
