@@ -10,13 +10,15 @@ const preferences = getPreferenceValues<{ "api-key": string }>()
 function GeneratedContentView({ prompt, isLoading, content }: { prompt: string; isLoading: boolean; content: string }) {
     const { pop } = useNavigation()
 
+    console.log(prompt)
+
     return (
         <Detail
             navigationTitle={`Generated: ${prompt.slice(0, 30)}${prompt.length > 30 ? "..." : ""}`}
             markdown={content}
             metadata={
                 <Detail.Metadata>
-                    <Detail.Metadata.Label title="Prompt" text={prompt} />
+                    <Detail.Metadata.Label title="Input" text={prompt} />
                 </Detail.Metadata>
             }
             isLoading={isLoading}
@@ -43,6 +45,10 @@ export default function Command() {
     const [searchText, setSearchText] = useState("")
     const { push } = useNavigation()
 
+    useEffect(() => {
+        console.log(searchText)
+    }, [searchText])
+
     const handleGenerate = async () => {
         if (searchText.trim() === "") {
             await showToast(Toast.Style.Failure, "Please enter a prompt")
@@ -58,7 +64,7 @@ export default function Command() {
             onSearchTextChange={setSearchText}
             searchText={searchText}
             searchBarPlaceholder="Enter your prompt here..."
-            throttle
+            throttle={false}
             actions={
                 <ActionPanel>
                     <Action title="Generate" onAction={handleGenerate} shortcut={{ modifiers: ["cmd"], key: "enter" }} />
@@ -70,11 +76,7 @@ export default function Command() {
                 </ActionPanel>
             }
         >
-            <List.EmptyView
-                title="Ready to Generate"
-                description="Type your prompt in the search bar above and press Enter to generate content from your ALTERED server."
-                icon={Icon.Stars}
-            />
+            <List.EmptyView title="Ready to Generate" description="Ask your ALTERED brain anything." icon={Icon.Stars} />
         </List>
     )
 }
