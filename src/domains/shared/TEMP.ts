@@ -28,3 +28,6 @@ export const shouldShowDebug = ({ for: flag }: { for: keyof (typeof debug)["flag
 
     return true
 }
+
+// spell-checker:disable-next-line
+export const ME = "dFgkaKdK7T8b6HwJ8vycz"

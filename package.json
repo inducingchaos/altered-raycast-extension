@@ -25,9 +25,16 @@
             "mode": "view"
         },
         {
-            "name": "generate",
-            "title": "Generate",
-            "subtitle": "ALTERED Generate",
+            "name": "refine",
+            "title": "Refine",
+            "subtitle": "ALTERED Refine",
+            "description": "Provides an interface for refining thoughts for your ALTERED brain.",
+            "mode": "view"
+        },
+        {
+            "name": "think",
+            "title": "Think about Something",
+            "subtitle": "ALTERED Think",
             "description": "Generate content from your ALTERED server based on a prompt.",
             "mode": "view"
         },

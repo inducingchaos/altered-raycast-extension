@@ -76,7 +76,7 @@ export default function Command() {
                 </ActionPanel>
             }
         >
-            <List.EmptyView title="Ready to Generate" description="Ask your ALTERED brain anything." icon={Icon.Stars} />
+            <List.EmptyView title="Ready for Flight" description="What are you thinking?" icon={Icon.Airplane} />
         </List>
     )
 }
