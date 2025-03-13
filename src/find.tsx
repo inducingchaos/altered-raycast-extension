@@ -2,21 +2,40 @@
  *
  */
 
-import { Action, ActionPanel, getPreferenceValues, Icon, List, showToast, Toast } from "@raycast/api"
+import { Action, ActionPanel, getPreferenceValues, Icon, List, showToast, Toast, Color } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import "~/domains/shared/utils/polyfills"
 
 type __Thought = {
-    id: number
+    id: string
     content: string
-    TEMP_alias: string
     attachmentId: string | null
     createdAt: Date
     updatedAt: Date
+    // Dynamic key-value pairs appended to the thought object
+    [key: string]: string | number | Date | null | boolean
 }
 
-type __ThoughtWithAlias = __Thought & { alias: string }
+// Use utils to safely extract properties from the Thought object
+const getThoughtAlias = (thought: __Thought): string => {
+    const alias = thought["alias"]
+    return typeof alias === "string" && alias.trim() !== "" ? alias : `Thought ${thought.id}`
+}
+
+const isThoughtValidated = (thought: __Thought): boolean => {
+    // Check for attachmentId first (backwards compatibility)
+    if (thought.attachmentId) return true
+
+    // Then check for the validated property
+    const validated = thought["validated"]
+    if (typeof validated === "string") {
+        return validated.toLowerCase() === "true"
+    } else if (typeof validated === "boolean") {
+        return validated
+    }
+    return false
+}
 
 // type __CreatableThought = {
 //     userId: string
@@ -35,12 +54,14 @@ const createThoughtEndpoint = (searchText: string): string =>
 export default function Find() {
     const [searchText, setSearchText] = useState("")
     const [isOptimistic, setIsOptimistic] = useState(false)
+    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
+    const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)
 
     const {
         isLoading,
         mutate,
         data: thoughts
-    } = useFetch<__ThoughtWithAlias[]>(createThoughtEndpoint(searchText), {
+    } = useFetch<__Thought[]>(createThoughtEndpoint(searchText), {
         headers: {
             Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
         },
@@ -87,7 +108,7 @@ export default function Find() {
 
     // const [characterCount, setCharacterCount] = useState(0)
 
-    const handleDeleteThought = async (thoughtId: number) => {
+    const handleDeleteThought = async (thoughtId: string) => {
         setIsOptimistic(true)
 
         const toast = await showToast({ style: Toast.Style.Animated, title: "Deleting thought..." })
@@ -102,7 +123,7 @@ export default function Find() {
 
             await mutate(deleteRequest, {
                 optimisticUpdate(data) {
-                    const thoughts = data as __ThoughtWithAlias[]
+                    const thoughts = data as __Thought[]
                     return thoughts.filter(t => t.id !== thoughtId)
                 }
             })
@@ -117,8 +138,6 @@ export default function Find() {
         setIsOptimistic(false)
     }
 
-    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
-
     return (
         <List
             isLoading={isLoading}
@@ -129,6 +148,8 @@ export default function Find() {
             searchText={searchText}
             throttle
             isShowingDetail={inspectorVisibility === "visible"}
+            selectedItemId={selectedThoughtId === null ? undefined : selectedThoughtId}
+            onSelectionChange={setSelectedThoughtId}
             // navigationTitle="WHAT DOES THIS MEAN?"
             // searchBarAccessory={<CharacterCountDropdown characterCount={characterCount} />}
         >
@@ -139,6 +160,7 @@ export default function Find() {
                     onDelete={handleDeleteThought}
                     inspectorVisibility={inspectorVisibility}
                     toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
+                    isSelected={selectedThoughtId === thought.id}
                 />
             ))}
         </List>
@@ -149,31 +171,132 @@ function ThoughtListItem({
     thought,
     onDelete,
     inspectorVisibility,
-    toggleInspector
+    toggleInspector,
+    isSelected
 }: {
-    thought: __ThoughtWithAlias
-    onDelete: (id: number) => Promise<void>
+    thought: __Thought
+    onDelete: (id: string) => Promise<void>
     inspectorVisibility: "visible" | "hidden"
     toggleInspector: () => void
+    isSelected: boolean
 }) {
+    // Get the alias and validation status using the helper functions
+    const alias = getThoughtAlias(thought)
+    const isValidated = isThoughtValidated(thought)
+
+    // Determine title and subtitle based on inspector visibility and selection state
+    let title: string
+    let subtitle: string | undefined
+
+    if (inspectorVisibility === "visible") {
+        if (isSelected) {
+            // When inspector is open and item is selected - show title in white
+            title = alias
+            subtitle = undefined
+        } else {
+            // When inspector is open and item is not selected - show title in gray
+            title = "" // Empty title
+            subtitle = alias // Text goes in subtitle for gray color
+        }
+    } else {
+        // When inspector is closed - normal display
+        title = alias
+        subtitle = formatSubtitle(thought)
+    }
+
+    // Create accessories that will only be shown when inspector is hidden
+    const accessories =
+        inspectorVisibility === "hidden"
+            ? [
+                  // Validation status with green check icon or secondary circle
+                  isValidated
+                      ? {
+                            icon: { source: Icon.CheckCircle, tintColor: Color.Green },
+                            tooltip: "Validated thought"
+                        }
+                      : {
+                            icon: { source: Icon.Circle, tintColor: Color.SecondaryText },
+                            tooltip: "Not validated"
+                        },
+                  // Creation date
+                  {
+                      date: new Date(thought.createdAt),
+                      tooltip: "Created on"
+                  }
+              ]
+            : []
+
     return (
         <List.Item
-            title={thought.alias}
-            subtitle={thought.content}
+            id={thought.id.toString()}
+            title={title}
+            subtitle={subtitle}
+            accessories={accessories}
             detail={
                 <List.Item.Detail
-                    markdown={`# My Name\n${"```"}plaintext\n${thought.content}\n\n#tag #things #here #it #should #look #better #in #the #list #view #in #the #detail #instead #of #the #metadata #view\n${"```"}\n## Tags`}
+                    markdown={`# ${thought.content}`}
                     metadata={
                         <List.Item.Detail.Metadata>
                             <List.Item.Detail.Metadata.Label
                                 title="Created At"
-                                text={new Date(thought.createdAt).toLocaleString()}
+                                icon={Icon.Calendar}
+                                text={new Date(thought.createdAt).toLocaleDateString(undefined, {
+                                    weekday: "short",
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                })}
                             />
                             <List.Item.Detail.Metadata.Separator />
                             <List.Item.Detail.Metadata.Label
                                 title="Updated At"
-                                text={new Date(thought.updatedAt).toLocaleString()}
+                                icon={Icon.Calendar}
+                                text={new Date(thought.updatedAt).toLocaleDateString(undefined, {
+                                    weekday: "short",
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                })}
                             />
+                            <List.Item.Detail.Metadata.Separator />
+                            <List.Item.Detail.Metadata.Label
+                                title="Validated"
+                                icon={
+                                    isValidated
+                                        ? { source: Icon.CheckCircle, tintColor: Color.Green }
+                                        : { source: Icon.Circle, tintColor: Color.SecondaryText }
+                                }
+                                text={isValidated ? "true" : "false"}
+                            />
+                            {Object.entries(thought)
+                                .filter(
+                                    ([key]) =>
+                                        ![
+                                            "id",
+                                            "content",
+                                            "attachmentId",
+                                            "createdAt",
+                                            "updatedAt",
+                                            "alias",
+                                            "validated"
+                                        ].includes(key) &&
+                                        thought[key] !== null &&
+                                        thought[key] !== undefined
+                                )
+                                .map(([key, value]) => (
+                                    <>
+                                        <List.Item.Detail.Metadata.Separator />
+                                        <List.Item.Detail.Metadata.Label
+                                            key={key}
+                                            title={key.charAt(0).toUpperCase() + key.slice(1)}
+                                            text={String(value)}
+                                        />
+                                    </>
+                                ))}
                         </List.Item.Detail.Metadata>
                     }
                 />
@@ -202,6 +325,14 @@ function ThoughtListItem({
             }
         />
     )
+}
+
+// Format a nicer subtitle with relevant information
+function formatSubtitle(thought: __Thought): string {
+    // Extract the first line or first 50 characters of content
+    const contentPreview = thought.content.split("\n")[0].substring(0, 50) + (thought.content.length > 50 ? "..." : "")
+
+    return contentPreview
 }
 
 // function CharacterCountDropdown(props: { characterCount: number; onCharacterCountChange?: (newValue: number) => void }) {
