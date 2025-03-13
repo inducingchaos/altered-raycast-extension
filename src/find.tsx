@@ -32,7 +32,7 @@ type __ThoughtWithAlias = __Thought & { alias: string }
 const createThoughtEndpoint = (searchText: string): string =>
     `https://altered.app/api/thoughts?${new URLSearchParams({ search: searchText })}`
 
-export default function Refine() {
+export default function Find() {
     const [searchText, setSearchText] = useState("")
     const [isOptimistic, setIsOptimistic] = useState(false)
 
@@ -117,6 +117,8 @@ export default function Refine() {
         setIsOptimistic(false)
     }
 
+    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
+
     return (
         <List
             isLoading={isLoading}
@@ -126,16 +128,34 @@ export default function Refine() {
             searchBarPlaceholder="A thought..."
             searchText={searchText}
             throttle
-            isShowingDetail
+            isShowingDetail={inspectorVisibility === "visible"}
             // navigationTitle="WHAT DOES THIS MEAN?"
             // searchBarAccessory={<CharacterCountDropdown characterCount={characterCount} />}
         >
-            {thoughts?.map(thought => <ThoughtListItem key={thought.id} thought={thought} onDelete={handleDeleteThought} />)}
+            {thoughts?.map(thought => (
+                <ThoughtListItem
+                    key={thought.id}
+                    thought={thought}
+                    onDelete={handleDeleteThought}
+                    inspectorVisibility={inspectorVisibility}
+                    toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
+                />
+            ))}
         </List>
     )
 }
 
-function ThoughtListItem({ thought, onDelete }: { thought: __ThoughtWithAlias; onDelete: (id: number) => Promise<void> }) {
+function ThoughtListItem({
+    thought,
+    onDelete,
+    inspectorVisibility,
+    toggleInspector
+}: {
+    thought: __ThoughtWithAlias
+    onDelete: (id: number) => Promise<void>
+    inspectorVisibility: "visible" | "hidden"
+    toggleInspector: () => void
+}) {
     return (
         <List.Item
             title={thought.alias}
@@ -164,6 +184,12 @@ function ThoughtListItem({ thought, onDelete }: { thought: __ThoughtWithAlias; o
                         title="Copy Content"
                         content={thought.content}
                         shortcut={{ modifiers: ["cmd"], key: "." }}
+                    />
+                    <Action
+                        title={`${inspectorVisibility === "visible" ? "Hide" : "Show"} Inspector`}
+                        icon={inspectorVisibility === "visible" ? Icon.EyeDisabled : Icon.Eye}
+                        shortcut={{ modifiers: ["cmd"], key: "i" }}
+                        onAction={toggleInspector}
                     />
                     <Action
                         title="Delete Thought"
