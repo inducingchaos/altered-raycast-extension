@@ -208,21 +208,21 @@ function ThoughtListItem({
     const accessories =
         inspectorVisibility === "hidden"
             ? [
+                  // Creation date
+                  {
+                      date: new Date(thought.createdAt),
+                      tooltip: "Created on"
+                  },
                   // Validation status with green check icon or secondary circle
                   isValidated
                       ? {
-                            icon: { source: Icon.CheckCircle, tintColor: Color.Green },
+                            icon: { source: Icon.CheckCircle, tintColor: Color.SecondaryText },
                             tooltip: "Validated thought"
                         }
                       : {
                             icon: { source: Icon.Circle, tintColor: Color.SecondaryText },
                             tooltip: "Not validated"
-                        },
-                  // Creation date
-                  {
-                      date: new Date(thought.createdAt),
-                      tooltip: "Created on"
-                  }
+                        }
               ]
             : []
 
@@ -234,12 +234,13 @@ function ThoughtListItem({
             accessories={accessories}
             detail={
                 <List.Item.Detail
-                    markdown={`# ${thought.content}`}
+                    // markdown={`# ${thought.content}`}
                     metadata={
                         <List.Item.Detail.Metadata>
+                            <List.Item.Detail.Metadata.Label title="Content" text={thought.content} />
+                            <List.Item.Detail.Metadata.Separator />
                             <List.Item.Detail.Metadata.Label
                                 title="Created At"
-                                icon={Icon.Calendar}
                                 text={new Date(thought.createdAt).toLocaleDateString(undefined, {
                                     weekday: "short",
                                     year: "numeric",
@@ -249,26 +250,24 @@ function ThoughtListItem({
                                     minute: "2-digit"
                                 })}
                             />
-                            <List.Item.Detail.Metadata.Separator />
+                            {/* <List.Item.Detail.Metadata.Separator /> */}
                             <List.Item.Detail.Metadata.Label
                                 title="Updated At"
-                                icon={Icon.Calendar}
-                                text={new Date(thought.updatedAt).toLocaleDateString(undefined, {
-                                    weekday: "short",
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                })}
+                                text={new Date(thought.updatedAt).toLocaleString()}
                             />
                             <List.Item.Detail.Metadata.Separator />
                             <List.Item.Detail.Metadata.Label
                                 title="Validated"
                                 icon={
                                     isValidated
-                                        ? { source: Icon.CheckCircle, tintColor: Color.Green }
-                                        : { source: Icon.Circle, tintColor: Color.SecondaryText }
+                                        ? {
+                                              source: Icon.CheckCircle
+                                              //   tintColor: Color.Green
+                                          }
+                                        : {
+                                              source: Icon.Circle
+                                              //   tintColor: Color.SecondaryText
+                                          }
                                 }
                                 text={isValidated ? "true" : "false"}
                             />
