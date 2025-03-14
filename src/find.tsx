@@ -6,7 +6,7 @@ import { Action, ActionPanel, getPreferenceValues, Icon, List, showToast, Toast,
 import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import "~/domains/shared/utils/polyfills"
-
+import { DateTime } from "luxon"
 type __Thought = {
     id: string
     content: string
@@ -226,6 +226,10 @@ function ThoughtListItem({
               ]
             : []
 
+    const updatedAt = DateTime.fromJSDate(new Date(thought.updatedAt)).toLocaleString({ month: "long", day: "numeric" })
+
+    console.log(updatedAt)
+
     return (
         <List.Item
             id={thought.id.toString()}
@@ -234,11 +238,11 @@ function ThoughtListItem({
             accessories={accessories}
             detail={
                 <List.Item.Detail
-                    // markdown={`# ${thought.content}`}
+                    markdown={`## ${thought.content}`}
                     metadata={
                         <List.Item.Detail.Metadata>
-                            <List.Item.Detail.Metadata.Label title="Content" text={thought.content} />
-                            <List.Item.Detail.Metadata.Separator />
+                            {/* <List.Item.Detail.Metadata.Label title="Content" text={thought.content} />
+                            <List.Item.Detail.Metadata.Separator /> */}
                             <List.Item.Detail.Metadata.Label
                                 title="Created At"
                                 text={new Date(thought.createdAt).toLocaleDateString(undefined, {
@@ -250,25 +254,22 @@ function ThoughtListItem({
                                     minute: "2-digit"
                                 })}
                             />
-                            {/* <List.Item.Detail.Metadata.Separator /> */}
-                            <List.Item.Detail.Metadata.Label
-                                title="Updated At"
-                                text={new Date(thought.updatedAt).toLocaleString()}
-                            />
+                            <List.Item.Detail.Metadata.Separator />
+                            <List.Item.Detail.Metadata.Label title="Updated At" text={updatedAt} />
                             <List.Item.Detail.Metadata.Separator />
                             <List.Item.Detail.Metadata.Label
                                 title="Validated"
-                                icon={
-                                    isValidated
-                                        ? {
-                                              source: Icon.CheckCircle
-                                              //   tintColor: Color.Green
-                                          }
-                                        : {
-                                              source: Icon.Circle
-                                              //   tintColor: Color.SecondaryText
-                                          }
-                                }
+                                // icon={
+                                //     isValidated
+                                //         ? {
+                                //               source: Icon.CheckCircle
+                                //               //   tintColor: Color.Green
+                                //           }
+                                //         : {
+                                //               source: Icon.Circle
+                                //               //   tintColor: Color.SecondaryText
+                                //           }
+                                // }
                                 text={isValidated ? "true" : "false"}
                             />
                             {Object.entries(thought)
