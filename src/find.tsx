@@ -7,6 +7,11 @@ import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import "~/domains/shared/utils/polyfills"
 import { DateTime } from "luxon"
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const BASE_URL = "https://altered.app"
+const DEV_BASE_URL = "http://localhost:5873"
+
 type __Thought = {
     id: string
     content: string
@@ -138,6 +143,69 @@ export default function Find() {
         setIsOptimistic(false)
     }
 
+    const toggleThoughtValidation = async (thought: __Thought) => {
+        setIsOptimistic(true)
+
+        const currentValidation = isThoughtValidated(thought)
+        const newValidation = !currentValidation
+
+        // don't show toast unless error
+
+        // const toast = await showToast({
+        //     style: Toast.Style.Animated,
+        //     title: `${newValidation ? "Validating" : "Invalidating"} thought...`
+        // })
+
+        try {
+            // Create the fetch request but don't await it yet to keep updates optimistic
+            const fetchRequest = fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+                },
+                body: JSON.stringify({ TEMP_validated: newValidation ? "true" : "false" })
+            })
+
+            // Perform optimistic update immediately
+            const response = await mutate(fetchRequest, {
+                optimisticUpdate(data) {
+                    const thoughts = data as __Thought[]
+                    return thoughts.map(t => {
+                        if (t.id === thought.id) {
+                            return {
+                                ...t,
+                                validated: newValidation ? "true" : "false"
+                            }
+                        }
+                        return t
+                    })
+                }
+            })
+
+            // Check if the API call actually succeeded
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }))
+                const errorMessage = errorData.message || `Failed with status ${response.status}`
+
+                console.log(errorData)
+
+                throw new Error(errorMessage)
+            }
+        } catch (error) {
+            showToast({
+                style: Toast.Style.Failure,
+                title: `Failed to ${newValidation ? "validate" : "invalidate"} thought`,
+                message: error instanceof Error ? error.message : String(error)
+            })
+
+            // Force a refresh to ensure UI is in sync with server state
+            mutate()
+        }
+
+        setIsOptimistic(false)
+    }
+
     return (
         <List
             isLoading={isLoading}
@@ -158,6 +226,7 @@ export default function Find() {
                     key={thought.id}
                     thought={thought}
                     onDelete={handleDeleteThought}
+                    toggleValidation={toggleThoughtValidation}
                     inspectorVisibility={inspectorVisibility}
                     toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
                     isSelected={selectedThoughtId === thought.id}
@@ -170,12 +239,14 @@ export default function Find() {
 function ThoughtListItem({
     thought,
     onDelete,
+    toggleValidation,
     inspectorVisibility,
     toggleInspector,
     isSelected
 }: {
     thought: __Thought
     onDelete: (id: string) => Promise<void>
+    toggleValidation: (thought: __Thought) => Promise<void>
     inspectorVisibility: "visible" | "hidden"
     toggleInspector: () => void
     isSelected: boolean
@@ -227,8 +298,6 @@ function ThoughtListItem({
             : []
 
     const updatedAt = DateTime.fromJSDate(new Date(thought.updatedAt)).toLocaleString({ month: "long", day: "numeric" })
-
-    console.log(updatedAt)
 
     return (
         <List.Item
@@ -313,6 +382,12 @@ function ThoughtListItem({
                         icon={inspectorVisibility === "visible" ? Icon.EyeDisabled : Icon.Eye}
                         shortcut={{ modifiers: ["cmd"], key: "i" }}
                         onAction={toggleInspector}
+                    />
+                    <Action
+                        title={`${isValidated ? "Invalidate" : "Validate"} Thought`}
+                        icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}
+                        shortcut={{ modifiers: ["opt"], key: "v" }}
+                        onAction={() => toggleValidation(thought)}
                     />
                     <Action
                         title="Delete Thought"
