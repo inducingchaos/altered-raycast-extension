@@ -2,7 +2,18 @@
  *
  */
 
-import { Action, ActionPanel, getPreferenceValues, Icon, List, showToast, Toast, Color } from "@raycast/api"
+import {
+    Action,
+    ActionPanel,
+    getPreferenceValues,
+    Icon,
+    List,
+    showToast,
+    Toast,
+    Color,
+    Form,
+    useNavigation
+} from "@raycast/api"
 import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import "~/domains/shared/utils/polyfills"
@@ -14,6 +25,7 @@ const DEV_BASE_URL = "http://localhost:5873"
 
 type __Thought = {
     id: string
+    userId: string
     content: string
     attachmentId: string | null
     createdAt: Date
@@ -206,6 +218,64 @@ export default function Find() {
         setIsOptimistic(false)
     }
 
+    const handleEditThought = async (thought: __Thought, updatedFields: Record<string, string | boolean>) => {
+        setIsOptimistic(true)
+
+        try {
+            // Create TEMP_ prefixed versions of the fields for the API
+            const apiFields: Record<string, string | boolean> = {}
+            Object.entries(updatedFields).forEach(([key, value]) => {
+                if (key !== "id" && key !== "createdAt" && key !== "updatedAt" && key !== "attachmentId") {
+                    apiFields[`TEMP_${key}`] = value
+                }
+            })
+
+            // Create the fetch request
+            const fetchRequest = fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+                },
+                body: JSON.stringify(apiFields)
+            })
+
+            // Perform optimistic update immediately
+            const response = await mutate(fetchRequest, {
+                optimisticUpdate(data) {
+                    const thoughts = data as __Thought[]
+                    return thoughts.map(t => {
+                        if (t.id === thought.id) {
+                            return {
+                                ...t,
+                                ...updatedFields
+                            }
+                        }
+                        return t
+                    })
+                }
+            })
+
+            // Check if the API call actually succeeded
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }))
+                const errorMessage = errorData.message || `Failed with status ${response.status}`
+                throw new Error(errorMessage)
+            }
+        } catch (error) {
+            showToast({
+                style: Toast.Style.Failure,
+                title: "Failed to update thought",
+                message: error instanceof Error ? error.message : String(error)
+            })
+
+            // Force a refresh to ensure UI is in sync with server state
+            mutate()
+        }
+
+        setIsOptimistic(false)
+    }
+
     return (
         <List
             isLoading={isLoading}
@@ -227,6 +297,7 @@ export default function Find() {
                     thought={thought}
                     onDelete={handleDeleteThought}
                     toggleValidation={toggleThoughtValidation}
+                    onEdit={handleEditThought}
                     inspectorVisibility={inspectorVisibility}
                     toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
                     isSelected={selectedThoughtId === thought.id}
@@ -240,6 +311,7 @@ function ThoughtListItem({
     thought,
     onDelete,
     toggleValidation,
+    onEdit,
     inspectorVisibility,
     toggleInspector,
     isSelected
@@ -247,6 +319,7 @@ function ThoughtListItem({
     thought: __Thought
     onDelete: (id: string) => Promise<void>
     toggleValidation: (thought: __Thought) => Promise<void>
+    onEdit: (thought: __Thought, updatedFields: Record<string, string | boolean>) => Promise<void>
     inspectorVisibility: "visible" | "hidden"
     toggleInspector: () => void
     isSelected: boolean
@@ -383,6 +456,12 @@ function ThoughtListItem({
                         shortcut={{ modifiers: ["cmd"], key: "i" }}
                         onAction={toggleInspector}
                     />
+                    <Action.Push
+                        title="Edit Thought"
+                        icon={Icon.Pencil}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
+                        target={<EditThoughtForm thought={thought} onSubmit={fields => onEdit(thought, fields)} />}
+                    />
                     <Action
                         title={`${isValidated ? "Invalidate" : "Validate"} Thought`}
                         icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}
@@ -399,6 +478,142 @@ function ThoughtListItem({
                 </ActionPanel>
             }
         />
+    )
+}
+
+function EditThoughtForm({
+    thought,
+    onSubmit
+}: {
+    thought: __Thought
+    onSubmit: (fields: Record<string, string | boolean>) => Promise<void>
+}) {
+    const { pop } = useNavigation()
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    // Initialize form values
+    const [content, setContent] = useState(thought.content)
+    const [alias, setAlias] = useState(getThoughtAlias(thought))
+    const [validated, setValidated] = useState(isThoughtValidated(thought))
+
+    // Create state for custom fields
+    const [customFields, setCustomFields] = useState<Record<string, string>>({})
+
+    // Initialize custom fields from thought object
+    useState(() => {
+        const fields: Record<string, string> = {}
+        Object.entries(thought).forEach(([key, value]) => {
+            if (
+                !["id", "content", "attachmentId", "createdAt", "updatedAt", "alias", "validated"].includes(key) &&
+                value !== null &&
+                value !== undefined
+            ) {
+                fields[key] = String(value)
+            }
+        })
+        setCustomFields(fields)
+    })
+
+    const handleSubmit = async () => {
+        setIsSubmitting(true)
+
+        try {
+            // Combine all fields
+            const updatedFields: Record<string, string | boolean> = {
+                content,
+                alias,
+                validated
+            }
+
+            // Add custom fields
+            Object.entries(customFields).forEach(([key, value]) => {
+                updatedFields[key] = value
+            })
+
+            await onSubmit(updatedFields)
+            pop()
+        } catch (error) {
+            showToast({
+                style: Toast.Style.Failure,
+                title: "Failed to update thought",
+                message: error instanceof Error ? error.message : String(error)
+            })
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    return (
+        <Form
+            isLoading={isSubmitting}
+            actions={
+                <ActionPanel>
+                    <Action.SubmitForm title="Save Changes" onSubmit={handleSubmit} />
+                </ActionPanel>
+            }
+            searchBarAccessory={<Form.LinkAccessory target={`${DEV_BASE_URL}/thoughts/${thought.id}`} text="Open in ALTERED" />}
+        >
+            <Form.Description text="Text" />
+            <Form.DatePicker id="createdAt" title="Created At" value={new Date(thought.createdAt)} />
+            <Form.Dropdown id="updatedAt" title="Updated At" value={new Date(thought.updatedAt)} />
+
+            <Form.TextArea id="content" title="Content" value={content} onChange={setContent} />
+            <Form.TextField id="alias" title="Alias" info="What info" placeholder="SSD" value={alias} onChange={setAlias} />
+
+            <Form.Description title="Title" text="Text" />
+
+            <Form.Checkbox
+                id="validated"
+                label="True"
+                info="What info"
+                title="Validated"
+                value={validated}
+                onChange={setValidated}
+            />
+            <Form.Separator />
+
+            <Form.Description title="Metadata" text="Non-editable parameters." />
+            <Form.Description
+                title="Created At"
+                text={new Date(thought.createdAt).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })}
+            />
+            <Form.Description
+                title="Updated At"
+                text={new Date(thought.updatedAt).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })}
+            />
+
+            <Form.Separator />
+            <Form.Description title="Custom Fields" text="Additional properties" />
+
+            {Object.entries(customFields).map(([key, value]) => (
+                <Form.TextField
+                    key={key}
+                    id={key}
+                    title={key.charAt(0).toUpperCase() + key.slice(1)}
+                    value={value}
+                    onChange={newValue => {
+                        setCustomFields(prev => ({
+                            ...prev,
+                            [key]: newValue
+                        }))
+                    }}
+                />
+            ))}
+        </Form>
     )
 }
 
