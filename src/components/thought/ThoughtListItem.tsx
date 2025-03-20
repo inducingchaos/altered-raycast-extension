@@ -1,6 +1,13 @@
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api"
 import { ThoughtListItemProps } from "../../types/thought"
-import { formatDate, formatSubtitle, getThoughtAlias, isThoughtValidated } from "../../utils/thought"
+import {
+    ALWAYS_VISIBLE_METADATA,
+    FRONTEND_HIDDEN_FIELDS,
+    formatDate,
+    formatSubtitle,
+    getThoughtAlias,
+    isThoughtValidated
+} from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
 import { useDatasets } from "../../hooks/useDatasets"
 
@@ -11,7 +18,10 @@ export function ThoughtListItem({
     onEdit,
     inspectorVisibility,
     toggleInspector,
-    isSelected
+    isSelected,
+    toggleRawMode,
+    toggleLargeTypeMode,
+    isRawMode = false
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -78,6 +88,155 @@ export function ThoughtListItem({
               ]
             : []
 
+    // Create a more consistent detail metadata panel
+    const renderMetadataFields = () => {
+        const metadataItems = []
+
+        // Always show important fields in consistent order
+        for (const field of ALWAYS_VISIBLE_METADATA) {
+            if (field === "content") {
+                metadataItems.push(
+                    <List.Item.Detail.Metadata.Label key="content" title="Content" text={thought.content} />,
+                    <List.Item.Detail.Metadata.Separator key="content-sep" />
+                )
+            } else if (field === "alias") {
+                metadataItems.push(
+                    <List.Item.Detail.Metadata.Label key="alias" title="Alias" text={alias} />,
+                    <List.Item.Detail.Metadata.Separator key="alias-sep" />
+                )
+            } else if (field === "datasets") {
+                const datasetsText =
+                    thought.datasets && thought.datasets.length > 0
+                        ? thought.datasets.map(datasetId => datasetMap[datasetId] || datasetId).join(", ")
+                        : "-"
+
+                metadataItems.push(
+                    <List.Item.Detail.Metadata.Label key="datasets" title="Datasets" text={datasetsText} />,
+                    <List.Item.Detail.Metadata.Separator key="datasets-sep" />
+                )
+            } else if (field === "validated") {
+                metadataItems.push(
+                    <List.Item.Detail.Metadata.Label key="validated" title="Validated" text={isValidated ? "True" : "False"} />,
+                    <List.Item.Detail.Metadata.Separator key="validated-sep" />
+                )
+            }
+        }
+
+        // Add any other custom properties
+        const customProperties = Object.entries(thought).filter(
+            ([key]) =>
+                ![
+                    "id",
+                    "content",
+                    "attachmentId",
+                    "createdAt",
+                    "updatedAt",
+                    "alias",
+                    "validated",
+                    "datasets",
+                    "userId"
+                ].includes(key) &&
+                thought[key] !== null &&
+                thought[key] !== undefined
+        )
+
+        customProperties.forEach(([key, value], index) => {
+            metadataItems.push(
+                <List.Item.Detail.Metadata.Label
+                    key={key}
+                    title={key.charAt(0).toUpperCase() + key.slice(1)}
+                    text={String(value)}
+                />
+            )
+
+            if (index < customProperties.length - 1) {
+                metadataItems.push(<List.Item.Detail.Metadata.Separator key={`${key}-sep`} />)
+            }
+        })
+
+        // Add separator before dates if we have custom properties
+        if (customProperties.length > 0) {
+            metadataItems.push(<List.Item.Detail.Metadata.Separator key="pre-dates-sep" />)
+        }
+
+        // Always add dates at the bottom
+        metadataItems.push(
+            <List.Item.Detail.Metadata.Label key="created" title="Created" text={formatDate(new Date(thought.createdAt))} />,
+            <List.Item.Detail.Metadata.Separator key="created-sep" />,
+            <List.Item.Detail.Metadata.Label key="updated" title="Updated" text={formatDate(new Date(thought.updatedAt))} />
+        )
+
+        return metadataItems
+    }
+
+    // Generate markdown for raw view
+    const generateMarkdown = (): string => {
+        const markdown = []
+
+        // Content first
+        markdown.push(`# Content`)
+        markdown.push(thought.content)
+        markdown.push("")
+        markdown.push("")
+        markdown.push(`## Alias`)
+        markdown.push(alias)
+        markdown.push("")
+        markdown.push("")
+        markdown.push(`## Created`)
+        markdown.push(formatDate(new Date(thought.createdAt)))
+        markdown.push("")
+        markdown.push("")
+        markdown.push(`**${"`"}Updated${"`"}**  ${formatDate(new Date(thought.updatedAt))}`)
+        markdown.push("")
+        markdown.push("---")
+        markdown.push(`**${"`"}Validated${"`"}**  ${isValidated ? "Yes" : "No"}`)
+        markdown.push("")
+        markdown.push("---")
+        markdown.push(`**Datasets:**  ${thought.datasets ? "Yes" : "No"}`)
+        markdown.push("")
+        markdown.push("\n")
+        markdown.push("")
+
+        // // Content first
+        // markdown.push(`**${"`"}Content${"`"}**  ${thought.content}`)
+        // markdown.push("")
+        // markdown.push("---")
+        // markdown.push(`**${"`"}Alias${"`"}**  ${alias}`)
+        // markdown.push("")
+        // markdown.push("---")
+        // markdown.push(`**${"`"}Created${"`"}**  ${formatDate(new Date(thought.createdAt))}`)
+        // markdown.push("")
+        // markdown.push("---")
+        // markdown.push(`**${"`"}Updated${"`"}**  ${formatDate(new Date(thought.updatedAt))}`)
+        // markdown.push("")
+        // markdown.push("---")
+        // markdown.push(`**${"`"}Validated${"`"}**  ${isValidated ? "Yes" : "No"}`)
+        // markdown.push("")
+
+        if (thought.datasets && thought.datasets.length > 0) {
+            const datasetNames = thought.datasets.map(datasetId => datasetMap[datasetId] || datasetId).join(", ")
+            markdown.push(`**Datasets:** ${datasetNames}`)
+        } else {
+            markdown.push(`**Datasets:** -`)
+        }
+        markdown.push("")
+
+        // Add any custom properties
+        Object.entries(thought).forEach(([key, value]) => {
+            if (
+                !FRONTEND_HIDDEN_FIELDS.includes(key) &&
+                !["content", "alias", "validated", "datasets"].includes(key) &&
+                value !== null &&
+                value !== undefined
+            ) {
+                markdown.push(`**${key.charAt(0).toUpperCase() + key.slice(1)}:** ${value}`)
+                markdown.push("")
+            }
+        })
+
+        return markdown.join("\n")
+    }
+
     return (
         <List.Item
             id={thought.id.toString()}
@@ -85,73 +244,13 @@ export function ThoughtListItem({
             subtitle={subtitle}
             accessories={accessories}
             detail={
-                <List.Item.Detail
-                    markdown={`## ${thought.content}`}
-                    metadata={
-                        <List.Item.Detail.Metadata>
-                            {/* Show alias at the top */}
-                            <List.Item.Detail.Metadata.Label title="Alias" text={alias} />
-
-                            {/* Show datasets if available */}
-                            {thought.datasets && thought.datasets.length > 0 && (
-                                <>
-                                    <List.Item.Detail.Metadata.TagList title="Datasets">
-                                        {thought.datasets.map(datasetId => (
-                                            <List.Item.Detail.Metadata.TagList.Item
-                                                key={datasetId}
-                                                text={datasetMap[datasetId] || datasetId}
-                                                color={Color.SecondaryText}
-                                            />
-                                        ))}
-                                    </List.Item.Detail.Metadata.TagList>
-                                </>
-                            )}
-
-                            {/* Show validation status with icon only */}
-                            <List.Item.Detail.Metadata.Label
-                                title="Validated"
-                                icon={
-                                    isValidated
-                                        ? { source: Icon.CheckCircle, tintColor: Color.SecondaryText }
-                                        : { source: Icon.Circle, tintColor: Color.SecondaryText }
-                                }
-                            />
-
-                            {/* Show other properties */}
-                            {Object.entries(thought)
-                                .filter(
-                                    ([key]) =>
-                                        ![
-                                            "id",
-                                            "content",
-                                            "attachmentId",
-                                            "createdAt",
-                                            "updatedAt",
-                                            "alias",
-                                            "validated",
-                                            "datasets",
-                                            "userId"
-                                        ].includes(key) &&
-                                        thought[key] !== null &&
-                                        thought[key] !== undefined
-                                )
-                                .map(([key, value]) => (
-                                    <List.Item.Detail.Metadata.Label
-                                        key={key}
-                                        title={key.charAt(0).toUpperCase() + key.slice(1)}
-                                        text={String(value)}
-                                    />
-                                ))}
-
-                            {/* Separator before dates */}
-                            <List.Item.Detail.Metadata.Separator />
-
-                            {/* Dates at the bottom */}
-                            <List.Item.Detail.Metadata.Label title="Created" text={formatDate(new Date(thought.createdAt))} />
-                            <List.Item.Detail.Metadata.Label title="Updated" text={formatDate(new Date(thought.updatedAt))} />
-                        </List.Item.Detail.Metadata>
-                    }
-                />
+                isRawMode ? (
+                    <List.Item.Detail markdown={generateMarkdown()} />
+                ) : (
+                    <List.Item.Detail
+                        metadata={<List.Item.Detail.Metadata>{renderMetadataFields()}</List.Item.Detail.Metadata>}
+                    />
+                )
             }
             actions={
                 <ActionPanel>
@@ -172,6 +271,24 @@ export function ThoughtListItem({
                         shortcut={{ modifiers: ["opt"], key: "e" }}
                         target={<ThoughtForm thought={thought} onSubmit={fields => onEdit(thought, fields)} />}
                     />
+                    {inspectorVisibility === "visible" && (
+                        <>
+                            <Action
+                                title={isRawMode ? "Switch to Metadata View" : "Switch to Raw View"}
+                                icon={Icon.Text}
+                                shortcut={{ modifiers: ["opt"], key: "r" }}
+                                onAction={toggleRawMode}
+                            />
+                            {toggleLargeTypeMode && (
+                                <Action
+                                    title="Large Type Mode"
+                                    icon={Icon.Maximize}
+                                    shortcut={{ modifiers: ["opt"], key: "l" }}
+                                    onAction={toggleLargeTypeMode}
+                                />
+                            )}
+                        </>
+                    )}
                     <Action
                         title={`${isValidated ? "Invalidate" : "Validate"} Thought`}
                         icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}

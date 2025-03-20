@@ -2,7 +2,7 @@ import { getPreferenceValues, showToast, Toast } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import { Thought, ThoughtFormFields } from "../types/thought"
-import { EXCLUDED_API_FIELDS, TEMP_PREFIXED_FIELDS } from "../utils/thought"
+import { FRONTEND_HIDDEN_FIELDS, TEMP_PREFIXED_FIELDS } from "../utils/thought"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
@@ -128,7 +128,7 @@ export const useThoughts = (searchText: string) => {
 
             Object.entries(updatedFields).forEach(([key, value]) => {
                 // Skip fields that should never be sent
-                if (EXCLUDED_API_FIELDS.includes(key)) {
+                if (FRONTEND_HIDDEN_FIELDS.includes(key)) {
                     return
                 }
 

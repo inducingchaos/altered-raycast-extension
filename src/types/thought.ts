@@ -27,6 +27,9 @@ export type ThoughtListItemProps = {
     inspectorVisibility: "visible" | "hidden"
     toggleInspector: () => void
     isSelected: boolean
+    toggleRawMode?: () => void // Optional since not all components may use it
+    toggleLargeTypeMode?: () => void // Optional toggle for Large Type Mode
+    isRawMode?: boolean // The raw mode state, controlled by parent
 }
 
 export type ThoughtFormProps = {

@@ -2,7 +2,7 @@ import { Action, ActionPanel, Form, Icon, showToast, Toast } from "@raycast/api"
 import { useNavigation } from "@raycast/api"
 import { useState } from "react"
 import { ThoughtFormFields, ThoughtFormProps } from "../../types/thought"
-import { EXCLUDED_API_FIELDS, formatDate, getThoughtAlias } from "../../utils/thought"
+import { ALWAYS_VISIBLE_METADATA, FRONTEND_HIDDEN_FIELDS, formatDate, getThoughtAlias } from "../../utils/thought"
 import { useDatasets } from "../../hooks/useDatasets"
 import { DatasetForm } from "../dataset/DatasetForm"
 
@@ -27,7 +27,7 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
         Object.entries(thought).forEach(([key, value]) => {
             if (
                 !["id", "content", "attachmentId", "createdAt", "updatedAt", "alias", "validated", "datasets"].includes(key) &&
-                !EXCLUDED_API_FIELDS.includes(key) &&
+                !FRONTEND_HIDDEN_FIELDS.includes(key) &&
                 value !== null &&
                 value !== undefined
             ) {
@@ -78,6 +78,41 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
         }
     }
 
+    // Determine which fields to render based on ALWAYS_VISIBLE_METADATA
+    const renderFormFields = () => {
+        return (
+            <>
+                {ALWAYS_VISIBLE_METADATA.includes("content") && (
+                    <Form.TextArea id="content" title="Content" value={content} onChange={setContent} />
+                )}
+
+                {ALWAYS_VISIBLE_METADATA.includes("alias") && (
+                    <Form.TextField
+                        id="alias"
+                        title="Alias"
+                        placeholder="Title for this thought"
+                        value={alias}
+                        onChange={setAlias}
+                    />
+                )}
+
+                {ALWAYS_VISIBLE_METADATA.includes("datasets") && (
+                    <Form.TagPicker
+                        id="datasets"
+                        title="Datasets"
+                        placeholder="Select datasets"
+                        value={selectedDatasets}
+                        onChange={setSelectedDatasets}
+                    >
+                        {datasets?.map(dataset => (
+                            <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />
+                        ))}
+                    </Form.TagPicker>
+                )}
+            </>
+        )
+    }
+
     return (
         <Form
             isLoading={isSubmitting || isDatasetsLoading}
@@ -100,18 +135,7 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
             }
             searchBarAccessory={<Form.LinkAccessory target={`${DEV_BASE_URL}/thoughts/${thought.id}`} text="Open in ALTERED" />}
         >
-            <Form.TextArea id="content" title="Content" value={content} onChange={setContent} />
-            <Form.TextField id="alias" title="Alias" placeholder="Title for this thought" value={alias} onChange={setAlias} />
-
-            <Form.TagPicker
-                id="datasets"
-                title="Datasets"
-                placeholder="Select datasets"
-                value={selectedDatasets}
-                onChange={setSelectedDatasets}
-            >
-                {datasets?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)}
-            </Form.TagPicker>
+            {renderFormFields()}
 
             {Object.keys(customFields).length > 0 && (
                 <>
