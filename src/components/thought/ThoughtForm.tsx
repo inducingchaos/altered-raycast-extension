@@ -1,8 +1,8 @@
 import { Action, ActionPanel, Form, Icon, showToast, Toast } from "@raycast/api"
 import { useNavigation } from "@raycast/api"
 import { useState } from "react"
-import { ThoughtFormProps } from "../../types/thought"
-import { EXCLUDED_API_FIELDS, formatDetailDate, getThoughtAlias } from "../../utils/thought"
+import { ThoughtFormFields, ThoughtFormProps } from "../../types/thought"
+import { EXCLUDED_API_FIELDS, formatDate, getThoughtAlias } from "../../utils/thought"
 import { useDatasets } from "../../hooks/useDatasets"
 import { DatasetForm } from "../dataset/DatasetForm"
 
@@ -42,17 +42,20 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
 
         try {
             // Combine all fields - always set validated as a string
-            const updatedFields: Record<string, string | string[]> = {
+            const updatedFields: ThoughtFormFields = {
                 content,
                 alias,
                 validated: validateOnSave ? "true" : "false",
-                datasets: selectedDatasets
+                datasets: selectedDatasets,
+                // Add any custom fields
+                ...Object.entries(customFields).reduce(
+                    (acc, [key, value]) => {
+                        acc[key] = value
+                        return acc
+                    },
+                    {} as Record<string, string>
+                )
             }
-
-            // Add custom fields
-            Object.entries(customFields).forEach(([key, value]) => {
-                updatedFields[key] = value
-            })
 
             await onSubmit(updatedFields)
 
@@ -97,19 +100,8 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
             }
             searchBarAccessory={<Form.LinkAccessory target={`${DEV_BASE_URL}/thoughts/${thought.id}`} text="Open in ALTERED" />}
         >
-            <Form.Description title="" text="" />
-
-            <Form.Description title="Created At" text={formatDetailDate(new Date(thought.createdAt))} />
-            <Form.Description title="Updated At" text={formatDetailDate(new Date(thought.updatedAt))} />
-
-            <Form.Description title="" text="" />
-
-            <Form.Separator />
-
-            <Form.Description title="" text="" />
-
             <Form.TextArea id="content" title="Content" value={content} onChange={setContent} />
-            <Form.TextField id="alias" title="Alias" info="What info" placeholder="SSD" value={alias} onChange={setAlias} />
+            <Form.TextField id="alias" title="Alias" placeholder="Title for this thought" value={alias} onChange={setAlias} />
 
             <Form.TagPicker
                 id="datasets"
@@ -121,30 +113,30 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
                 {datasets?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)}
             </Form.TagPicker>
 
-            <Form.Description title="" text="" />
-
             {Object.keys(customFields).length > 0 && (
                 <>
-                    <Form.Separator />
-
                     <Form.Description title="" text="" />
+                    {Object.entries(customFields).map(([key, value]) => (
+                        <Form.TextField
+                            key={key}
+                            id={key}
+                            title={key.charAt(0).toUpperCase() + key.slice(1)}
+                            value={value}
+                            onChange={newValue => {
+                                setCustomFields(prev => ({
+                                    ...prev,
+                                    [key]: newValue
+                                }))
+                            }}
+                        />
+                    ))}
                 </>
             )}
 
-            {Object.entries(customFields).map(([key, value]) => (
-                <Form.TextField
-                    key={key}
-                    id={key}
-                    title={key.charAt(0).toUpperCase() + key.slice(1)}
-                    value={value}
-                    onChange={newValue => {
-                        setCustomFields(prev => ({
-                            ...prev,
-                            [key]: newValue
-                        }))
-                    }}
-                />
-            ))}
+            {/* Dates information at the bottom */}
+            <Form.Description title="" text="" />
+            <Form.Description title="Created" text={formatDate(new Date(thought.createdAt))} />
+            <Form.Description title="Updated" text={formatDate(new Date(thought.updatedAt))} />
         </Form>
     )
 }
