@@ -51,8 +51,9 @@ export const useThoughts = (searchText: string) => {
 
     const toggleThoughtValidation = async (thought: Thought) => {
         setIsOptimistic(true)
-        const currentValidation = thought.validated === "true" || thought.validated === true
-        const newValidation = !currentValidation
+        // Convert any input to string for consistent checking
+        const isCurrentlyValidated = thought.validated === "true"
+        const newValidationStatus = isCurrentlyValidated ? "false" : "true"
 
         try {
             const fetchRequest = fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
@@ -61,7 +62,7 @@ export const useThoughts = (searchText: string) => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
                 },
-                body: JSON.stringify({ TEMP_validated: newValidation ? "true" : "false" })
+                body: JSON.stringify({ TEMP_validated: newValidationStatus })
             })
 
             const response = await mutate(fetchRequest, {
@@ -71,7 +72,7 @@ export const useThoughts = (searchText: string) => {
                         if (t.id === thought.id) {
                             return {
                                 ...t,
-                                validated: newValidation ? "true" : "false"
+                                validated: newValidationStatus
                             }
                         }
                         return t
@@ -99,7 +100,7 @@ export const useThoughts = (searchText: string) => {
 
             showToast({
                 style: Toast.Style.Failure,
-                title: `Failed to ${newValidation ? "validate" : "invalidate"} thought`,
+                title: `Failed to ${newValidationStatus === "true" ? "validate" : "invalidate"} thought`,
                 message: error instanceof Error ? error.message : String(error),
                 primaryAction: {
                     title: "View Details",
@@ -131,34 +132,12 @@ export const useThoughts = (searchText: string) => {
                     return
                 }
 
-                // Handle special case for validated - always send as string
-                if (key === "validated") {
-                    const validatedValue = value === true || value === "true" ? "true" : "false"
-
-                    if (TEMP_PREFIXED_FIELDS.includes(key)) {
-                        apiFields[`TEMP_${key}`] = validatedValue
-                    } else {
-                        apiFields[key] = validatedValue
-                    }
-                    return
-                }
-
                 // Add TEMP_ prefix for fields that require it
                 if (TEMP_PREFIXED_FIELDS.includes(key)) {
-                    if (Array.isArray(value)) {
-                        apiFields[`TEMP_${key}`] = value
-                    } else {
-                        // Convert boolean to string if needed
-                        apiFields[`TEMP_${key}`] = typeof value === "boolean" ? String(value) : value
-                    }
+                    apiFields[`TEMP_${key}`] = value
                 } else {
                     // Send content and other non-TEMP fields directly
-                    if (Array.isArray(value)) {
-                        apiFields[key] = value
-                    } else {
-                        // Convert boolean to string if needed
-                        apiFields[key] = typeof value === "boolean" ? String(value) : value
-                    }
+                    apiFields[key] = value
                 }
             })
 

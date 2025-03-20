@@ -2,7 +2,7 @@ import { Action, ActionPanel, Form, Icon, showToast, Toast } from "@raycast/api"
 import { useNavigation } from "@raycast/api"
 import { useState } from "react"
 import { ThoughtFormProps } from "../../types/thought"
-import { EXCLUDED_API_FIELDS, formatDetailDate, getThoughtAlias, isThoughtValidated } from "../../utils/thought"
+import { EXCLUDED_API_FIELDS, formatDetailDate, getThoughtAlias } from "../../utils/thought"
 import { useDatasets } from "../../hooks/useDatasets"
 import { DatasetForm } from "../dataset/DatasetForm"
 
@@ -16,7 +16,6 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
     // Initialize form values
     const [content, setContent] = useState(thought.content)
     const [alias, setAlias] = useState(getThoughtAlias(thought))
-    const [validated, setValidated] = useState(isThoughtValidated(thought))
     const [selectedDatasets, setSelectedDatasets] = useState<string[]>(thought.datasets ?? [])
 
     // Create state for custom fields
@@ -26,7 +25,6 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
     useState(() => {
         const fields: Record<string, string> = {}
         Object.entries(thought).forEach(([key, value]) => {
-            // Skip standard fields and fields that should never be edited
             if (
                 !["id", "content", "attachmentId", "createdAt", "updatedAt", "alias", "validated", "datasets"].includes(key) &&
                 !EXCLUDED_API_FIELDS.includes(key) &&
@@ -39,15 +37,15 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
         setCustomFields(fields)
     })
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (validateOnSave: boolean = false) => {
         setIsSubmitting(true)
 
         try {
-            // Combine all fields
-            const updatedFields: Record<string, string | boolean | string[]> = {
+            // Combine all fields - always set validated as a string
+            const updatedFields: Record<string, string | string[]> = {
                 content,
                 alias,
-                validated,
+                validated: validateOnSave ? "true" : "false",
                 datasets: selectedDatasets
             }
 
@@ -57,6 +55,14 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
             })
 
             await onSubmit(updatedFields)
+
+            if (validateOnSave) {
+                showToast({
+                    style: Toast.Style.Success,
+                    title: "Thought saved and validated"
+                })
+            }
+
             pop()
         } catch (error) {
             showToast({
@@ -74,7 +80,13 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
             isLoading={isSubmitting || isDatasetsLoading}
             actions={
                 <ActionPanel>
-                    <Action.SubmitForm title="Save Changes" onSubmit={handleSubmit} />
+                    <Action.SubmitForm title="Save Changes" onSubmit={() => handleSubmit(false)} />
+                    <Action
+                        title="Save and Validate"
+                        icon={Icon.CheckCircle}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
+                        onAction={() => handleSubmit(true)}
+                    />
                     <Action.Push
                         title="Create Dataset"
                         icon={Icon.Plus}
@@ -109,14 +121,6 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
                 {datasets?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)}
             </Form.TagPicker>
 
-            <Form.Checkbox
-                id="validated"
-                label="True"
-                info="What info"
-                title="Validated"
-                value={validated}
-                onChange={setValidated}
-            />
             <Form.Description title="" text="" />
 
             {Object.keys(customFields).length > 0 && (

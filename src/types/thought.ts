@@ -11,7 +11,13 @@ export type Thought = {
     [key: string]: string | number | Date | null | boolean | string[] | undefined
 }
 
-export type ThoughtFormFields = Record<string, string | boolean | string[]>
+export type ThoughtFormFields = {
+    content: string
+    alias: string
+    validated: string // Always "true" or "false" as a string
+    datasets: string[]
+    [key: string]: string | string[] // Other custom fields
+}
 
 export type ThoughtListItemProps = {
     thought: Thought
