@@ -1,19 +1,23 @@
-import { Action, ActionPanel, Form, showToast, Toast } from "@raycast/api"
+import { Action, ActionPanel, Form, Icon, showToast, Toast } from "@raycast/api"
 import { useNavigation } from "@raycast/api"
 import { useState } from "react"
 import { ThoughtFormProps } from "../../types/thought"
-import { formatDetailDate, getThoughtAlias, isThoughtValidated } from "../../utils/thought"
+import { EXCLUDED_API_FIELDS, formatDetailDate, getThoughtAlias, isThoughtValidated } from "../../utils/thought"
+import { useDatasets } from "../../hooks/useDatasets"
+import { DatasetForm } from "../dataset/DatasetForm"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
 export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
     const { pop } = useNavigation()
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const { datasets, isLoading: isDatasetsLoading, createDataset } = useDatasets()
 
     // Initialize form values
     const [content, setContent] = useState(thought.content)
     const [alias, setAlias] = useState(getThoughtAlias(thought))
     const [validated, setValidated] = useState(isThoughtValidated(thought))
+    const [selectedDatasets, setSelectedDatasets] = useState<string[]>(thought.datasets ?? [])
 
     // Create state for custom fields
     const [customFields, setCustomFields] = useState<Record<string, string>>({})
@@ -22,8 +26,10 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
     useState(() => {
         const fields: Record<string, string> = {}
         Object.entries(thought).forEach(([key, value]) => {
+            // Skip standard fields and fields that should never be edited
             if (
-                !["id", "content", "attachmentId", "createdAt", "updatedAt", "alias", "validated"].includes(key) &&
+                !["id", "content", "attachmentId", "createdAt", "updatedAt", "alias", "validated", "datasets"].includes(key) &&
+                !EXCLUDED_API_FIELDS.includes(key) &&
                 value !== null &&
                 value !== undefined
             ) {
@@ -38,10 +44,11 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
 
         try {
             // Combine all fields
-            const updatedFields: Record<string, string | boolean> = {
+            const updatedFields: Record<string, string | boolean | string[]> = {
                 content,
                 alias,
-                validated
+                validated,
+                datasets: selectedDatasets
             }
 
             // Add custom fields
@@ -64,22 +71,43 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
 
     return (
         <Form
-            isLoading={isSubmitting}
+            isLoading={isSubmitting || isDatasetsLoading}
             actions={
                 <ActionPanel>
                     <Action.SubmitForm title="Save Changes" onSubmit={handleSubmit} />
+                    <Action.Push
+                        title="Create Dataset"
+                        icon={Icon.Plus}
+                        shortcut={{ modifiers: ["opt"], key: "d" }}
+                        target={<DatasetForm onSubmit={createDataset} />}
+                    />
                 </ActionPanel>
             }
             searchBarAccessory={<Form.LinkAccessory target={`${DEV_BASE_URL}/thoughts/${thought.id}`} text="Open in ALTERED" />}
         >
-            <Form.Description text="Text" />
-            <Form.DatePicker id="createdAt" title="Created At" value={new Date(thought.createdAt)} />
-            <Form.DatePicker id="updatedAt" title="Updated At" value={new Date(thought.updatedAt)} />
+            <Form.Description title="" text="" />
+
+            <Form.Description title="Created At" text={formatDetailDate(new Date(thought.createdAt))} />
+            <Form.Description title="Updated At" text={formatDetailDate(new Date(thought.updatedAt))} />
+
+            <Form.Description title="" text="" />
+
+            <Form.Separator />
+
+            <Form.Description title="" text="" />
 
             <Form.TextArea id="content" title="Content" value={content} onChange={setContent} />
             <Form.TextField id="alias" title="Alias" info="What info" placeholder="SSD" value={alias} onChange={setAlias} />
 
-            <Form.Description title="Title" text="Text" />
+            <Form.TagPicker
+                id="datasets"
+                title="Datasets"
+                placeholder="Select datasets"
+                value={selectedDatasets}
+                onChange={setSelectedDatasets}
+            >
+                {datasets?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)}
+            </Form.TagPicker>
 
             <Form.Checkbox
                 id="validated"
@@ -89,14 +117,15 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
                 value={validated}
                 onChange={setValidated}
             />
-            <Form.Separator />
+            <Form.Description title="" text="" />
 
-            <Form.Description title="Metadata" text="Non-editable parameters." />
-            <Form.Description title="Created At" text={formatDetailDate(new Date(thought.createdAt))} />
-            <Form.Description title="Updated At" text={formatDetailDate(new Date(thought.updatedAt))} />
+            {Object.keys(customFields).length > 0 && (
+                <>
+                    <Form.Separator />
 
-            <Form.Separator />
-            <Form.Description title="Custom Fields" text="Additional properties" />
+                    <Form.Description title="" text="" />
+                </>
+            )}
 
             {Object.entries(customFields).map(([key, value]) => (
                 <Form.TextField

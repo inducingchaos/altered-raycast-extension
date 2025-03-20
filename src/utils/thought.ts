@@ -10,11 +10,13 @@ export const isThoughtValidated = (thought: Thought): boolean => {
     // Check for attachmentId first (backwards compatibility)
     if (thought.attachmentId) return true
 
-    // Then check for the validated property
+    // Then check for the validated property - always treat it as a string
     const validated = thought["validated"]
     if (typeof validated === "string") {
         return validated.toLowerCase() === "true"
     } else if (typeof validated === "boolean") {
+        // This shouldn't happen with the new API design, but handle it anyway
+        console.warn("Received boolean validated value instead of string:", validated)
         return validated
     }
     return false
@@ -40,3 +42,9 @@ export const formatDetailDate = (date: Date): string => {
         minute: "2-digit"
     })
 }
+
+// Fields that require TEMP_ prefix when sent to API
+export const TEMP_PREFIXED_FIELDS = ["alias", "validated", "datasets"]
+
+// Fields that should never be sent to API
+export const EXCLUDED_API_FIELDS = ["id", "userId", "createdAt", "updatedAt", "attachmentId"]

@@ -5,11 +5,13 @@ export type Thought = {
     attachmentId: string | null
     createdAt: Date
     updatedAt: Date
+    datasets?: string[] // Array of dataset IDs
+    validated?: string // Should always be "true" or "false" string
     // Dynamic key-value pairs appended to the thought object
-    [key: string]: string | number | Date | null | boolean
+    [key: string]: string | number | Date | null | boolean | string[] | undefined
 }
 
-export type ThoughtFormFields = Record<string, string | boolean>
+export type ThoughtFormFields = Record<string, string | boolean | string[]>
 
 export type ThoughtListItemProps = {
     thought: Thought

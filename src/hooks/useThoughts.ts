@@ -2,6 +2,7 @@ import { getPreferenceValues, showToast, Toast } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import { Thought, ThoughtFormFields } from "../types/thought"
+import { EXCLUDED_API_FIELDS, TEMP_PREFIXED_FIELDS } from "../utils/thought"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
@@ -79,15 +80,39 @@ export const useThoughts = (searchText: string) => {
             })
 
             if (!response.ok) {
+                // Parse error response in detail
                 const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }))
-                throw new Error(errorData.message || `Failed with status ${response.status}`)
+                console.error("API Error Response:", errorData)
+
+                // Extract detailed error information
+                const errorMessage = errorData.message || `Failed with status ${response.status}`
+                const errorDetails = errorData.error
+                    ? typeof errorData.error === "string"
+                        ? errorData.error
+                        : JSON.stringify(errorData.error, null, 2)
+                    : ""
+
+                throw new Error(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ""}`)
             }
         } catch (error) {
+            console.error("Error toggling validation:", error)
+
             showToast({
                 style: Toast.Style.Failure,
                 title: `Failed to ${newValidation ? "validate" : "invalidate"} thought`,
-                message: error instanceof Error ? error.message : String(error)
+                message: error instanceof Error ? error.message : String(error),
+                primaryAction: {
+                    title: "View Details",
+                    onAction: () => {
+                        showToast({
+                            style: Toast.Style.Failure,
+                            title: "Error Details",
+                            message: error instanceof Error ? error.message : String(error)
+                        })
+                    }
+                }
             })
+
             mutate()
         }
 
@@ -98,12 +123,46 @@ export const useThoughts = (searchText: string) => {
         setIsOptimistic(true)
 
         try {
-            const apiFields: Record<string, string | boolean> = {}
+            const apiFields: Record<string, string | string[]> = {}
+
             Object.entries(updatedFields).forEach(([key, value]) => {
-                if (key !== "id" && key !== "createdAt" && key !== "updatedAt" && key !== "attachmentId") {
-                    apiFields[`TEMP_${key}`] = value
+                // Skip fields that should never be sent
+                if (EXCLUDED_API_FIELDS.includes(key)) {
+                    return
+                }
+
+                // Handle special case for validated - always send as string
+                if (key === "validated") {
+                    const validatedValue = value === true || value === "true" ? "true" : "false"
+
+                    if (TEMP_PREFIXED_FIELDS.includes(key)) {
+                        apiFields[`TEMP_${key}`] = validatedValue
+                    } else {
+                        apiFields[key] = validatedValue
+                    }
+                    return
+                }
+
+                // Add TEMP_ prefix for fields that require it
+                if (TEMP_PREFIXED_FIELDS.includes(key)) {
+                    if (Array.isArray(value)) {
+                        apiFields[`TEMP_${key}`] = value
+                    } else {
+                        // Convert boolean to string if needed
+                        apiFields[`TEMP_${key}`] = typeof value === "boolean" ? String(value) : value
+                    }
+                } else {
+                    // Send content and other non-TEMP fields directly
+                    if (Array.isArray(value)) {
+                        apiFields[key] = value
+                    } else {
+                        // Convert boolean to string if needed
+                        apiFields[key] = typeof value === "boolean" ? String(value) : value
+                    }
                 }
             })
+
+            console.log("API Fields being sent:", apiFields)
 
             const fetchRequest = fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
                 method: "PATCH",
@@ -130,15 +189,39 @@ export const useThoughts = (searchText: string) => {
             })
 
             if (!response.ok) {
+                // Parse error response in detail
                 const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }))
-                throw new Error(errorData.message || `Failed with status ${response.status}`)
+                console.error("API Error Response:", errorData)
+
+                // Extract detailed error information
+                const errorMessage = errorData.message || `Failed with status ${response.status}`
+                const errorDetails = errorData.error
+                    ? typeof errorData.error === "string"
+                        ? errorData.error
+                        : JSON.stringify(errorData.error, null, 2)
+                    : ""
+
+                throw new Error(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ""}`)
             }
         } catch (error) {
+            console.error("Error updating thought:", error)
+
             showToast({
                 style: Toast.Style.Failure,
                 title: "Failed to update thought",
-                message: error instanceof Error ? error.message : String(error)
+                message: error instanceof Error ? error.message : String(error),
+                primaryAction: {
+                    title: "View Details",
+                    onAction: () => {
+                        showToast({
+                            style: Toast.Style.Failure,
+                            title: "Error Details",
+                            message: error instanceof Error ? error.message : String(error)
+                        })
+                    }
+                }
             })
+
             mutate()
         }
 
