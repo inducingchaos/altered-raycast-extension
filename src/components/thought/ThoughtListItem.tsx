@@ -28,7 +28,8 @@ export function ThoughtListItem({
     massSelectionItems,
     handleMassSelectAll,
     isAllMassSelected,
-    allThoughts
+    allThoughts,
+    resetMassSelection
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -249,8 +250,12 @@ export function ThoughtListItem({
         // If there are selected items and this one is selected, handle mass deletion
         if (massSelectionItems.size > 0 && isMassSelected) {
             const selectedIds = Array.from(massSelectionItems)
+
             // Call onDelete for each selected item as a batch operation
             Promise.all(selectedIds.map(id => onDelete(id)))
+
+            // Reset mass selection immediately after initiating deletion
+            resetMassSelection()
             return
         }
 
@@ -284,6 +289,9 @@ export function ThoughtListItem({
 
             // Use the mass validation function to update all thoughts at once
             toggleMassThoughtValidation(selectedThoughts, targetValidationState)
+
+            // Reset mass selection immediately after initiating the validation
+            resetMassSelection()
             return
         }
 

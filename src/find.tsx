@@ -284,6 +284,7 @@ export default function Find() {
                     handleMassSelectAll={handleMassSelectAll}
                     allThoughts={filteredThoughts}
                     toggleMassThoughtValidation={toggleMassThoughtValidation}
+                    resetMassSelection={() => setMassSelection(new Set())}
                     toggleMassSelection={() =>
                         setMassSelection(prev => {
                             const newSet = new Set(prev)

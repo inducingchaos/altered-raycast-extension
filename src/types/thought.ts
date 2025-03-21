@@ -37,6 +37,7 @@ export type ThoughtListItemProps = {
     handleMassSelectAll: () => void
     isAllMassSelected: boolean
     allThoughts?: Thought[] // All filtered thoughts for validation logic
+    resetMassSelection: () => void // Function to clear mass selection
 }
 
 export type ThoughtFormProps = {
