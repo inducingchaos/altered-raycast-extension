@@ -23,6 +23,7 @@ export type ThoughtListItemProps = {
     thought: Thought
     onDelete: (id: string) => Promise<void>
     toggleValidation: (thought: Thought) => Promise<void>
+    toggleMassThoughtValidation?: (thoughts: Thought[], targetValidationState: string) => Promise<void>
     onEdit: (thought: Thought, updatedFields: ThoughtFormFields) => Promise<void>
     inspectorVisibility: "visible" | "hidden"
     toggleInspector: () => void
@@ -35,6 +36,7 @@ export type ThoughtListItemProps = {
     massSelectionItems: Set<string>
     handleMassSelectAll: () => void
     isAllMassSelected: boolean
+    allThoughts?: Thought[] // All filtered thoughts for validation logic
 }
 
 export type ThoughtFormProps = {

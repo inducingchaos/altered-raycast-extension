@@ -120,6 +120,64 @@ export const useThoughts = (searchText: string) => {
         setIsOptimistic(false)
     }
 
+    // Function to toggle validation for multiple thoughts at once
+    const toggleMassThoughtValidation = async (thoughtsToUpdate: Thought[], targetValidationState: string) => {
+        if (!thoughtsToUpdate.length) return
+
+        setIsOptimistic(true)
+        const thoughtIds = thoughtsToUpdate.map(t => t.id.toString())
+
+        try {
+            // Create a promise for all API calls
+            const bulkUpdatePromise = Promise.all(
+                thoughtsToUpdate.map(thought =>
+                    fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+                        },
+                        body: JSON.stringify({ TEMP_validated: targetValidationState })
+                    })
+                )
+            )
+
+            const responses = await mutate(bulkUpdatePromise, {
+                optimisticUpdate(data) {
+                    const thoughts = data as Thought[]
+                    return thoughts.map(t => {
+                        if (thoughtIds.includes(t.id.toString())) {
+                            return {
+                                ...t,
+                                validated: targetValidationState
+                            }
+                        }
+                        return t
+                    })
+                }
+            })
+
+            // Check if any requests failed
+            const failedResponses = responses.filter((response: Response) => !response.ok)
+            if (failedResponses.length > 0) {
+                throw new Error(`${failedResponses.length} validation updates failed`)
+            }
+        } catch (error) {
+            console.error("Error in mass validation:", error)
+
+            showToast({
+                style: Toast.Style.Failure,
+                title: `Failed to ${targetValidationState === "true" ? "validate" : "invalidate"} thoughts`,
+                message: error instanceof Error ? error.message : String(error)
+            })
+
+            // Refresh data to ensure UI is consistent with server state
+            mutate()
+        }
+
+        setIsOptimistic(false)
+    }
+
     const handleEditThought = async (thought: Thought, updatedFields: ThoughtFormFields) => {
         setIsOptimistic(true)
 
@@ -210,8 +268,10 @@ export const useThoughts = (searchText: string) => {
     return {
         thoughts,
         isLoading,
+        isOptimistic,
         handleDeleteThought,
         toggleThoughtValidation,
+        toggleMassThoughtValidation,
         handleEditThought
     }
 }

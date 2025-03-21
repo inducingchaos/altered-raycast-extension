@@ -15,6 +15,7 @@ export function ThoughtListItem({
     thought,
     onDelete,
     toggleValidation,
+    toggleMassThoughtValidation,
     onEdit,
     inspectorVisibility,
     toggleInspector,
@@ -26,7 +27,8 @@ export function ThoughtListItem({
     toggleMassSelection,
     massSelectionItems,
     handleMassSelectAll,
-    isAllMassSelected
+    isAllMassSelected,
+    allThoughts
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -242,6 +244,74 @@ export function ThoughtListItem({
         return markdown.join("\n")
     }
 
+    // Handle mass deletion
+    const handleDelete = () => {
+        // If there are selected items and this one is selected, handle mass deletion
+        if (massSelectionItems.size > 0 && isMassSelected) {
+            const selectedIds = Array.from(massSelectionItems)
+            // Call onDelete for each selected item as a batch operation
+            Promise.all(selectedIds.map(id => onDelete(id)))
+            return
+        }
+
+        // Otherwise, just delete this thought
+        onDelete(thought.id)
+    }
+
+    // Handle mass validation/invalidation
+    const handleValidation = () => {
+        // If there are selected items and this one is selected
+        if (massSelectionItems.size > 0 && isMassSelected && toggleMassThoughtValidation && allThoughts) {
+            // First, determine if we should validate or invalidate
+            // If ANY selected thought is validated, prefer invalidation
+            const selectedThoughtIds = Array.from(massSelectionItems)
+
+            // Check if any of the selected thoughts are validated
+            let anyValidated = false
+
+            if (allThoughts) {
+                // Check if any of the selected thoughts are validated
+                anyValidated = allThoughts.some(t => selectedThoughtIds.includes(t.id.toString()) && isThoughtValidated(t))
+            } else {
+                throw new Error("All thoughts are not available")
+            }
+
+            // The target validation state (what we WANT to set things to)
+            const targetValidationState = anyValidated ? "false" : "true"
+
+            // Get the actual thought objects for all selected thoughts
+            const selectedThoughts = allThoughts.filter(t => selectedThoughtIds.includes(t.id.toString()))
+
+            // Use the mass validation function to update all thoughts at once
+            toggleMassThoughtValidation(selectedThoughts, targetValidationState)
+            return
+        }
+
+        // Otherwise, just toggle validation for this thought
+        toggleValidation(thought)
+    }
+
+    // Determine validation action title
+    const getValidationActionTitle = () => {
+        if (massSelectionItems.size > 0 && isMassSelected) {
+            // For mass action, determine if any selected items are validated
+            let anyValidated = false
+
+            if (allThoughts) {
+                // Check entire thoughts list
+                const selectedThoughtIds = Array.from(massSelectionItems)
+                anyValidated = allThoughts.some(t => selectedThoughtIds.includes(t.id.toString()) && isThoughtValidated(t))
+            } else {
+                throw new Error("All thoughts are not available")
+            }
+
+            return anyValidated ? "Invalidate Selected" : "Validate Selected"
+        }
+
+        // Single item validation
+        return isValidated ? "Invalidate Thought" : "Validate Thought"
+    }
+
     return (
         <List.Item
             id={thought.id.toString()}
@@ -314,17 +384,17 @@ export function ThoughtListItem({
                         </>
                     )}
                     <Action
-                        title={`${isValidated ? "Invalidate" : "Validate"} Thought`}
+                        title={getValidationActionTitle()}
                         icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}
                         shortcut={{ modifiers: ["opt"], key: "v" }}
-                        onAction={() => toggleValidation(thought)}
+                        onAction={handleValidation}
                     />
                     <Action
-                        title="Delete Thought"
+                        title={massSelectionItems.size > 0 && isMassSelected ? "Delete Selected" : "Delete Thought"}
                         icon={Icon.Trash}
                         style={Action.Style.Destructive}
                         shortcut={{ modifiers: ["cmd"], key: "delete" }}
-                        onAction={() => onDelete(thought.id)}
+                        onAction={handleDelete}
                     />
                 </ActionPanel>
             }

@@ -18,7 +18,14 @@ export default function Find() {
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
     const [filter, setFilter] = useState<string>("")
 
-    const { thoughts, isLoading, handleDeleteThought, toggleThoughtValidation, handleEditThought } = useThoughts(searchText)
+    const {
+        thoughts,
+        isLoading,
+        handleDeleteThought,
+        toggleThoughtValidation,
+        toggleMassThoughtValidation,
+        handleEditThought
+    } = useThoughts(searchText)
     const { datasets, isLoading: isLoadingDatasets } = useDatasets()
 
     const onSelectionChange = (id: string | null) => {
@@ -265,7 +272,7 @@ export default function Find() {
                     inspectorVisibility={inspectorVisibility}
                     toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
                     isSelected={selectedThoughtId === thought.id.toString()}
-                    toggleValidation={() => toggleThoughtValidation(thought)}
+                    toggleValidation={thoughtToToggle => toggleThoughtValidation(thoughtToToggle)}
                     onDelete={() => handleDeleteThought(thought.id.toString())}
                     onEdit={handleEditThought}
                     toggleRawMode={toggleRawMode}
@@ -275,6 +282,8 @@ export default function Find() {
                     isAllMassSelected={allThoughtsMassSelected}
                     massSelectionItems={massSelection}
                     handleMassSelectAll={handleMassSelectAll}
+                    allThoughts={filteredThoughts}
+                    toggleMassThoughtValidation={toggleMassThoughtValidation}
                     toggleMassSelection={() =>
                         setMassSelection(prev => {
                             const newSet = new Set(prev)
