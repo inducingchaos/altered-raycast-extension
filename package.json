@@ -39,6 +39,13 @@
             "mode": "view"
         },
         {
+            "name": "settings",
+            "title": "Settings",
+            "subtitle": "ALTERED Settings",
+            "description": "Configure ALTERED system prompts and other settings.",
+            "mode": "view"
+        },
+        {
             "name": "ingest",
             "title": "Ingest",
             "subtitle": "ALTERED Ingest",

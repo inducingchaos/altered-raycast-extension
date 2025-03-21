@@ -12,7 +12,7 @@ import { Thought } from "./types/thought"
 
 export default function Find() {
     const [searchText, setSearchText] = useState("")
-    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("visible")
+    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
     const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
