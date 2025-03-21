@@ -33,6 +33,8 @@ export default function Find() {
         setIsLargeTypeMode(!isLargeTypeMode)
     }
 
+    const [massSelection, setMassSelection] = useState<Set<string>>(new Set())
+
     // Filter thoughts based on selected filter
     const filteredThoughts = useMemo(() => {
         if (!thoughts || !filter) return thoughts
@@ -52,6 +54,22 @@ export default function Find() {
 
         return thoughts
     }, [thoughts, filter])
+
+    const allThoughtsMassSelected: boolean = useMemo(() => {
+        return filteredThoughts?.every(thought => massSelection.has(thought.id.toString())) ?? false
+    }, [filteredThoughts, massSelection])
+
+    const handleMassSelectAll = () => {
+        // check if all filtered thoughts are already in the mass selection, deselect all if so, otherwise select all
+
+        // we need to do a more comprehensive check than just length since we could change the filter and have the same number of thoughts
+
+        if (allThoughtsMassSelected) {
+            setMassSelection(new Set())
+        } else {
+            setMassSelection(new Set(filteredThoughts?.map(thought => thought.id) || []))
+        }
+    }
 
     // Function to validate all visible thoughts
     const validateAllThoughts = async () => {
@@ -179,7 +197,20 @@ export default function Find() {
             onSelectionChange={onSelectionChange}
             throttle
             searchBarAccessory={
-                <List.Dropdown tooltip="Filter Thoughts" value={filter} onChange={setFilter}>
+                <List.Dropdown
+                    tooltip="Filter Thoughts"
+                    value={filter}
+                    onChange={filter => {
+                        setFilter(filter)
+
+                        // if the filter is changed, we need to filter out the selections that are no longer visible
+
+                        const newMassSelection = new Set(
+                            Array.from(massSelection).filter(id => filteredThoughts?.some(thought => thought.id === id))
+                        )
+                        setMassSelection(newMassSelection)
+                    }}
+                >
                     <List.Dropdown.Item title="All" value="" />
 
                     <List.Dropdown.Section title="Status">
@@ -240,6 +271,21 @@ export default function Find() {
                     toggleRawMode={toggleRawMode}
                     toggleLargeTypeMode={toggleLargeTypeMode}
                     isRawMode={isRawMode}
+                    isMassSelected={massSelection.has(thought.id.toString())}
+                    isAllMassSelected={allThoughtsMassSelected}
+                    massSelectionItems={massSelection}
+                    handleMassSelectAll={handleMassSelectAll}
+                    toggleMassSelection={() =>
+                        setMassSelection(prev => {
+                            const newSet = new Set(prev)
+                            if (prev.has(thought.id.toString())) {
+                                newSet.delete(thought.id.toString())
+                            } else {
+                                newSet.add(thought.id.toString())
+                            }
+                            return newSet
+                        })
+                    }
                 />
             ))}
         </List>

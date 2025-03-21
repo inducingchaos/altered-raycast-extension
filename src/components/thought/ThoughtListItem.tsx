@@ -21,7 +21,12 @@ export function ThoughtListItem({
     isSelected,
     toggleRawMode,
     toggleLargeTypeMode,
-    isRawMode = false
+    isRawMode = false,
+    isMassSelected,
+    toggleMassSelection,
+    massSelectionItems,
+    handleMassSelectAll,
+    isAllMassSelected
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -252,6 +257,13 @@ export function ThoughtListItem({
                     />
                 )
             }
+            icon={
+                massSelectionItems.size > 0
+                    ? isMassSelected
+                        ? { source: Icon.CheckCircle, tintColor: Color.SecondaryText }
+                        : { source: Icon.Circle, tintColor: Color.SecondaryText }
+                    : undefined
+            }
             actions={
                 <ActionPanel>
                     <Action.CopyToClipboard
@@ -270,6 +282,18 @@ export function ThoughtListItem({
                         icon={Icon.Pencil}
                         shortcut={{ modifiers: ["opt"], key: "e" }}
                         target={<ThoughtForm thought={thought} onSubmit={fields => onEdit(thought, fields)} />}
+                    />
+                    <Action
+                        title={isMassSelected ? "Deselect Thought" : "Select Thought"}
+                        icon={isMassSelected ? Icon.XMarkCircle : Icon.CheckCircle}
+                        shortcut={{ modifiers: ["ctrl"], key: "s" }}
+                        onAction={toggleMassSelection}
+                    />
+                    <Action
+                        title={isAllMassSelected ? "Deselect All" : "Select All"}
+                        icon={isAllMassSelected ? Icon.XMarkCircle : Icon.CheckCircle}
+                        shortcut={{ modifiers: ["ctrl", "shift"], key: "s" }}
+                        onAction={handleMassSelectAll}
                     />
                     {inspectorVisibility === "visible" && (
                         <>

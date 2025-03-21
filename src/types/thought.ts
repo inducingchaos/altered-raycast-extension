@@ -30,6 +30,11 @@ export type ThoughtListItemProps = {
     toggleRawMode?: () => void // Optional since not all components may use it
     toggleLargeTypeMode?: () => void // Optional toggle for Large Type Mode
     isRawMode?: boolean // The raw mode state, controlled by parent
+    isMassSelected: boolean
+    toggleMassSelection: () => void
+    massSelectionItems: Set<string>
+    handleMassSelectAll: () => void
+    isAllMassSelected: boolean
 }
 
 export type ThoughtFormProps = {
