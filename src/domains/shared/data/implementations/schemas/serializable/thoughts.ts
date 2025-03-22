@@ -24,7 +24,7 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
                 createSerializableDataConstraint({
                     id: dataConstraints.length.id,
                     parameters: {
-                        max: 255
+                        // max: 255
                     }
                 })
             ]
