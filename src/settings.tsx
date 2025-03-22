@@ -39,10 +39,10 @@ export default function Settings() {
 
         // Map form values to prompt updates
         const updatedPrompts = prompts
-            .filter(prompt => values[prompt.promptId] !== prompt.content)
+            .filter(prompt => values[prompt.id] !== prompt.content)
             .map(prompt => ({
-                id: prompt.promptId,
-                content: values[prompt.promptId] || "",
+                id: prompt.id,
+                content: values[prompt.id] || "",
                 name: prompt.name
             }))
 
@@ -52,6 +52,15 @@ export default function Settings() {
             await updatePrompts(updatedPrompts)
             pop()
         }
+    }
+
+    // Helper function to generate variable info text
+    const getVariableInfoText = (allowedVariables?: string[]) => {
+        if (!allowedVariables || allowedVariables.length === 0) {
+            return "No template variables available for this prompt."
+        }
+
+        return `Available variables: ${allowedVariables.map(v => `{{ ${v} }}`).join(", ")}`
     }
 
     // Render loading state while data is loading
@@ -77,17 +86,18 @@ export default function Settings() {
         >
             <Form.Description
                 title="System Prompts"
-                text="Modify the system prompts used by different components of the application."
+                text="Modify the system prompts used by different components of the application. Use {{ variableName }} syntax for template variables. Hover over the info icon (ⓘ) next to each field to see available variables."
             />
 
             {prompts.map(prompt => {
-                console.log("Rendering prompt field:", prompt.promptId, prompt.name)
+                console.log("Rendering prompt field:", prompt.id, prompt.name)
                 return (
                     <Form.TextArea
                         key={prompt.id}
-                        id={prompt.promptId}
+                        id={prompt.id}
                         title={prompt.name}
                         defaultValue={prompt.content}
+                        info={getVariableInfoText(prompt.allowedVariables)}
                         enableMarkdown={false}
                     />
                 )

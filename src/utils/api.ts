@@ -8,8 +8,21 @@ export interface Prompt {
     promptId: string
     name: string
     content: string
-    createdAt?: string
-    updatedAt?: string
+    allowedVariables: string[]
+}
+
+// API response interfaces
+interface PromptApiResponse {
+    id: string
+    name: string
+    content: string
+    allowedVariables: string[]
+}
+
+interface SinglePromptApiResponse {
+    content: string
+    name: string
+    allowedVariables: string[]
 }
 
 // Get the API key from preferences
@@ -40,9 +53,17 @@ export const fetchPrompts = async (): Promise<Prompt[]> => {
         throw new Error(`Failed to fetch prompts: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as PromptApiResponse[]
     console.log("fetchPrompts: Received data for", data.length, "prompts")
-    return data
+
+    // Map the API response to our Prompt interface
+    return data.map((prompt: PromptApiResponse) => ({
+        id: prompt.id,
+        promptId: prompt.id, // For backwards compatibility
+        name: prompt.name,
+        content: prompt.content,
+        allowedVariables: prompt.allowedVariables || []
+    }))
 }
 
 // Fetch a specific prompt
@@ -61,9 +82,17 @@ export const fetchPrompt = async (promptId: string): Promise<Prompt> => {
         throw new Error(`Failed to fetch prompt: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as SinglePromptApiResponse
     console.log("fetchPrompt: Received data for prompt:", promptId)
-    return data
+
+    // Map the API response to our Prompt interface
+    return {
+        id: promptId, // ID comes from the path parameter
+        promptId: promptId, // For backwards compatibility
+        name: data.name,
+        content: data.content,
+        allowedVariables: data.allowedVariables || []
+    }
 }
 
 // Update a prompt
@@ -79,7 +108,7 @@ export const updatePrompt = async (promptId: string, content: string, name?: str
     )
 
     const response = await fetch(`${DEV_BASE_URL}/api/preferences/prompts/${promptId}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json",
             ...getAuthHeader()
@@ -94,7 +123,15 @@ export const updatePrompt = async (promptId: string, content: string, name?: str
         throw new Error(`Failed to update prompt: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as SinglePromptApiResponse
     console.log("updatePrompt: Prompt updated successfully:", promptId)
-    return data
+
+    // Map the API response to our Prompt interface
+    return {
+        id: promptId, // ID comes from the path parameter
+        promptId: promptId, // For backwards compatibility
+        name: data.name,
+        content: data.content,
+        allowedVariables: data.allowedVariables || []
+    }
 }

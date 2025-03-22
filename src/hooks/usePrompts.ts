@@ -49,9 +49,9 @@ export function usePrompts() {
             setPrompts(currentPrompts => {
                 console.log("Current prompts before update:", currentPrompts.length)
                 return currentPrompts.map(prompt => {
-                    const updated = updatedPrompts.find(p => p.id === prompt.promptId)
+                    const updated = updatedPrompts.find(p => p.id === prompt.id)
                     if (updated) {
-                        console.log("Updating prompt:", prompt.promptId)
+                        console.log("Updating prompt:", prompt.id)
                         return {
                             ...prompt,
                             content: updated.content,
