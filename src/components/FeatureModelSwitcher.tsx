@@ -3,16 +3,23 @@ import { useMemo } from "react"
 import { useAiFeatures } from "../hooks/useAiFeatures"
 import { useAiModels } from "../hooks/useAiModels"
 
-interface FeatureModelSwitcherProps {
-    featureId: string
+// Custom icon mapping for different features
+const getFeatureIcon = (featureId: string) => {
+    switch (featureId) {
+        case "alias-generation":
+            return Icon.TextSelection // Tag for alias generation
+        case "thought-generation":
+            return Icon.LightBulb // Chat bubble icon
+        case "spell-checking":
+            return Icon.Text
+        default:
+            return Icon.QuestionMark
+    }
 }
 
-export function FeatureModelSwitcher({ featureId }: FeatureModelSwitcherProps) {
+export function FeatureModelSwitcher() {
     const { features, isUpdatingFeature, updateFeatureModel } = useAiFeatures()
-    const { models } = useAiModels()
-
-    // Find the feature we're working with
-    const feature = useMemo(() => features.find(f => f.id === featureId), [features, featureId])
+    const { models, isLoading: isLoadingModels } = useAiModels()
 
     // Group models by provider for better organization
     const modelsByProvider = useMemo(() => {
@@ -30,36 +37,54 @@ export function FeatureModelSwitcher({ featureId }: FeatureModelSwitcherProps) {
         return grouped
     }, [models])
 
-    // If feature not found, don't render anything
-    if (!feature) return null
+    // If no features or models, don't render anything
+    if (!features.length || !models.length) return null
 
-    // Get if this feature is currently updating
-    const isUpdating = isUpdatingFeature(featureId)
+    // Determine if any feature is updating
+    const isAnyFeatureUpdating = features.some(f => isUpdatingFeature(f.id))
 
     return (
         <ActionPanel.Submenu
-            title={`Change Model for ${feature.name}`}
-            icon={Icon.LightBulb}
+            title="Configure Features"
+            icon={Icon.Gear}
             shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
-            isLoading={isUpdating}
+            isLoading={isLoadingModels || isAnyFeatureUpdating}
         >
-            <Action
-                title="System Default"
-                icon={feature.model.isDefault ? Icon.CheckCircle : Icon.Circle}
-                onAction={() => updateFeatureModel(featureId, null)}
-            />
-
-            {Object.entries(modelsByProvider).map(([provider, providerModels]) => (
-                <ActionPanel.Section key={provider} title={provider}>
-                    {providerModels.map(model => (
+            {features.map(feature => (
+                <ActionPanel.Submenu
+                    key={feature.id}
+                    title={feature.name}
+                    icon={getFeatureIcon(feature.id)}
+                    isLoading={isUpdatingFeature(feature.id)}
+                >
+                    <ActionPanel.Submenu title="AI Model" icon={Icon.Stars}>
+                        {/* <ActionPanel.Section title="Options"> */}
                         <Action
-                            key={model.id}
-                            title={model.name}
-                            icon={!feature.model.isDefault && feature.model.id === model.id ? Icon.CheckCircle : Icon.Circle}
-                            onAction={() => updateFeatureModel(featureId, model.id)}
+                            title="Default"
+                            icon={feature.model.isDefault ? Icon.CheckCircle : Icon.Circle}
+                            onAction={() => updateFeatureModel(feature.id, null)}
                         />
-                    ))}
-                </ActionPanel.Section>
+                        {/* </ActionPanel.Section> */}
+
+                        {Object.entries(modelsByProvider).map(([provider, providerModels]) => (
+                            <ActionPanel.Section key={provider} title={provider}>
+                                {providerModels.map(model => (
+                                    <Action
+                                        key={model.id}
+                                        title={model.name}
+                                        icon={
+                                            !feature.model.isDefault && feature.model.id === model.id
+                                                ? Icon.CheckCircle
+                                                : Icon.Circle
+                                        }
+                                        onAction={() => updateFeatureModel(feature.id, model.id)}
+                                        autoFocus={feature.model.id === model.id}
+                                    />
+                                ))}
+                            </ActionPanel.Section>
+                        ))}
+                    </ActionPanel.Submenu>
+                </ActionPanel.Submenu>
             ))}
         </ActionPanel.Submenu>
     )

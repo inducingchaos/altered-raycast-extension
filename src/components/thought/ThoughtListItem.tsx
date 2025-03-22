@@ -385,7 +385,7 @@ export function ThoughtListItem({
                         </>
                     )}
                     <ActionPanel.Section title="Preferences">
-                        <FeatureModelSwitcher featureId="alias-generation" />
+                        <FeatureModelSwitcher />
                     </ActionPanel.Section>
                     <Action
                         title={getValidationActionTitle()}
