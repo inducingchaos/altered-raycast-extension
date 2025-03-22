@@ -265,6 +265,50 @@ export const useThoughts = (searchText: string) => {
         setIsOptimistic(false)
     }
 
+    // Function to validate all visible thoughts
+    const validateAllThoughts = async () => {
+        try {
+            // Filter thoughts that are not already validated
+            const thoughtsToValidate = thoughts?.filter(thought => thought.validated !== "true") || []
+
+            if (thoughtsToValidate.length === 0) {
+                showToast({
+                    style: Toast.Style.Success,
+                    title: "Nothing to validate",
+                    message: "All thoughts are already validated"
+                })
+                return
+            }
+
+            // Show progress toast
+            const toast = await showToast({
+                style: Toast.Style.Animated,
+                title: "Validating thoughts",
+                message: `Validating ${thoughtsToValidate.length} thoughts...`
+            })
+
+            // Use toggleMassThoughtValidation for batch update
+            await toggleMassThoughtValidation(thoughtsToValidate, "true")
+                .then(() => {
+                    toast.style = Toast.Style.Success
+                    toast.title = "All thoughts validated"
+                    toast.message = `Successfully validated ${thoughtsToValidate.length} thoughts`
+                })
+                .catch(error => {
+                    toast.style = Toast.Style.Failure
+                    toast.title = "Validation partially failed"
+                    toast.message = error instanceof Error ? error.message : String(error)
+                })
+        } catch (error) {
+            console.error("Error validating all thoughts:", error)
+            showToast({
+                style: Toast.Style.Failure,
+                title: "Error",
+                message: "Failed to validate thoughts"
+            })
+        }
+    }
+
     return {
         thoughts,
         isLoading,
@@ -272,6 +316,7 @@ export const useThoughts = (searchText: string) => {
         handleDeleteThought,
         toggleThoughtValidation,
         toggleMassThoughtValidation,
-        handleEditThought
+        handleEditThought,
+        validateAllThoughts
     }
 }

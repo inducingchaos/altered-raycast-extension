@@ -1,5 +1,3 @@
-import { ModelId, ModelType } from "../hooks/useModelPreferences"
-
 export type Thought = {
     id: string
     userId: string
@@ -40,12 +38,6 @@ export type ThoughtListItemProps = {
     isAllMassSelected: boolean
     allThoughts?: Thought[] // All filtered thoughts for validation logic
     resetMassSelection: () => void // Function to clear mass selection
-    // modelPreferences is now optional - we'll use the new ModelSwitcher component instead
-    modelPreferences?: {
-        currentModel: ModelId
-        isUpdating: boolean
-        setModel: (modelType: ModelType, modelId: ModelId) => Promise<void>
-    }
     globalActions?: {
         validateAllThoughts: () => Promise<void>
     }

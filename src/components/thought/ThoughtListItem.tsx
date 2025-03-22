@@ -10,7 +10,7 @@ import {
 } from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
 import { useDatasets } from "../../hooks/useDatasets"
-import { ModelSwitcher } from "../ModelSwitcher"
+import { FeatureModelSwitcher } from "../FeatureModelSwitcher"
 
 export function ThoughtListItem({
     thought,
@@ -385,7 +385,7 @@ export function ThoughtListItem({
                         </>
                     )}
                     <ActionPanel.Section title="Preferences">
-                        <ModelSwitcher />
+                        <FeatureModelSwitcher featureId="alias-generation" />
                     </ActionPanel.Section>
                     <Action
                         title={getValidationActionTitle()}

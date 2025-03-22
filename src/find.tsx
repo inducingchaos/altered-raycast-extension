@@ -2,7 +2,7 @@
  *
  */
 
-import { Action, ActionPanel, List, showToast, Toast, Detail } from "@raycast/api"
+import { Action, ActionPanel, List, Detail } from "@raycast/api"
 import { useState, useMemo } from "react"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
 import { useThoughts } from "./hooks/useThoughts"
@@ -24,7 +24,8 @@ export default function Find() {
         handleDeleteThought,
         toggleThoughtValidation,
         toggleMassThoughtValidation,
-        handleEditThought
+        handleEditThought,
+        validateAllThoughts
     } = useThoughts(searchText)
     const { datasets, isLoading: isLoadingDatasets } = useDatasets()
 
@@ -78,52 +79,6 @@ export default function Find() {
         }
     }
 
-    // Function to validate all visible thoughts
-    const validateAllThoughts = async () => {
-        try {
-            // Filter thoughts that are not already validated
-            const thoughtsToValidate = filteredThoughts?.filter(thought => !isThoughtValidated(thought)) || []
-
-            if (thoughtsToValidate.length === 0) {
-                showToast({
-                    style: Toast.Style.Success,
-                    title: "Nothing to validate",
-                    message: "All thoughts are already validated"
-                })
-                return
-            }
-
-            // Show progress toast
-            const toast = await showToast({
-                style: Toast.Style.Animated,
-                title: "Validating thoughts",
-                message: `Validating ${thoughtsToValidate.length} thoughts...`
-            })
-
-            // Use Promise.all to perform all validations in parallel
-            const validationPromises = thoughtsToValidate.map(thought => toggleThoughtValidation(thought))
-
-            await Promise.all(validationPromises)
-                .then(() => {
-                    toast.style = Toast.Style.Success
-                    toast.title = "All thoughts validated"
-                    toast.message = `Successfully validated ${thoughtsToValidate.length} thoughts`
-                })
-                .catch(error => {
-                    toast.style = Toast.Style.Failure
-                    toast.title = "Validation partially failed"
-                    toast.message = error instanceof Error ? error.message : String(error)
-                })
-        } catch (error) {
-            console.error("Error validating all thoughts:", error)
-            showToast({
-                style: Toast.Style.Failure,
-                title: "Error",
-                message: "Failed to validate thoughts"
-            })
-        }
-    }
-
     // Get the selected thought for raw view
     const selectedThought = filteredThoughts?.find(thought => thought.id.toString() === selectedThoughtId)
 
@@ -170,10 +125,13 @@ export default function Find() {
         return markdown.join("\n")
     }
 
-    // Add validateAllThoughts to global actions that can be passed down
-    const globalActions = {
-        validateAllThoughts
-    }
+    // Prepare global actions object to pass to list items
+    const globalActions = useMemo(
+        () => ({
+            validateAllThoughts
+        }),
+        [validateAllThoughts]
+    )
 
     if (isLargeTypeMode && selectedThought) {
         return (
