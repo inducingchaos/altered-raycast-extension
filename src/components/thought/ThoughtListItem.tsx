@@ -233,7 +233,7 @@ export function ThoughtListItem({
     // Handle mass deletion
     const handleDelete = () => {
         // If there are selected items and this one is selected, handle mass deletion
-        if (massSelectionItems.size > 0 && isMassSelected && allThoughts) {
+        if (massSelectionItems.size > 0 && allThoughts) {
             const selectedIds = Array.from(massSelectionItems)
 
             // Get the actual thought objects for all selected thoughts
@@ -256,7 +256,7 @@ export function ThoughtListItem({
     // Handle mass validation/invalidation
     const handleValidation = () => {
         // If there are selected items and this one is selected
-        if (massSelectionItems.size > 0 && isMassSelected && toggleMassThoughtValidation && allThoughts) {
+        if (massSelectionItems.size > 0 && toggleMassThoughtValidation && allThoughts) {
             // First, determine if we should validate or invalidate
             // If ANY selected thought is validated, prefer invalidation
             const selectedThoughtIds = Array.from(massSelectionItems)
