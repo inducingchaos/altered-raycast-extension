@@ -29,6 +29,7 @@ export function useAiModels() {
         headers: {
             ...getAuthHeader()
         },
+        keepPreviousData: true,
         onError: error => {
             console.error("Error fetching AI models:", error)
             showToast({
