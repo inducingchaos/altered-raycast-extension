@@ -9,7 +9,6 @@ import { useThoughts } from "./hooks/useThoughts"
 import { isThoughtValidated, getThoughtAlias, FRONTEND_HIDDEN_FIELDS } from "./utils/thought"
 import { useDatasets } from "./hooks/useDatasets"
 import { Thought } from "./types/thought"
-import { useModelPreferences } from "./hooks/useModelPreferences"
 
 export default function Find() {
     const [searchText, setSearchText] = useState("")
@@ -18,7 +17,6 @@ export default function Find() {
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
     const [filter, setFilter] = useState<string>("")
-    const { currentModel, isUpdating, setModel } = useModelPreferences()
 
     const {
         thoughts,
@@ -172,13 +170,6 @@ export default function Find() {
         return markdown.join("\n")
     }
 
-    // Pass model preferences to ThoughtListItem
-    const modelPreferencesProps = {
-        currentModel,
-        isUpdating,
-        setModel
-    }
-
     // Add validateAllThoughts to global actions that can be passed down
     const globalActions = {
         validateAllThoughts
@@ -287,7 +278,6 @@ export default function Find() {
                             return newSet
                         })
                     }
-                    modelPreferences={modelPreferencesProps}
                     globalActions={globalActions}
                 />
             ))}

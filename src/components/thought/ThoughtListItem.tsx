@@ -10,6 +10,7 @@ import {
 } from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
 import { useDatasets } from "../../hooks/useDatasets"
+import { ModelSwitcher } from "../ModelSwitcher"
 
 export function ThoughtListItem({
     thought,
@@ -30,7 +31,6 @@ export function ThoughtListItem({
     isAllMassSelected,
     allThoughts,
     resetMassSelection,
-    modelPreferences,
     globalActions
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
@@ -384,29 +384,9 @@ export function ThoughtListItem({
                             )}
                         </>
                     )}
-                    {modelPreferences && (
-                        <ActionPanel.Section title="Preferences">
-                            <ActionPanel.Submenu
-                                title="Change Alias Generation Model"
-                                icon={Icon.LightBulb}
-                                isLoading={modelPreferences.isUpdating}
-                            >
-                                <Action
-                                    title="Claude 3.7 Sonnet"
-                                    icon={
-                                        modelPreferences.currentModel === "claude-3-7-sonnet" ? Icon.CheckCircle : Icon.Circle
-                                    }
-                                    onAction={() => modelPreferences.setModel("alias-generation", "claude-3-7-sonnet")}
-                                />
-                                <Action
-                                    // eslint-disable-next-line @raycast/prefer-title-case
-                                    title="GPT-4o mini"
-                                    icon={modelPreferences.currentModel === "gpt-4o-mini" ? Icon.CheckCircle : Icon.Circle}
-                                    onAction={() => modelPreferences.setModel("alias-generation", "gpt-4o-mini")}
-                                />
-                            </ActionPanel.Submenu>
-                        </ActionPanel.Section>
-                    )}
+                    <ActionPanel.Section title="Preferences">
+                        <ModelSwitcher />
+                    </ActionPanel.Section>
                     <Action
                         title={getValidationActionTitle()}
                         icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}
