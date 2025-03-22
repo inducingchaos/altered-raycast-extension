@@ -24,6 +24,7 @@ export default function Find() {
         handleDeleteThought,
         toggleThoughtValidation,
         toggleMassThoughtValidation,
+        massThoughtDeletion,
         handleEditThought,
         validateAllThoughts
     } = useThoughts(searchText)
@@ -212,8 +213,9 @@ export default function Find() {
                     inspectorVisibility={inspectorVisibility}
                     toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
                     isSelected={selectedThoughtId === thought.id.toString()}
-                    toggleValidation={thoughtToToggle => toggleThoughtValidation(thoughtToToggle)}
-                    onDelete={() => handleDeleteThought(thought.id.toString())}
+                    toggleValidation={toggleThoughtValidation}
+                    onDelete={handleDeleteThought}
+                    massThoughtDeletion={massThoughtDeletion}
                     onEdit={handleEditThought}
                     toggleRawMode={toggleRawMode}
                     toggleLargeTypeMode={toggleLargeTypeMode}

@@ -15,6 +15,7 @@ import { FeatureModelSwitcher } from "../FeatureModelSwitcher"
 export function ThoughtListItem({
     thought,
     onDelete,
+    massThoughtDeletion,
     toggleValidation,
     toggleMassThoughtValidation,
     onEdit,
@@ -232,11 +233,16 @@ export function ThoughtListItem({
     // Handle mass deletion
     const handleDelete = () => {
         // If there are selected items and this one is selected, handle mass deletion
-        if (massSelectionItems.size > 0 && isMassSelected) {
+        if (massSelectionItems.size > 0 && isMassSelected && allThoughts) {
             const selectedIds = Array.from(massSelectionItems)
 
+            // Get the actual thought objects for all selected thoughts
+            const selectedThoughts = allThoughts.filter(t => selectedIds.includes(t.id.toString()))
+
             // Call onDelete for each selected item as a batch operation
-            Promise.all(selectedIds.map(id => onDelete(id)))
+            // Promise.all(selectedThoughts.map(t => onDelete(t)))
+
+            massThoughtDeletion(selectedThoughts)
 
             // Reset mass selection immediately after initiating deletion
             resetMassSelection()
@@ -397,7 +403,7 @@ export function ThoughtListItem({
                         title={massSelectionItems.size > 0 && isMassSelected ? "Delete Selected" : "Delete Thought"}
                         icon={Icon.Trash}
                         style={Action.Style.Destructive}
-                        shortcut={{ modifiers: ["cmd"], key: "delete" }}
+                        shortcut={{ modifiers: ["opt"], key: "x" }}
                         onAction={handleDelete}
                     />
                 </ActionPanel>

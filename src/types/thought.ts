@@ -22,6 +22,7 @@ export type ThoughtFormFields = {
 export type ThoughtListItemProps = {
     thought: Thought
     onDelete: (id: string) => Promise<void>
+    massThoughtDeletion: (thoughts: Thought[]) => Promise<void>
     toggleValidation: (thought: Thought) => Promise<void>
     toggleMassThoughtValidation?: (thoughts: Thought[], targetValidationState: string) => Promise<void>
     onEdit: (thought: Thought, updatedFields: ThoughtFormFields) => Promise<void>

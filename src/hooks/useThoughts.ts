@@ -49,6 +49,50 @@ export const useThoughts = (searchText: string) => {
         setIsOptimistic(false)
     }
 
+    const massThoughtDeletion = async (thoughts: Thought[]) => {
+        if (!thoughts.length) return
+
+        setIsOptimistic(true)
+        const thoughtIds = thoughts.map(t => t.id.toString())
+
+        try {
+            const bulkDeletePromise = Promise.all(
+                thoughts.map(thought =>
+                    fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+                        }
+                    })
+                )
+            )
+
+            const responses = await mutate(bulkDeletePromise, {
+                optimisticUpdate(data) {
+                    const thoughts = data as Thought[]
+                    return thoughts.filter(t => !thoughtIds.includes(t.id.toString()))
+                }
+            })
+
+            const failedResponses = responses.filter((response: Response) => !response.ok)
+            if (failedResponses.length > 0) {
+                throw new Error(`${failedResponses.length} deletion updates failed`)
+            }
+        } catch (error) {
+            console.error("Error in mass deletion:", error)
+
+            showToast({
+                style: Toast.Style.Failure,
+                title: "Failed to delete thoughts",
+                message: error instanceof Error ? error.message : String(error)
+            })
+
+            mutate()
+        }
+
+        setIsOptimistic(false)
+    }
+
     const toggleThoughtValidation = async (thought: Thought) => {
         setIsOptimistic(true)
         // Convert any input to string for consistent checking
@@ -317,6 +361,7 @@ export const useThoughts = (searchText: string) => {
         toggleThoughtValidation,
         toggleMassThoughtValidation,
         handleEditThought,
-        validateAllThoughts
+        validateAllThoughts,
+        massThoughtDeletion
     }
 }
