@@ -76,6 +76,13 @@
             "mode": "view"
         },
         {
+            "name": "warp",
+            "title": "Warp Clipboard",
+            "subtitle": "ALTERED Warp",
+            "description": "Quickly capture clipboard content as a thought without any UI.",
+            "mode": "no-view"
+        },
+        {
             "name": "experimental",
             "title": "Experimental",
             "subtitle": "ALTERED Developer",

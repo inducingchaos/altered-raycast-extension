@@ -13,7 +13,7 @@ export const useThoughts = (searchText: string) => {
         isLoading,
         mutate,
         data: thoughts
-    } = useFetch<Thought[]>(`https://altered.app/api/thoughts?${new URLSearchParams({ search: searchText })}`, {
+    } = useFetch<Thought[]>(`http://localhost:5873/api/thoughts?${new URLSearchParams({ search: searchText })}`, {
         headers: {
             Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
         },
@@ -25,7 +25,7 @@ export const useThoughts = (searchText: string) => {
         const toast = await showToast({ style: Toast.Style.Animated, title: "Deleting thought..." })
 
         try {
-            const deleteRequest = fetch(`https://altered.app/api/thoughts/${thoughtId}`, {
+            const deleteRequest = fetch(`http://localhost:5873/api/thoughts/${thoughtId}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
