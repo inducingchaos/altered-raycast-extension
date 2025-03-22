@@ -102,11 +102,9 @@ export function ThoughtListItem({
 
         // Always show important fields in consistent order
         for (const field of ALWAYS_VISIBLE_METADATA) {
+            // Skip content as we will display it as markdown in the detail view
             if (field === "content") {
-                metadataItems.push(
-                    <List.Item.Detail.Metadata.Label key="content" title="Content" text={thought.content} />,
-                    <List.Item.Detail.Metadata.Separator key="content-sep" />
-                )
+                continue
             } else if (field === "alias") {
                 metadataItems.push(
                     <List.Item.Detail.Metadata.Label key="alias" title="Alias" text={alias} />,
@@ -181,7 +179,7 @@ export function ThoughtListItem({
     const generateMarkdown = (): string => {
         const markdown = []
 
-        // Content first
+        // Content first - raw mode shows everything including content
         markdown.push(`# Content`)
         markdown.push(thought.content)
         markdown.push("")
@@ -204,22 +202,6 @@ export function ThoughtListItem({
         markdown.push("")
         markdown.push("\n")
         markdown.push("")
-
-        // // Content first
-        // markdown.push(`**${"`"}Content${"`"}**  ${thought.content}`)
-        // markdown.push("")
-        // markdown.push("---")
-        // markdown.push(`**${"`"}Alias${"`"}**  ${alias}`)
-        // markdown.push("")
-        // markdown.push("---")
-        // markdown.push(`**${"`"}Created${"`"}**  ${formatDate(new Date(thought.createdAt))}`)
-        // markdown.push("")
-        // markdown.push("---")
-        // markdown.push(`**${"`"}Updated${"`"}**  ${formatDate(new Date(thought.updatedAt))}`)
-        // markdown.push("")
-        // markdown.push("---")
-        // markdown.push(`**${"`"}Validated${"`"}**  ${isValidated ? "Yes" : "No"}`)
-        // markdown.push("")
 
         if (thought.datasets && thought.datasets.length > 0) {
             const datasetNames = thought.datasets.map(datasetId => datasetMap[datasetId] || datasetId).join(", ")
@@ -331,6 +313,7 @@ export function ThoughtListItem({
                     <List.Item.Detail markdown={generateMarkdown()} />
                 ) : (
                     <List.Item.Detail
+                        markdown={thought.content}
                         metadata={<List.Item.Detail.Metadata>{renderMetadataFields()}</List.Item.Detail.Metadata>}
                     />
                 )

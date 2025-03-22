@@ -50,4 +50,5 @@ export const TEMP_PREFIXED_FIELDS = ["alias", "validated", "datasets"]
 export const FRONTEND_HIDDEN_FIELDS = ["id", "userId", "createdAt", "updatedAt", "attachmentId"]
 
 // Metadata fields that should always be visible in the detail view
+// Note: 'content' is kept for reference, but will be rendered as markdown and excluded from metadata
 export const ALWAYS_VISIBLE_METADATA = ["content", "alias", "datasets", "validated"]
