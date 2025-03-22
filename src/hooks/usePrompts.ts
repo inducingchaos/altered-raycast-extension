@@ -14,7 +14,7 @@ const getAuthHeader = () => {
 }
 
 export function usePrompts() {
-    console.log("usePrompts hook initialized/rendered")
+    // console.log("usePrompts hook initialized/rendered")
     const [updatingPromptIds, setUpdatingPromptIds] = useState<Set<string>>(new Set())
 
     // Use useFetch for better caching behavior
@@ -39,10 +39,10 @@ export function usePrompts() {
 
     // Add debug logging for prompts data
     useEffect(() => {
-        console.log("Prompts data updated:", {
-            count: prompts?.length || 0,
-            isLoading
-        })
+        // console.log("Prompts data updated:", {
+        //     count: prompts?.length || 0,
+        //     isLoading
+        // })
     }, [prompts, isLoading])
 
     // Check if a specific prompt is currently being updated
@@ -56,7 +56,7 @@ export function usePrompts() {
     // Update all prompts in batch, with optimistic updates to prevent UI flicker
     const updatePrompts = useCallback(
         async (updatedPrompts: { id: string; content: string; name?: string }[]) => {
-            console.log("updatePrompts called with prompts:", updatedPrompts.length)
+            // console.log("updatePrompts called with prompts:", updatedPrompts.length)
 
             if (updatedPrompts.length === 0) return
 
@@ -79,11 +79,11 @@ export function usePrompts() {
                     (async () => {
                         try {
                             // Create an array of update promises
-                            console.log("Creating update promises")
+                            // console.log("Creating update promises")
                             const updatePromises = updatedPrompts.map(async ({ id, content, name }) => {
                                 try {
                                     const updatedPrompt = await updatePrompt(id, content, name)
-                                    console.log(`Prompt ${id} updated successfully`)
+                                    // console.log(`Prompt ${id} updated successfully`)
                                     return updatedPrompt
                                 } catch (err) {
                                     console.error(`Error updating prompt ${id}:`, err)
@@ -99,9 +99,9 @@ export function usePrompts() {
                             })
 
                             // Execute all updates in parallel
-                            console.log("Executing updates in parallel")
+                            // console.log("Executing updates in parallel")
                             const updatedPromptsResult = await Promise.all(updatePromises)
-                            console.log("All updates completed successfully")
+                            // console.log("All updates completed successfully")
 
                             // Merge updated prompts with existing ones
                             const result = prompts.map(prompt => {

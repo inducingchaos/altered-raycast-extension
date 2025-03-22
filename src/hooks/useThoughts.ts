@@ -199,7 +199,7 @@ export const useThoughts = (searchText: string) => {
                 }
             })
 
-            console.log("API Fields being sent:", apiFields)
+            // console.log("API Fields being sent:", apiFields)
 
             const fetchRequest = fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
                 method: "PATCH",

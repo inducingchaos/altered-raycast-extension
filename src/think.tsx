@@ -10,8 +10,6 @@ const preferences = getPreferenceValues<{ "api-key": string }>()
 function GeneratedContentView({ prompt, isLoading, content }: { prompt: string; isLoading: boolean; content: string }) {
     const { pop } = useNavigation()
 
-    console.log(prompt)
-
     return (
         <Detail
             navigationTitle={`Generated: ${prompt.slice(0, 30)}${prompt.length > 30 ? "..." : ""}`}
@@ -46,7 +44,7 @@ export default function Command() {
     const { push } = useNavigation()
 
     useEffect(() => {
-        console.log(searchText)
+        // console.log(searchText)
     }, [searchText])
 
     const handleGenerate = async () => {

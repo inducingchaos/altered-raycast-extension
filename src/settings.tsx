@@ -5,13 +5,13 @@ import { useAiFeatures } from "./hooks/useAiFeatures"
 import { useAiModels, AiModel } from "./hooks/useAiModels"
 
 export default function Settings() {
-    console.log("Settings component rendering")
+    // console.log("Settings component rendering")
 
     const { pop } = useNavigation()
 
     // Get prompts data
     const { prompts, isLoading: isLoadingPrompts, updatePrompts } = usePrompts()
-    console.log("From hook - prompts:", prompts.length, "isLoading:", isLoadingPrompts)
+    // console.log("From hook - prompts:", prompts.length, "isLoading:", isLoadingPrompts)
 
     // Get AI features and models
     const { features, isUpdatingFeature, updateFeatureModel } = useAiFeatures()
@@ -25,12 +25,12 @@ export default function Settings() {
 
     // Add debug logging
     useEffect(() => {
-        console.log("Debug rendering state:", {
-            promptsLength: prompts.length,
-            isLoadingPrompts,
-            featuresLength: features.length,
-            editedValuesCount: Object.keys(editedPromptValues).length
-        })
+        // console.log("Debug rendering state:", {
+        //     promptsLength: prompts.length,
+        //     isLoadingPrompts,
+        //     featuresLength: features.length,
+        //     editedValuesCount: Object.keys(editedPromptValues).length
+        // })
     }, [prompts, isLoadingPrompts, features, editedPromptValues])
 
     // Handle form value changes - only store values that are different from the original
@@ -79,7 +79,7 @@ export default function Settings() {
 
     // Handle form submission
     const handleSubmit = async (formValues: { [key: string]: string }) => {
-        console.log("Form submitted!", formValues)
+        // console.log("Form submitted!", formValues)
 
         const toastId = await showToast({
             style: Toast.Style.Animated,
@@ -114,9 +114,9 @@ export default function Settings() {
                     currentlyUsingDefault !== wantToUseDefault
 
                 if (needsUpdate) {
-                    console.log(
-                        `Will update feature ${feature.name} (${feature.id}): Current=${feature.model.id} (isDefault=${currentlyUsingDefault}), New=${newModelIdValue}`
-                    )
+                    // console.log(
+                    //     `Will update feature ${feature.name} (${feature.id}): Current=${feature.model.id} (isDefault=${currentlyUsingDefault}), New=${newModelIdValue}`
+                    // )
                     try {
                         await updateFeatureModel(feature.id, modelToSet)
                         modelUpdateCount++
@@ -136,7 +136,7 @@ export default function Settings() {
                     name: prompt.name
                 }))
 
-            console.log("Prompts to update:", updatedPrompts.length)
+            // console.log("Prompts to update:", updatedPrompts.length)
 
             if (updatedPrompts.length > 0) {
                 await updatePrompts(updatedPrompts)

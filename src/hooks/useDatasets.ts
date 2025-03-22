@@ -22,7 +22,7 @@ export const useDatasets = (searchText?: string) => {
         const toast = await showToast({ style: Toast.Style.Animated, title: "Creating dataset..." })
 
         try {
-            console.log("Creating dataset with title:", title)
+            // console.log("Creating dataset with title:", title)
 
             const response = await fetch(`${DEV_BASE_URL}/api/datasets`, {
                 method: "POST",

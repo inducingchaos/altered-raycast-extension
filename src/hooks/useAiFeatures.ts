@@ -71,7 +71,7 @@ export function useAiFeatures() {
             return
         }
 
-        console.log(`Updating feature ${featureName} model to ${modelId === null ? "system default" : modelId}`)
+        // console.log(`Updating feature ${featureName} model to ${modelId === null ? "system default" : modelId}`)
 
         const toast = await showToast({
             style: Toast.Style.Animated,
@@ -84,8 +84,8 @@ export function useAiFeatures() {
             await revalidateFeatures(
                 // Create and execute the fetch
                 (async () => {
-                    console.log(`Making API request to ${DEV_BASE_URL}/api/ai/features/${featureId}`)
-                    console.log(`Request body:`, JSON.stringify({ modelId }))
+                    // console.log(`Making API request to ${DEV_BASE_URL}/api/ai/features/${featureId}`)
+                    // console.log(`Request body:`, JSON.stringify({ modelId }))
 
                     const response = await fetch(`${DEV_BASE_URL}/api/ai/features/${featureId}`, {
                         method: "PATCH",
@@ -97,7 +97,7 @@ export function useAiFeatures() {
                     })
 
                     // Log response details
-                    console.log(`Response status: ${response.status} ${response.statusText}`)
+                    // console.log(`Response status: ${response.status} ${response.statusText}`)
 
                     // Check if response is OK, if not throw an error
                     if (!response.ok) {
@@ -108,7 +108,7 @@ export function useAiFeatures() {
 
                     // Parse and return the response
                     const data = await response.json()
-                    console.log(`Response data:`, data)
+                    // console.log(`Response data:`, data)
                     return data
                 })(),
                 {

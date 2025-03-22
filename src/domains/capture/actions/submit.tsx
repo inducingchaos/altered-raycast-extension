@@ -15,20 +15,30 @@ export function SubmitActions(): JSX.Element {
     return (
         <ActionPanel.Section title="Submit">
             <Action title="Create" icon={Icon.PlusCircle} onAction={() => onCreateAction({ columns, state })} />
-            <Action title="Create & Validate" icon={Icon.CheckCircle} onAction={() => console.log("Create & Validate")} />
+            <Action
+                title="Create & Validate"
+                icon={Icon.CheckCircle}
+                onAction={() => {
+                    /* console.log("Create & Validate") */
+                }}
+            />
 
             <Action
                 title="Create & Repeat"
                 autoFocus
                 icon={Icon.Replace}
                 shortcut={{ modifiers: ["shift"], key: "enter" }}
-                onAction={() => console.log("Create & Repeat")}
+                onAction={() => {
+                    /* console.log("Create & Repeat") */
+                }}
             />
             <Action
                 title="Create, Validate & Repeat"
                 icon={Icon.BulletPoints}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "enter" }}
-                onAction={() => console.log("Create, Validate & Repeat")}
+                onAction={() => {
+                    /* console.log("Create, Validate & Repeat") */
+                }}
             />
         </ActionPanel.Section>
     )
@@ -56,11 +66,11 @@ export async function onCreateAction({
         return
     }
 
-    console.log("Create")
+    // console.log("Create")
 
     const data = Object.fromEntries(columns.map(column => [column.id, state.store.value.get(column.id)?.value]))
 
-    console.log(data)
+    // console.log(data)
 
     await closeMainWindow()
 
@@ -84,7 +94,7 @@ export async function onCreateAction({
         toast.style = Toast.Style.Failure
         toast.title = "Error Uploading Thought"
 
-        console.error(response)
+        // console.error(response)
 
         return
     }

@@ -89,12 +89,12 @@ export const rangeConstraint = createDataConstraint({
     select: ({ value, params, direction }) => {
         const safeNumber = parseNumberValue(value)
 
-        console.log(
-            "isValidNumber(params.min)",
-            isValidNumber(params.min),
-            "isValidNumber(params.max)",
-            isValidNumber(params.max)
-        )
+        // console.log(
+        //     "isValidNumber(params.min)",
+        //     isValidNumber(params.min),
+        //     "isValidNumber(params.max)",
+        //     isValidNumber(params.max)
+        // )
 
         const result = traverse({
             value: safeNumber,
@@ -110,7 +110,7 @@ export const rangeConstraint = createDataConstraint({
             direction
         })
 
-        console.log("result", result)
+        // console.log("result", result)
 
         return result.toString()
     },
