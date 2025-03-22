@@ -6,6 +6,7 @@ const DEV_BASE_URL = "http://localhost:5873"
 
 export interface AiFeature {
     id: string
+    name: string
     description: string
     model: {
         id: string
@@ -50,16 +51,23 @@ export function useAiFeatures() {
             return newSet
         })
 
-        console.log(`Updating feature ${featureId} model to ${modelId === null ? "system default" : modelId}`)
+        // Get the feature to access its name
+        const feature = features.find(f => f.id === featureId)
+        const featureName = feature?.name || featureId
+
+        console.log(`Updating feature ${featureName} model to ${modelId === null ? "system default" : modelId}`)
 
         const toast = await showToast({
             style: Toast.Style.Animated,
             title: "Updating feature model",
-            message: `Setting ${featureId} model to ${modelId === null ? "system default" : modelId}...`
+            message: `Setting ${featureName} model to ${modelId === null ? "system default" : modelId}...`
         })
 
         try {
             // Make the API request
+            console.log(`Making API request to ${DEV_BASE_URL}/api/ai/features/${featureId}`)
+            console.log(`Request body:`, JSON.stringify({ modelId }))
+
             const response = await fetch(`${DEV_BASE_URL}/api/ai/features/${featureId}`, {
                 method: "PATCH",
                 headers: {
@@ -69,10 +77,30 @@ export function useAiFeatures() {
                 body: JSON.stringify({ modelId })
             })
 
+            // Log response details
+            console.log(`Response status: ${response.status} ${response.statusText}`)
+
             // Check for errors
             if (!response.ok) {
                 const errorText = await response.text().catch(() => "Unknown error")
+                console.error(`Response error body: ${errorText}`)
                 throw new Error(`API error: ${response.status} ${response.statusText} - ${errorText}`)
+            }
+
+            // Try to parse response
+            try {
+                const responseData = await response.json()
+                console.log(`Response data:`, responseData)
+
+                // Update the features array with the new data to reflect changes immediately
+                // without waiting for revalidation
+                features.forEach((feat, index) => {
+                    if (feat.id === featureId) {
+                        features[index] = responseData
+                    }
+                })
+            } catch (e) {
+                console.log(`Couldn't parse response JSON:`, e)
             }
 
             // Update was successful
@@ -80,9 +108,9 @@ export function useAiFeatures() {
 
             toast.style = Toast.Style.Success
             toast.title = "Model updated"
-            toast.message = `Successfully updated model for ${featureId}`
+            toast.message = `Successfully updated model for ${featureName}`
         } catch (error) {
-            console.error(`Error updating model for feature ${featureId}:`, error)
+            console.error(`Error updating model for feature ${featureName}:`, error)
 
             toast.style = Toast.Style.Failure
             toast.title = "Failed to update model"

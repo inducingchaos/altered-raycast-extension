@@ -74,16 +74,29 @@ export default function Settings() {
 
         // Handle model preference updates
         const modelUpdatePromises = features.map(async feature => {
-            const newModelId = values[`model_${feature.id}`]
+            const newModelIdValue = values[`model_${feature.id}`]
             // null means reset to default
-            const modelToSet = newModelId === "default" ? null : newModelId
+            const modelToSet = newModelIdValue === "default" ? null : newModelIdValue
 
-            // Only update if changed
-            if (feature.model.id !== newModelId && !(feature.model.isDefault && newModelId === "default")) {
+            // Check if we're switching between default and non-default
+            const currentlyUsingDefault = feature.model.isDefault
+            const wantToUseDefault = newModelIdValue === "default"
+
+            // Update if:
+            // 1. The selected model ID is different from the current one
+            // 2. OR we're switching between default and non-default mode
+            const needsUpdate =
+                (feature.model.id !== newModelIdValue && !(feature.model.isDefault && newModelIdValue === "default")) ||
+                currentlyUsingDefault !== wantToUseDefault
+
+            if (needsUpdate) {
+                console.log(
+                    `Will update feature ${feature.name} (${feature.id}): Current=${feature.model.id} (isDefault=${currentlyUsingDefault}), New=${newModelIdValue}`
+                )
                 try {
                     await updateFeatureModel(feature.id, modelToSet)
                 } catch (error) {
-                    console.error(`Failed to update model for ${feature.id}:`, error)
+                    console.error(`Failed to update model for ${feature.name}:`, error)
                     // Error toast is already shown in the hook
                 }
             }
@@ -161,9 +174,10 @@ export default function Settings() {
                     <Form.Dropdown
                         key={feature.id}
                         id={`model_${feature.id}`}
-                        title={feature.description}
+                        title={feature.name}
                         defaultValue={feature.model.isDefault ? "default" : feature.model.id}
                         isLoading={isUpdating}
+                        info={feature.description}
                     >
                         <Form.Dropdown.Item
                             key="default"
