@@ -29,7 +29,9 @@ export function ThoughtListItem({
     handleMassSelectAll,
     isAllMassSelected,
     allThoughts,
-    resetMassSelection
+    resetMassSelection,
+    modelPreferences,
+    globalActions
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -332,6 +334,14 @@ export function ThoughtListItem({
                         content={thought.content}
                         shortcut={{ modifiers: ["cmd"], key: "." }}
                     />
+                    {globalActions && (
+                        <Action
+                            title="Validate All Visible Thoughts"
+                            icon={Icon.CheckCircle}
+                            shortcut={{ modifiers: ["cmd"], key: "v" }}
+                            onAction={globalActions.validateAllThoughts}
+                        />
+                    )}
                     <Action
                         title={`${inspectorVisibility === "visible" ? "Hide" : "Show"} Inspector`}
                         icon={inspectorVisibility === "visible" ? Icon.EyeDisabled : Icon.Eye}
@@ -373,6 +383,29 @@ export function ThoughtListItem({
                                 />
                             )}
                         </>
+                    )}
+                    {modelPreferences && (
+                        <ActionPanel.Section title="Preferences">
+                            <ActionPanel.Submenu
+                                title="Change Alias Generation Model"
+                                icon={Icon.LightBulb}
+                                isLoading={modelPreferences.isUpdating}
+                            >
+                                <Action
+                                    title="Claude 3.7 Sonnet"
+                                    icon={
+                                        modelPreferences.currentModel === "claude-3-7-sonnet" ? Icon.CheckCircle : Icon.Circle
+                                    }
+                                    onAction={() => modelPreferences.setModel("alias-generation", "claude-3-7-sonnet")}
+                                />
+                                <Action
+                                    // eslint-disable-next-line @raycast/prefer-title-case
+                                    title="GPT-4o mini"
+                                    icon={modelPreferences.currentModel === "gpt-4o-mini" ? Icon.CheckCircle : Icon.Circle}
+                                    onAction={() => modelPreferences.setModel("alias-generation", "gpt-4o-mini")}
+                                />
+                            </ActionPanel.Submenu>
+                        </ActionPanel.Section>
                     )}
                     <Action
                         title={getValidationActionTitle()}

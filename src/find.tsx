@@ -9,6 +9,7 @@ import { useThoughts } from "./hooks/useThoughts"
 import { isThoughtValidated, getThoughtAlias, FRONTEND_HIDDEN_FIELDS } from "./utils/thought"
 import { useDatasets } from "./hooks/useDatasets"
 import { Thought } from "./types/thought"
+import { useModelPreferences } from "./hooks/useModelPreferences"
 
 export default function Find() {
     const [searchText, setSearchText] = useState("")
@@ -17,6 +18,7 @@ export default function Find() {
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
     const [filter, setFilter] = useState<string>("")
+    const { currentModel, isUpdating, setModel } = useModelPreferences()
 
     const {
         thoughts,
@@ -170,6 +172,18 @@ export default function Find() {
         return markdown.join("\n")
     }
 
+    // Pass model preferences to ThoughtListItem
+    const modelPreferencesProps = {
+        currentModel,
+        isUpdating,
+        setModel
+    }
+
+    // Add validateAllThoughts to global actions that can be passed down
+    const globalActions = {
+        validateAllThoughts
+    }
+
     if (isLargeTypeMode && selectedThought) {
         return (
             <Detail
@@ -241,29 +255,6 @@ export default function Find() {
                     )}
                 </List.Dropdown>
             }
-            actions={
-                <ActionPanel>
-                    <Action
-                        title="Validate All Visible Thoughts"
-                        shortcut={{ modifiers: ["cmd"], key: "v" }}
-                        onAction={validateAllThoughts}
-                    />
-                    {selectedThoughtId && (
-                        <>
-                            <Action
-                                title={isRawMode ? "Switch to Metadata View" : "Switch to Raw View"}
-                                shortcut={{ modifiers: ["opt"], key: "r" }}
-                                onAction={toggleRawMode}
-                            />
-                            <Action
-                                title="Large Type Mode"
-                                shortcut={{ modifiers: ["opt"], key: "l" }}
-                                onAction={toggleLargeTypeMode}
-                            />
-                        </>
-                    )}
-                </ActionPanel>
-            }
         >
             {filteredThoughts?.map(thought => (
                 <ThoughtListItem
@@ -296,6 +287,8 @@ export default function Find() {
                             return newSet
                         })
                     }
+                    modelPreferences={modelPreferencesProps}
+                    globalActions={globalActions}
                 />
             ))}
         </List>

@@ -135,3 +135,26 @@ export const updatePrompt = async (promptId: string, content: string, name?: str
         allowedVariables: data.allowedVariables || []
     }
 }
+
+// Update a model preference on the server
+export const updateModelPreference = async (modelType: string, modelId: string): Promise<{ success: boolean }> => {
+    console.log(`updateModelPreference: Setting ${modelType} to ${modelId}`)
+
+    const response = await fetch(`${DEV_BASE_URL}/api/preferences/models/${modelType}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeader()
+        },
+        body: JSON.stringify({ modelId })
+    })
+
+    console.log("updateModelPreference: Response status:", response.status)
+
+    if (!response.ok) {
+        console.error("updateModelPreference: API error:", response.statusText)
+        throw new Error(`Failed to update model preference: ${response.statusText}`)
+    }
+
+    return { success: true }
+}
