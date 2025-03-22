@@ -32,6 +32,13 @@
             "mode": "view"
         },
         {
+            "name": "preview-endpoint",
+            "title": "Preview Endpoint",
+            "subtitle": "ALTERED Developer",
+            "description": "Preview API endpoints responses with formatted output.",
+            "mode": "view"
+        },
+        {
             "name": "think",
             "title": "Think about Something",
             "subtitle": "ALTERED Think",
