@@ -9,7 +9,6 @@ import {
     isThoughtValidated
 } from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
-import { useDatasets } from "../../hooks/useDatasets"
 import { FeatureModelSwitcher } from "../FeatureModelSwitcher"
 
 export function ThoughtListItem({
@@ -32,11 +31,13 @@ export function ThoughtListItem({
     isAllMassSelected,
     allThoughts,
     resetMassSelection,
-    globalActions
+    globalActions,
+    createDataset,
+    datasets,
+    isLoadingDatasets
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
-    const { datasets } = useDatasets()
 
     // Create a lookup map for dataset titles
     const datasetMap =
@@ -360,7 +361,15 @@ export function ThoughtListItem({
                         title="Edit Thought"
                         icon={Icon.Pencil}
                         shortcut={{ modifiers: ["opt"], key: "e" }}
-                        target={<ThoughtForm thought={thought} onSubmit={fields => onEdit(thought, fields)} />}
+                        target={
+                            <ThoughtForm
+                                thought={thought}
+                                onSubmit={fields => onEdit(thought, fields)}
+                                createDataset={createDataset}
+                                datasets={datasets}
+                                isLoadingDatasets={isLoadingDatasets}
+                            />
+                        }
                     />
 
                     <Action

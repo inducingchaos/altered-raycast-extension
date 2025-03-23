@@ -1,17 +1,14 @@
-import { Action, ActionPanel, Form, Icon, showToast, Toast } from "@raycast/api"
-import { useNavigation } from "@raycast/api"
+import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api"
 import { useState } from "react"
 import { ThoughtFormFields, ThoughtFormProps } from "../../types/thought"
-import { ALWAYS_VISIBLE_METADATA, FRONTEND_HIDDEN_FIELDS, formatDate, getThoughtAlias } from "../../utils/thought"
-import { useDatasets } from "../../hooks/useDatasets"
+import { ALWAYS_VISIBLE_METADATA, formatDate, FRONTEND_HIDDEN_FIELDS, getThoughtAlias } from "../../utils/thought"
 import { DatasetForm } from "../dataset/DatasetForm"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
-export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
+export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoadingDatasets }: ThoughtFormProps) {
     const { pop } = useNavigation()
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const { datasets, isLoading: isDatasetsLoading, createDataset } = useDatasets()
 
     // Initialize form values
     const [content, setContent] = useState(thought.content)
@@ -115,7 +112,7 @@ export function ThoughtForm({ thought, onSubmit }: ThoughtFormProps) {
 
     return (
         <Form
-            isLoading={isSubmitting || isDatasetsLoading}
+            isLoading={isSubmitting || isLoadingDatasets}
             actions={
                 <ActionPanel>
                     <Action.SubmitForm title="Save Changes" onSubmit={() => handleSubmit(false)} />

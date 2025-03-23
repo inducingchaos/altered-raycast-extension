@@ -28,7 +28,7 @@ export default function Find() {
         handleEditThought,
         validateAllThoughts
     } = useThoughts(searchText)
-    const { datasets, isLoading: isLoadingDatasets } = useDatasets()
+    const { datasets, isLoading: isLoadingDatasets, createDataset } = useDatasets()
 
     const onSelectionChange = (id: string | null) => {
         setSelectedThoughtId(id)
@@ -263,6 +263,9 @@ export default function Find() {
                         })
                     }
                     globalActions={globalActions}
+                    createDataset={createDataset}
+                    datasets={datasets}
+                    isLoadingDatasets={isLoadingDatasets}
                 />
             ))}
         </List>

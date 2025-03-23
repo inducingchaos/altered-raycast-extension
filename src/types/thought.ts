@@ -1,3 +1,5 @@
+import { Dataset } from "./dataset"
+
 export type Thought = {
     id: string
     userId: string
@@ -42,9 +44,15 @@ export type ThoughtListItemProps = {
     globalActions?: {
         validateAllThoughts: () => Promise<void>
     }
+    createDataset: (title: string) => Promise<void>
+    datasets?: Dataset[]
+    isLoadingDatasets: boolean
 }
 
 export type ThoughtFormProps = {
     thought: Thought
     onSubmit: (fields: ThoughtFormFields) => Promise<void>
+    createDataset: (title: string) => Promise<void>
+    datasets?: Dataset[]
+    isLoadingDatasets: boolean
 }
