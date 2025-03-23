@@ -1,5 +1,5 @@
-import { Clipboard, showToast, Toast, closeMainWindow, getPreferenceValues } from "@raycast/api"
-import { runAppleScript } from "@raycast/utils"
+import { Clipboard, showToast, Toast, closeMainWindow, getPreferenceValues, open } from "@raycast/api"
+import { createDeeplink, runAppleScript } from "@raycast/utils"
 
 // Use localhost for development/testing
 const DEV_BASE_URL = "http://localhost:5873"
@@ -7,6 +7,9 @@ const DEV_BASE_URL = "http://localhost:5873"
 export default async function Command() {
     try {
         // First try to cut selected text using AppleScript
+        // also copy first in case not cuttable
+        // figure out a way to copy first in case not cuttable
+
         await runAppleScript(`
           tell application "System Events"
             keystroke "x" using {command down}
@@ -79,6 +82,29 @@ export default async function Command() {
         toast.style = Toast.Style.Success
         toast.title = `Created Thought: "${text.length > 8 ? text.substring(0, 5) : text}${text.length > 8 ? "..." : ""}${text.length > 8 ? text.substring(text.length - 5) : ""}"`
         toast.message = `This is a message."`
+        toast.primaryAction = {
+            title: "Open in Raycast",
+            onAction: () => {
+                console.log("Open in Raycast")
+
+                const deeplink = createDeeplink({
+                    // Replace with your extension's owner/author name
+                    ownerOrAuthorName: "inducingchaos",
+                    extensionName: "altered",
+                    command: "find",
+                    context: {
+                        thoughtId: "test"
+                    }
+                })
+
+                open(deeplink)
+            },
+            shortcut: {
+                // FIGURE OUT A MODIFIER FOR THIS
+                modifiers: ["cmd", "shift", "opt", "ctrl"],
+                key: "arrowDown"
+            }
+        }
 
         // await a .5s delay
         await new Promise(resolve => setTimeout(resolve, 500))
