@@ -3,7 +3,7 @@ import { DateTime } from "luxon"
 
 export const getThoughtAlias = (thought: Thought): string => {
     const alias = thought["alias"]
-    return typeof alias === "string" && alias.trim() !== "" ? alias : `Thought ${thought.id}`
+    return typeof alias === "string" && alias.trim() !== "" ? alias : ``
 }
 
 export const isThoughtValidated = (thought: Thought): boolean => {

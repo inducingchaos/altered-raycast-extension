@@ -52,13 +52,15 @@ export function ThoughtListItem({
     let title: string
     let subtitle: string | undefined
 
+    const noAlias = alias === ""
+
     if (inspectorVisibility === "visible") {
         if (isSelected) {
-            title = alias
+            title = noAlias ? formatSubtitle(thought) : alias
             subtitle = undefined
         } else {
             title = ""
-            subtitle = alias
+            subtitle = noAlias ? formatSubtitle(thought) : alias
         }
     } else {
         title = alias

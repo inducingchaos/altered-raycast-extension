@@ -81,7 +81,7 @@ export async function onCreateAction({
 
     const { "api-key": apiKey } = getPreferenceValues<Preferences>()
 
-    const response = await fetch("https://altered.app/api/thoughts/create", {
+    const response = await fetch("http://localhost:5873/api/thoughts/create", {
         method: "POST",
         body: JSON.stringify([data]),
         headers: {

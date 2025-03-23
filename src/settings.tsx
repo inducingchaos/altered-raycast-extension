@@ -1,8 +1,9 @@
 import { Action, ActionPanel, Form, Icon, Toast, showToast, useNavigation } from "@raycast/api"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { usePrompts } from "./hooks/usePrompts"
 import { useAiFeatures } from "./hooks/useAiFeatures"
 import { useAiModels, AiModel } from "./hooks/useAiModels"
+import { useToolsPreferences } from "./hooks/useToolsPreferences"
 
 export default function Settings() {
     // console.log("Settings component rendering")
@@ -17,21 +18,14 @@ export default function Settings() {
     const { features, isUpdatingFeature, updateFeatureModel } = useAiFeatures()
     const { models } = useAiModels()
 
+    // Get tools preferences
+    const { preferences: toolsPreferences, updateToolsPreferences } = useToolsPreferences()
+
     // Use form key to force re-render when needed
     const [formKey, setFormKey] = useState(0)
 
     // Store only edited values to prevent flickering
     const [editedPromptValues, setEditedPromptValues] = useState<Record<string, string>>({})
-
-    // Add debug logging
-    useEffect(() => {
-        // console.log("Debug rendering state:", {
-        //     promptsLength: prompts.length,
-        //     isLoadingPrompts,
-        //     featuresLength: features.length,
-        //     editedValuesCount: Object.keys(editedPromptValues).length
-        // })
-    }, [prompts, isLoadingPrompts, features, editedPromptValues])
 
     // Handle form value changes - only store values that are different from the original
     const handlePromptValueChange = (id: string, value: string) => {
@@ -78,7 +72,7 @@ export default function Settings() {
     }, [models])
 
     // Handle form submission
-    const handleSubmit = async (formValues: { [key: string]: string }) => {
+    const handleSubmit = async (formValues: { [key: string]: string | boolean }) => {
         // console.log("Form submitted!", formValues)
 
         const toastId = await showToast({
@@ -90,6 +84,7 @@ export default function Settings() {
             // Track success counts for user feedback
             let modelUpdateCount = 0
             let promptUpdateCount = 0
+            let toolsUpdateCount = 0
 
             // Process model changes
             for (const feature of features) {
@@ -118,7 +113,7 @@ export default function Settings() {
                     //     `Will update feature ${feature.name} (${feature.id}): Current=${feature.model.id} (isDefault=${currentlyUsingDefault}), New=${newModelIdValue}`
                     // )
                     try {
-                        await updateFeatureModel(feature.id, modelToSet)
+                        await updateFeatureModel(feature.id, modelToSet as string)
                         modelUpdateCount++
                     } catch (error) {
                         console.error(`Failed to update model for ${feature.name}:`, error)
@@ -143,8 +138,15 @@ export default function Settings() {
                 promptUpdateCount = updatedPrompts.length
             }
 
+            // Handle tools preferences updates - only if changed
+            const autoGenerateAliases = formValues.autoGenerateAliases
+            if (autoGenerateAliases !== toolsPreferences.autoGenerateAliases) {
+                await updateToolsPreferences({ autoGenerateAliases: autoGenerateAliases as boolean })
+                toolsUpdateCount = 1
+            }
+
             // Success toast with summary
-            const totalUpdates = modelUpdateCount + promptUpdateCount
+            const totalUpdates = modelUpdateCount + promptUpdateCount + toolsUpdateCount
             if (totalUpdates > 0) {
                 toastId.style = Toast.Style.Success
                 toastId.title = "Settings saved"
@@ -253,6 +255,23 @@ export default function Settings() {
                     </Form.Dropdown>
                 )
             })}
+
+            <Form.Separator />
+
+            <Form.Description
+                title="Tools"
+                text="Configure tool-specific settings and behaviors. Changes will apply immediately after saving."
+            />
+
+            <Form.Description title="" text="" />
+
+            <Form.Checkbox
+                id="autoGenerateAliases"
+                title="Auto-Generate Aliases"
+                label="Enable"
+                defaultValue={toolsPreferences.autoGenerateAliases}
+                info="When enabled, the system will automatically generate aliases for your thoughts based on their content."
+            />
         </Form>
     )
 }
