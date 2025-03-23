@@ -17,6 +17,9 @@ export default async function Command() {
             delay 0.1
             keystroke "x" using {command down}
           end tell
+
+          tell application "Finder" to activate
+            delay 0.3
         `)
 
         // Small delay to ensure clipboard is updated
@@ -103,9 +106,8 @@ export default async function Command() {
                 open(deeplink)
             },
             shortcut: {
-                // FIGURE OUT A MODIFIER FOR THIS
-                modifiers: ["cmd", "shift", "opt", "ctrl"],
-                key: "arrowDown"
+                modifiers: ["cmd"],
+                key: "o"
             }
         }
 
