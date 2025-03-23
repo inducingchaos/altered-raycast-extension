@@ -158,6 +158,30 @@ export default function Find() {
         )
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleDragSelection = () => {
+        // When a user shift-down or shift-up arrow - we want to "extend" the previous select action (either select or deselect)
+        // we track the last action (select or deselect) with state - if someone cmd-s (single select) to enable selection, ALL drag selections should be select
+        // if it was deselect, we drag-deselect all list items UNTIL we cmd-s to enable selection
+        // we can get the last item that was selected by grabbing the last item from the massSelection array
+        // when a user navigates with shift-(up/down), we need to also manually update the selectedItemId since the shortcut blocks the default behavior
+        //  when drag-selecting (different than gap selection), we don't modify items BETWEEN - just the one we're coming from, and the one we're going to (due to the ergonomics we always select both (2 items) on every handleDragSelection)
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleGapSelection = () => {
+        // cmd-shift-s  all items in-between the last selected item and the current item
+        // we always select/deselect based on the last action (select or deselect)
+        // we modify selection for every item in-between the last selected item and the current item, including the current item
+        // if ALL target items are already selected, we toggle them, INCLUDING the previous item
+    }
+
+    // FOR BOTH DRAG AND GAP SELECTION:
+    //  Fallback: if no selection state exists, for the last select action (we set the initial state in useState to "select", so there's always a default) and for the last selected item (we default to the first item in the list OR the lastMassSelectedItem, another state)
+    // Another state: even though we already store selected items in massSelection, we also need to track the last selected item IN CASE all items are deselected (massSelection is empty) OR the last action was a de-selection (lastAction = deselect)
+
+    // add a cmd-d action to deselect all
+    // ADD ALL ACTIONS TO THE LIST ITEM, not list
     return (
         <List
             isLoading={isLoading || isLoadingDatasets}

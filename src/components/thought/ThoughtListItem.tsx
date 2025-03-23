@@ -362,16 +362,25 @@ export function ThoughtListItem({
                         shortcut={{ modifiers: ["opt"], key: "e" }}
                         target={<ThoughtForm thought={thought} onSubmit={fields => onEdit(thought, fields)} />}
                     />
+
                     <Action
                         title={isMassSelected ? "Deselect Thought" : "Select Thought"}
                         icon={isMassSelected ? Icon.XMarkCircle : Icon.CheckCircle}
-                        shortcut={{ modifiers: ["ctrl"], key: "s" }}
+                        shortcut={{ modifiers: ["cmd"], key: "s" }}
                         onAction={toggleMassSelection}
+                    />
+
+                    {/* This action is the one we should use for drag-selecting thoughts */}
+                    <Action
+                        title="Select Next Thought"
+                        icon={Icon.ArrowDown}
+                        shortcut={{ modifiers: ["shift"], key: "arrowDown" }}
+                        onAction={() => console.log("Select Next Thought")}
                     />
                     <Action
                         title={isAllMassSelected ? "Deselect All" : "Select All"}
                         icon={isAllMassSelected ? Icon.XMarkCircle : Icon.CheckCircle}
-                        shortcut={{ modifiers: ["ctrl", "shift"], key: "s" }}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
                         onAction={handleMassSelectAll}
                     />
                     {inspectorVisibility === "visible" && (
