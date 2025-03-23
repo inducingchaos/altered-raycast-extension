@@ -6,12 +6,15 @@ const DEV_BASE_URL = "http://localhost:5873"
 
 export default async function Command() {
     try {
-        // First try to cut selected text using AppleScript
-        // also copy first in case not cuttable
-        // figure out a way to copy first in case not cuttable
+        // First try to copy selected text, then attempt to cut if editable
+        // This ensures we get the content regardless of whether the text field is editable
 
         await runAppleScript(`
           tell application "System Events"
+            -- First copy the selected text
+            keystroke "c" using {command down}
+            -- Then try to cut it (will only work if editable)
+            delay 0.1
             keystroke "x" using {command down}
           end tell
         `)
