@@ -13,12 +13,15 @@ export const useThoughts = (searchText: string) => {
         isLoading,
         mutate,
         data: thoughts
-    } = useFetch<Thought[]>(`http://localhost:5873/api/thoughts?${new URLSearchParams({ search: searchText })}`, {
-        headers: {
-            Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
-        },
-        execute: !isOptimistic
-    })
+    } = useFetch<Thought[]>(
+        `http://localhost:5873/api/thoughts${searchText ? "?" + new URLSearchParams({ search: searchText }) : ""}`,
+        {
+            headers: {
+                Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+            },
+            execute: !isOptimistic
+        }
+    )
 
     const handleDeleteThought = async (thoughtId: string) => {
         setIsOptimistic(true)
