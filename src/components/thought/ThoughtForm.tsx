@@ -1,5 +1,6 @@
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { Dataset } from "src/types/dataset"
 import { ThoughtFormFields, ThoughtFormProps } from "../../types/thought"
 import { ALWAYS_VISIBLE_METADATA, formatDate, FRONTEND_HIDDEN_FIELDS, getThoughtAlias } from "../../utils/thought"
 import { DatasetForm } from "../dataset/DatasetForm"
@@ -75,6 +76,19 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
         }
     }
 
+    const orphanedThoughtDatasetIDs = thought.datasets?.filter(
+        datasetId => !datasets?.some(dataset => dataset.id === datasetId)
+    )
+
+    const [unfrozenDatasets, setUnfrozenDatasets] = useState<Dataset[] | undefined>(datasets)
+
+    // this useEffect may be necessary to a) have local state that ACTUALLY updates when we create a new dataset, and b) to receive any global updates that *may* come through
+
+    // TBH no global updates seem to come through at all so we should really throw inside this (with the exception of getting initial data when the form is opened)
+    useEffect(() => {
+        setUnfrozenDatasets(datasets)
+    }, [datasets])
+
     // Determine which fields to render based on ALWAYS_VISIBLE_METADATA
     const renderFormFields = () => {
         return (
@@ -101,9 +115,14 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                         value={selectedDatasets}
                         onChange={setSelectedDatasets}
                     >
-                        {datasets?.map(dataset => (
-                            <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />
-                        ))}
+                        {//  we temporarily add orphaned IDS to options so that we can remove them - shouldn't need in Production... throw error or handle otherwise
+
+                        //  to test against this, just add a random ID to datasets when you update a thought
+
+                        [
+                            ...(unfrozenDatasets ? unfrozenDatasets : []),
+                            ...(orphanedThoughtDatasetIDs?.map(id => ({ id, title: id })) ?? [])
+                        ]?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)}
                     </Form.TagPicker>
                 )}
             </>
@@ -126,7 +145,13 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                         title="Create Dataset"
                         icon={Icon.Plus}
                         shortcut={{ modifiers: ["opt"], key: "d" }}
-                        target={<DatasetForm onSubmit={createDataset} />}
+                        target={
+                            <DatasetForm
+                                thoughtFormDatasets={unfrozenDatasets ?? []}
+                                updateThoughtFormDatasets={setUnfrozenDatasets}
+                                onSubmit={createDataset}
+                            />
+                        }
                     />
                 </ActionPanel>
             }

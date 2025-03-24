@@ -1,36 +1,58 @@
 import { getPreferenceValues, showToast, Toast } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
+import { nanoid } from "nanoid"
+import { useState } from "react"
 import { Dataset } from "../types/dataset"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
 export const useDatasets = (searchText?: string) => {
+    const [isOptimistic, setIsOptimistic] = useState(false)
+
     const {
         data: datasets,
         isLoading,
-        mutate: revalidateDatasets
+        mutate
     } = useFetch<Dataset[]>(
         `${DEV_BASE_URL}/api/datasets${searchText ? `?${new URLSearchParams({ search: searchText })}` : ""}`,
         {
             headers: {
                 Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
-            }
+            },
+            execute: !isOptimistic
         }
     )
 
-    const createDataset = async (title: string) => {
+    const createDataset = async (title: string): Promise<{ title: string; id: string }> => {
+        setIsOptimistic(true)
         const toast = await showToast({ style: Toast.Style.Animated, title: "Creating dataset..." })
+
+        const id = nanoid()
 
         try {
             // console.log("Creating dataset with title:", title)
 
-            const response = await fetch(`${DEV_BASE_URL}/api/datasets`, {
+            const createRequest = fetch(`${DEV_BASE_URL}/api/datasets`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
                 },
-                body: JSON.stringify({ title })
+                body: JSON.stringify({ title, id })
+            })
+
+            const response = await mutate(createRequest, {
+                optimisticUpdate(data) {
+                    const newData = [
+                        ...(data || []),
+                        {
+                            id,
+                            title
+                        }
+                    ]
+
+                    return newData
+                }
             })
 
             if (!response.ok) {
@@ -51,9 +73,6 @@ export const useDatasets = (searchText?: string) => {
 
             toast.style = Toast.Style.Success
             toast.title = "Dataset created"
-
-            // Revalidate datasets list
-            await revalidateDatasets()
         } catch (error) {
             console.error("Error creating dataset:", error)
 
@@ -73,12 +92,15 @@ export const useDatasets = (searchText?: string) => {
 
             throw error
         }
+        setIsOptimistic(false)
+
+        return { title, id }
     }
 
     return {
         datasets,
         isLoading,
         createDataset,
-        revalidateDatasets
+        revalidateDatasets: mutate
     }
 }

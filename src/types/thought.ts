@@ -44,7 +44,7 @@ export type ThoughtListItemProps = {
     globalActions?: {
         validateAllThoughts: () => Promise<void>
     }
-    createDataset: (title: string) => Promise<void>
+    createDataset: (title: string) => Promise<{ title: string; id: string }>
     datasets?: Dataset[]
     isLoadingDatasets: boolean
 }
@@ -52,7 +52,7 @@ export type ThoughtListItemProps = {
 export type ThoughtFormProps = {
     thought: Thought
     onSubmit: (fields: ThoughtFormFields) => Promise<void>
-    createDataset: (title: string) => Promise<void>
+    createDataset: (title: string) => Promise<{ title: string; id: string }>
     datasets?: Dataset[]
     isLoadingDatasets: boolean
 }

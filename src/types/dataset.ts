@@ -4,7 +4,9 @@ export type Dataset = {
 }
 
 export type DatasetFormProps = {
-    onSubmit: (title: string) => Promise<void>
+    onSubmit: (title: string) => Promise<{ title: string; id: string }>
+    updateThoughtFormDatasets: (datasets: Dataset[]) => void
+    thoughtFormDatasets: Dataset[]
 }
 
 // Update Thought type to include datasets

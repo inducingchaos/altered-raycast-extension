@@ -2,18 +2,19 @@
  *
  */
 
-import { Action, ActionPanel, List, Detail } from "@raycast/api"
-import { useState, useMemo } from "react"
+import { Action, ActionPanel, Detail, List } from "@raycast/api"
+import { useMemo, useState } from "react"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
-import { useThoughts } from "./hooks/useThoughts"
-import { isThoughtValidated, getThoughtAlias, FRONTEND_HIDDEN_FIELDS } from "./utils/thought"
 import { useDatasets } from "./hooks/useDatasets"
+import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
+import { FRONTEND_HIDDEN_FIELDS, getThoughtAlias, isThoughtValidated } from "./utils/thought"
 
 export default function Find() {
     const [searchText, setSearchText] = useState("")
     const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
     const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)
+
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
     const [filter, setFilter] = useState<string>("")
