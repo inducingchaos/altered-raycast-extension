@@ -3,8 +3,9 @@
  */
 
 import { Action, ActionPanel, Detail, List } from "@raycast/api"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
+import { changeSelection } from "./find/select-without-spazzing"
 import { useDatasets } from "./hooks/useDatasets"
 import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
@@ -31,8 +32,14 @@ export default function Find() {
     } = useThoughts(searchText)
     const { datasets, isLoading: isLoadingDatasets, createDataset } = useDatasets()
 
+    const selectedThoughtIdUpdatedAt = useRef<number | undefined>()
+
     const onSelectionChange = (id: string | null) => {
-        setSelectedThoughtId(id)
+        changeSelection({
+            selectedItemId: id,
+            setSelectedItemId: setSelectedThoughtId,
+            selectedItemIdUpdatedAt: selectedThoughtIdUpdatedAt
+        })
     }
 
     const toggleRawMode = () => {
@@ -44,6 +51,11 @@ export default function Find() {
     }
 
     const [massSelection, setMassSelection] = useState<Set<string>>(new Set())
+
+    // Add these new state variables for drag selection
+    const [lastSelectionAction, setLastSelectionAction] = useState<"select" | "deselect">("select")
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [lastSelectedItemId, setLastSelectedItemId] = useState<string | null>(null)
 
     // Filter thoughts based on selected filter
     const filteredThoughts = useMemo(() => {
@@ -135,6 +147,61 @@ export default function Find() {
         [validateAllThoughts]
     )
 
+    const handleDragSelection = (direction: "up" | "down") => {
+        if (!filteredThoughts || !selectedThoughtId) return
+
+        // Find the current index of the selected thought
+        const currentIndex = filteredThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
+        if (currentIndex === -1) return
+
+        // Calculate the target index based on direction
+        const targetIndex =
+            direction === "up" ? Math.max(0, currentIndex - 1) : Math.min(filteredThoughts.length - 1, currentIndex + 1)
+
+        // Get the target thought
+        const targetThought = filteredThoughts[targetIndex]
+        if (!targetThought) return
+
+        // Update the selected item ID to the target
+        onSelectionChange(targetThought.id.toString())
+
+        // Apply the last selection action to both current and target items
+        const newMassSelection = new Set(massSelection)
+
+        // Apply the action based on the last selection type
+        if (lastSelectionAction === "select") {
+            // If the last action was select, add both current and target items
+            if (selectedThoughtId) newMassSelection.add(selectedThoughtId)
+            newMassSelection.add(targetThought.id.toString())
+        } else {
+            // If the last action was deselect, remove both current and target items
+            if (selectedThoughtId) newMassSelection.delete(selectedThoughtId)
+            newMassSelection.delete(targetThought.id.toString())
+        }
+
+        // Update the mass selection
+        setMassSelection(newMassSelection)
+
+        // Update the last selected item
+        setLastSelectedItemId(targetThought.id.toString())
+    }
+
+    // Add a function to toggle single item selection that also updates the last action
+    const toggleSingleItemSelection = (thoughtId: string) => {
+        const newMassSelection = new Set(massSelection)
+
+        if (newMassSelection.has(thoughtId)) {
+            newMassSelection.delete(thoughtId)
+            setLastSelectionAction("deselect")
+        } else {
+            newMassSelection.add(thoughtId)
+            setLastSelectionAction("select")
+        }
+
+        setMassSelection(newMassSelection)
+        setLastSelectedItemId(thoughtId)
+    }
+
     if (isLargeTypeMode && selectedThought) {
         return (
             <Detail
@@ -159,15 +226,14 @@ export default function Find() {
         )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleDragSelection = () => {
-        // When a user shift-down or shift-up arrow - we want to "extend" the previous select action (either select or deselect)
-        // we track the last action (select or deselect) with state - if someone cmd-s (single select) to enable selection, ALL drag selections should be select
-        // if it was deselect, we drag-deselect all list items UNTIL we cmd-s to enable selection
-        // we can get the last item that was selected by grabbing the last item from the massSelection array
-        // when a user navigates with shift-(up/down), we need to also manually update the selectedItemId since the shortcut blocks the default behavior
-        //  when drag-selecting (different than gap selection), we don't modify items BETWEEN - just the one we're coming from, and the one we're going to (due to the ergonomics we always select both (2 items) on every handleDragSelection)
-    }
+    // DRAG SELECT NOTES (DO NOT DELETE)
+
+    // When a user shift-down or shift-up arrow - we want to "extend" the previous select action (either select or deselect)
+    // we track the last action (select or deselect) with state - if someone cmd-s (single select) to enable selection, ALL drag selections should be select
+    // if it was deselect, we drag-deselect all list items UNTIL we cmd-s to enable selection
+    // we can get the last item that was selected by grabbing the last item from the massSelection array
+    // when a user navigates with shift-(up/down), we need to also manually update the selectedItemId since the shortcut blocks the default behavior
+    //  when drag-selecting (different than gap selection), we don't modify items BETWEEN - just the one we're coming from, and the one we're going to (due to the ergonomics we always select both (2 items) on every handleDragSelection)
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleGapSelection = () => {
@@ -252,17 +318,11 @@ export default function Find() {
                     allThoughts={filteredThoughts}
                     toggleMassThoughtValidation={toggleMassThoughtValidation}
                     resetMassSelection={() => setMassSelection(new Set())}
-                    toggleMassSelection={() =>
-                        setMassSelection(prev => {
-                            const newSet = new Set(prev)
-                            if (prev.has(thought.id.toString())) {
-                                newSet.delete(thought.id.toString())
-                            } else {
-                                newSet.add(thought.id.toString())
-                            }
-                            return newSet
-                        })
-                    }
+                    toggleMassSelection={() => {
+                        toggleSingleItemSelection(thought.id.toString())
+                    }}
+                    handleDragSelection={handleDragSelection}
+                    handleGapSelection={handleGapSelection}
                     globalActions={globalActions}
                     createDataset={createDataset}
                     datasets={datasets}

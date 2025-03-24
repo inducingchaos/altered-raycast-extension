@@ -34,7 +34,9 @@ export function ThoughtListItem({
     globalActions,
     createDataset,
     datasets,
-    isLoadingDatasets
+    isLoadingDatasets,
+    handleDragSelection,
+    handleGapSelection
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -384,14 +386,31 @@ export function ThoughtListItem({
                         title="Select Next Thought"
                         icon={Icon.ArrowDown}
                         shortcut={{ modifiers: ["shift"], key: "arrowDown" }}
-                        onAction={() => console.log("Select Next Thought")}
+                        onAction={() => handleDragSelection?.("down")}
                     />
+
+                    <Action
+                        title="Select Previous Thought"
+                        icon={Icon.ArrowUp}
+                        shortcut={{ modifiers: ["shift"], key: "arrowUp" }}
+                        onAction={() => handleDragSelection?.("up")}
+                    />
+
                     <Action
                         title={isAllMassSelected ? "Deselect All" : "Select All"}
                         icon={isAllMassSelected ? Icon.XMarkCircle : Icon.CheckCircle}
                         shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
                         onAction={handleMassSelectAll}
                     />
+
+                    {/* Gap selection action */}
+                    <Action
+                        title="Select Gap"
+                        icon={Icon.List}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+                        onAction={handleGapSelection}
+                    />
+
                     {inspectorVisibility === "visible" && (
                         <>
                             <Action

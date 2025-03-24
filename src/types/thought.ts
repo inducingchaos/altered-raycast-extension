@@ -41,6 +41,8 @@ export type ThoughtListItemProps = {
     isAllMassSelected: boolean
     allThoughts?: Thought[] // All filtered thoughts for validation logic
     resetMassSelection: () => void // Function to clear mass selection
+    handleDragSelection?: (direction: "up" | "down") => void // Optional drag selection handler
+    handleGapSelection?: () => void // Optional gap selection handler
     globalActions?: {
         validateAllThoughts: () => Promise<void>
     }
