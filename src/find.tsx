@@ -2,17 +2,13 @@
  *
  */
 
-import { Action, ActionPanel, List, Detail, getPreferenceValues } from "@raycast/api"
+import { Action, ActionPanel, List, Detail } from "@raycast/api"
 import { useState, useMemo } from "react"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
 import { useThoughts } from "./hooks/useThoughts"
 import { isThoughtValidated, getThoughtAlias, FRONTEND_HIDDEN_FIELDS } from "./utils/thought"
 import { useDatasets } from "./hooks/useDatasets"
 import { Thought } from "./types/thought"
-import { useFetch } from "@raycast/utils"
-import { AiModel } from "./hooks/useAiModels"
-import { AiFeature } from "./hooks/useAiFeatures"
-import { Dataset } from "./types/dataset"
 
 export default function Find() {
     const [searchText, setSearchText] = useState("")
@@ -21,21 +17,6 @@ export default function Find() {
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
     const [filter, setFilter] = useState<string>("")
-
-    const DEV_BASE_URL = "http://localhost:5873"
-
-    const { data: initialData, isLoading: initialDataLoading } = useFetch<{
-        datasets: Dataset[]
-        thoughts: Thought[]
-        ai: {
-            models: AiModel[]
-            features: AiFeature[]
-        }
-    }>(`${DEV_BASE_URL}/api/raycast/find`, {
-        headers: {
-            Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
-        }
-    })
 
     const {
         thoughts,
@@ -46,24 +27,8 @@ export default function Find() {
         massThoughtDeletion,
         handleEditThought,
         validateAllThoughts
-    } = useThoughts({
-        searchText,
-        initialData: {
-            value: initialData?.thoughts,
-            isLoading: initialDataLoading
-        }
-    })
-
-    const {
-        datasets,
-        isLoading: isLoadingDatasets,
-        createDataset
-    } = useDatasets({
-        initialData: {
-            value: initialData?.datasets,
-            isLoading: initialDataLoading
-        }
-    })
+    } = useThoughts(searchText)
+    const { datasets, isLoading: isLoadingDatasets, createDataset } = useDatasets()
 
     const onSelectionChange = (id: string | null) => {
         setSelectedThoughtId(id)
@@ -301,10 +266,6 @@ export default function Find() {
                     createDataset={createDataset}
                     datasets={datasets}
                     isLoadingDatasets={isLoadingDatasets}
-                    initialData={{
-                        values: { features: initialData?.ai.features, models: initialData?.ai.models },
-                        isLoading: initialDataLoading
-                    }}
                 />
             ))}
         </List>

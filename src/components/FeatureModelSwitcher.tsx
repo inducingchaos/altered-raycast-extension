@@ -1,7 +1,7 @@
 import { ActionPanel, Action, Icon } from "@raycast/api"
 import { useMemo } from "react"
-import { AiFeature, useAiFeatures } from "../hooks/useAiFeatures"
-import { AiModel, useAiModels } from "../hooks/useAiModels"
+import { useAiFeatures } from "../hooks/useAiFeatures"
+import { useAiModels } from "../hooks/useAiModels"
 
 // Custom icon mapping for different features
 const getFeatureIcon = (featureId: string) => {
@@ -17,29 +17,15 @@ const getFeatureIcon = (featureId: string) => {
     }
 }
 
-export function FeatureModelSwitcher({
-    initialData
-}: {
-    initialData: { values: { features?: AiFeature[]; models?: AiModel[] }; isLoading: boolean }
-}) {
-    const { features, isUpdatingFeature, updateFeatureModel } = useAiFeatures({
-        initialData: {
-            value: initialData.values.features,
-            isLoading: initialData.isLoading
-        }
-    })
-    const { models, isLoading: isLoadingModels } = useAiModels({
-        initialData: {
-            value: initialData.values.models,
-            isLoading: initialData.isLoading
-        }
-    })
+export function FeatureModelSwitcher() {
+    const { features, isUpdatingFeature, updateFeatureModel } = useAiFeatures()
+    const { models, isLoading: isLoadingModels } = useAiModels()
 
     // Group models by provider for better organization
     const modelsByProvider = useMemo(() => {
         const grouped: Record<string, typeof models> = {}
 
-        models?.forEach(model => {
+        models.forEach(model => {
             // Use the provider name from the model object
             const providerName = model.provider?.name || "Unknown"
             if (!grouped[providerName]) {
@@ -52,10 +38,10 @@ export function FeatureModelSwitcher({
     }, [models])
 
     // If no features or models, don't render anything
-    if (!features?.length || !models?.length) return null
+    if (!features.length || !models.length) return null
 
     // Determine if any feature is updating
-    const isAnyFeatureUpdating = features?.some(f => isUpdatingFeature(f.id))
+    const isAnyFeatureUpdating = features.some(f => isUpdatingFeature(f.id))
 
     return (
         <ActionPanel.Submenu
@@ -64,7 +50,7 @@ export function FeatureModelSwitcher({
             shortcut={{ modifiers: ["cmd", "shift"], key: "m" }}
             isLoading={isLoadingModels || isAnyFeatureUpdating}
         >
-            {features?.map(feature => (
+            {features.map(feature => (
                 <ActionPanel.Submenu
                     key={feature.id}
                     title={feature.name}
@@ -77,13 +63,12 @@ export function FeatureModelSwitcher({
                             title="Default"
                             icon={feature.model.isDefault ? Icon.CheckCircle : Icon.Circle}
                             onAction={() => updateFeatureModel(feature.id, null)}
-                            autoFocus={feature.model.isDefault}
                         />
                         {/* </ActionPanel.Section> */}
 
                         {Object.entries(modelsByProvider).map(([provider, providerModels]) => (
                             <ActionPanel.Section key={provider} title={provider}>
-                                {providerModels?.map(model => (
+                                {providerModels.map(model => (
                                     <Action
                                         key={model.id}
                                         title={model.name}
@@ -93,7 +78,7 @@ export function FeatureModelSwitcher({
                                                 : Icon.Circle
                                         }
                                         onAction={() => updateFeatureModel(feature.id, model.id)}
-                                        autoFocus={feature.model.id === model.id && !feature.model.isDefault}
+                                        autoFocus={feature.model.id === model.id}
                                     />
                                 ))}
                             </ActionPanel.Section>

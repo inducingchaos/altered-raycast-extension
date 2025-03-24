@@ -34,8 +34,7 @@ export function ThoughtListItem({
     globalActions,
     createDataset,
     datasets,
-    isLoadingDatasets,
-    initialData
+    isLoadingDatasets
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -412,7 +411,7 @@ export function ThoughtListItem({
                         </>
                     )}
                     <ActionPanel.Section title="Preferences">
-                        <FeatureModelSwitcher initialData={initialData} />
+                        <FeatureModelSwitcher />
                     </ActionPanel.Section>
                     <Action
                         title={getValidationActionTitle()}

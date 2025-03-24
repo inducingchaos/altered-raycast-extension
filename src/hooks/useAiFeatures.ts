@@ -22,13 +22,12 @@ const getAuthHeader = () => {
     }
 }
 
-export function useAiFeatures({ initialData }: { initialData: { value?: AiFeature[]; isLoading: boolean } }) {
+export function useAiFeatures() {
     const [updatingFeatures, setUpdatingFeatures] = useState<Set<string>>(new Set())
 
-    // we could probably kill the fetch call entirely, just replace it with state
     const {
         isLoading,
-        data: features = initialData.value,
+        data: features = [],
         mutate: revalidateFeatures
     } = useFetch<AiFeature[]>(`${DEV_BASE_URL}/api/ai/features`, {
         headers: {
@@ -42,8 +41,7 @@ export function useAiFeatures({ initialData }: { initialData: { value?: AiFeatur
                 title: "Failed to load AI features",
                 message: error instanceof Error ? error.message : String(error)
             })
-        },
-        execute: false
+        }
     })
 
     const updateFeatureModel = async (featureId: string, modelId: string | null) => {
@@ -54,10 +52,8 @@ export function useAiFeatures({ initialData }: { initialData: { value?: AiFeatur
             return newSet
         })
 
-        console.log("features", features, featureId)
-
         // Get the feature to access its name
-        const feature = features?.find(f => f.id === featureId)
+        const feature = features.find(f => f.id === featureId)
         const featureName = feature?.name || featureId
 
         // Can't update if we can't find the feature
@@ -119,7 +115,7 @@ export function useAiFeatures({ initialData }: { initialData: { value?: AiFeatur
                     // Optimistically update the UI
                     optimisticUpdate(currentFeatures) {
                         if (!currentFeatures)
-                            return features?.map(f =>
+                            return features.map(f =>
                                 f.id === featureId
                                     ? {
                                           ...f,
@@ -168,7 +164,7 @@ export function useAiFeatures({ initialData }: { initialData: { value?: AiFeatur
     }
 
     return {
-        isLoading: initialData.isLoading || isLoading,
+        isLoading,
         features,
         isUpdatingFeature: (featureId: string) => updatingFeatures.has(featureId),
         updateFeatureModel
