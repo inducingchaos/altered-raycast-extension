@@ -1,4 +1,6 @@
+import { AiFeature } from "src/hooks/useAiFeatures"
 import { Dataset } from "./dataset"
+import { AiModel } from "src/hooks/useAiModels"
 
 export type Thought = {
     id: string
@@ -47,6 +49,7 @@ export type ThoughtListItemProps = {
     createDataset: (title: string) => Promise<void>
     datasets?: Dataset[]
     isLoadingDatasets: boolean
+    initialData: { values: { features?: AiFeature[]; models?: AiModel[] }; isLoading: boolean }
 }
 
 export type ThoughtFormProps = {

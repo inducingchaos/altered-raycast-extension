@@ -24,8 +24,9 @@ const getAuthHeader = () => {
     }
 }
 
-export function useAiModels() {
-    const { isLoading, data: models = [] } = useFetch<AiModel[]>(`${DEV_BASE_URL}/api/ai/models`, {
+export function useAiModels({ initialData }: { initialData: { value?: AiModel[]; isLoading: boolean } }) {
+    // could definitely remove this entirely unless we add a func that modifies and needs to revalidate independent of the initialData
+    const { isLoading, data: models } = useFetch<AiModel[]>(`${DEV_BASE_URL}/api/ai/models`, {
         headers: {
             ...getAuthHeader()
         },
@@ -37,11 +38,12 @@ export function useAiModels() {
                 title: "Failed to load AI models",
                 message: error instanceof Error ? error.message : String(error)
             })
-        }
+        },
+        execute: false
     })
 
     return {
-        isLoading,
-        models
+        isLoading: initialData.isLoading || isLoading,
+        models: models ?? initialData.value
     }
 }

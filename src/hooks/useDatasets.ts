@@ -4,9 +4,15 @@ import { Dataset } from "../types/dataset"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
-export const useDatasets = (searchText?: string) => {
+export const useDatasets = ({
+    searchText,
+    initialData
+}: {
+    searchText?: string
+    initialData: { value?: Dataset[]; isLoading: boolean }
+}) => {
     const {
-        data: datasets,
+        data: datasets = initialData.value,
         isLoading,
         mutate: revalidateDatasets
     } = useFetch<Dataset[]>(
@@ -14,7 +20,8 @@ export const useDatasets = (searchText?: string) => {
         {
             headers: {
                 Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
-            }
+            },
+            execute: !!searchText
         }
     )
 
@@ -77,7 +84,7 @@ export const useDatasets = (searchText?: string) => {
 
     return {
         datasets,
-        isLoading,
+        isLoading: initialData.isLoading || isLoading,
         createDataset,
         revalidateDatasets
     }

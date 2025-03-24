@@ -6,22 +6,34 @@ import { FRONTEND_HIDDEN_FIELDS, TEMP_PREFIXED_FIELDS } from "../utils/thought"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
-export const useThoughts = (searchText: string) => {
+export const useThoughts = ({
+    searchText,
+    initialData
+}: {
+    searchText?: string
+    initialData: { value?: Thought[]; isLoading: boolean }
+}) => {
     const [isOptimistic, setIsOptimistic] = useState(false)
+
+    const useInitialData = !searchText
+    const enableFetch = !isOptimistic && !!searchText
 
     const {
         isLoading,
         mutate,
-        data: thoughts
+        data: searchThoughts
     } = useFetch<Thought[]>(
         `http://localhost:5873/api/thoughts${searchText ? "?" + new URLSearchParams({ search: searchText }) : ""}`,
         {
             headers: {
                 Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
             },
-            execute: !isOptimistic
+            execute: enableFetch
+            // keepPreviousData: false
         }
     )
+
+    const thoughts = useInitialData ? initialData.value : searchThoughts
 
     const handleDeleteThought = async (thoughtId: string) => {
         setIsOptimistic(true)
@@ -36,15 +48,16 @@ export const useThoughts = (searchText: string) => {
             })
 
             await mutate(deleteRequest, {
-                optimisticUpdate(data) {
-                    const thoughts = data as Thought[]
-                    return thoughts.filter(t => t.id !== thoughtId)
+                optimisticUpdate() {
+                    const _thoughts = thoughts as Thought[]
+                    return _thoughts.filter(t => t.id !== thoughtId)
                 }
             })
 
             toast.style = Toast.Style.Success
             toast.title = "Thought deleted"
         } catch (err) {
+            console.error("Error in delete thought:", err)
             toast.style = Toast.Style.Failure
             toast.title = "Failed to delete thought"
         }
@@ -358,7 +371,7 @@ export const useThoughts = (searchText: string) => {
 
     return {
         thoughts,
-        isLoading,
+        isLoading: initialData.isLoading || isLoading,
         isOptimistic,
         handleDeleteThought,
         toggleThoughtValidation,
