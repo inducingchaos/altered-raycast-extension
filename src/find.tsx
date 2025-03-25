@@ -54,7 +54,7 @@ export default function Find() {
 
     // Add these new state variables for drag selection
     const [lastSelectionAction, setLastSelectionAction] = useState<"select" | "deselect">("select")
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const [lastSelectedItemId, setLastSelectedItemId] = useState<string | null>(null)
 
     // Filter thoughts based on selected filter
