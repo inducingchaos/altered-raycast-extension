@@ -507,7 +507,7 @@ export function ThoughtListItem({
                     <Action.Push
                         title="Edit Thought"
                         icon={Icon.Pencil}
-                        shortcut={{ modifiers: ["opt"], key: "e" }}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
                         target={
                             <ThoughtForm
                                 thought={thought}

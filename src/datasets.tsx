@@ -2,12 +2,12 @@ import { Action, ActionPanel, Alert, Form, Icon, List, showToast, Toast, confirm
 import { useState } from "react"
 import { useDatasets } from "./hooks/useDatasets"
 import { Dataset } from "./types/dataset"
+import { useNavigation } from "@raycast/api"
 
 // Create dataset form component
 function CreateDatasetForm({ onCreate }: { onCreate: (title: string) => Promise<void> }) {
     const [title, setTitle] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-
     const handleSubmit = async () => {
         if (!title.trim()) {
             showToast({
@@ -53,6 +53,8 @@ function EditDatasetForm({ dataset, onEdit }: { dataset: Dataset; onEdit: (id: s
     const [title, setTitle] = useState(dataset.title)
     const [isLoading, setIsLoading] = useState(false)
 
+    const { pop } = useNavigation()
+
     const handleSubmit = async () => {
         if (!title.trim()) {
             showToast({
@@ -70,6 +72,7 @@ function EditDatasetForm({ dataset, onEdit }: { dataset: Dataset; onEdit: (id: s
         } finally {
             setIsLoading(false)
         }
+        pop()
     }
 
     return (
@@ -216,7 +219,7 @@ export default function Datasets() {
                                 title="Delete Dataset"
                                 icon={Icon.Trash}
                                 style={Action.Style.Destructive}
-                                shortcut={{ modifiers: ["opt"], key: "x" }}
+                                shortcut={{ modifiers: ["cmd"], key: "backspace" }}
                                 onAction={() => {
                                     const hasAssociatedThoughts = dataset.thoughts && dataset.thoughts.length > 0
 
