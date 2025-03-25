@@ -50,7 +50,8 @@ export default function Find() {
         toggleMassThoughtValidation,
         massThoughtDeletion,
         handleEditThought,
-        validateAllThoughts
+        validateAllThoughts,
+        pagination
     } = useThoughts(searchText)
     const { datasets, isLoading: isLoadingDatasets, createDataset } = useDatasets()
 
@@ -410,6 +411,7 @@ export default function Find() {
             selectedItemId={selectedThoughtId ?? undefined}
             onSelectionChange={onSelectionChange}
             throttle
+            pagination={pagination}
             searchBarAccessory={
                 <List.Dropdown
                     tooltip="Filter Thoughts"

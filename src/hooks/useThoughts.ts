@@ -14,14 +14,24 @@ export const useThoughts = (searchText: string) => {
     const {
         isLoading,
         mutate,
-        data: thoughts
+        data: thoughts,
+        pagination
     } = useFetch<Thought[]>(
-        `http://localhost:5873/api/thoughts${searchText ? "?" + new URLSearchParams({ search: searchText }) : ""}`,
+        options => {
+            const params = new URLSearchParams({ limit: "25", offset: (options.page * 25).toString() })
+            if (searchText) params.append("search", searchText)
+            const url = `http://localhost:5873/api/thoughts?${params}`
+
+            console.log("url", url)
+
+            return url
+        },
         {
             headers: {
                 Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
             },
-            execute: !isOptimistic
+            execute: !isOptimistic,
+            mapResult: result => ({ data: result, hasMore: result.length === 25 })
         }
     )
 
@@ -325,7 +335,7 @@ export const useThoughts = (searchText: string) => {
     const validateAllThoughts = async () => {
         try {
             // Filter thoughts that are not already validated
-            const thoughtsToValidate = thoughts?.filter(thought => thought.validated !== "true") || []
+            const thoughtsToValidate = (thoughts as Thought[])?.filter(thought => thought.validated !== "true") || []
 
             if (thoughtsToValidate.length === 0) {
                 showToast({
@@ -344,7 +354,7 @@ export const useThoughts = (searchText: string) => {
             })
 
             // Use toggleMassThoughtValidation for batch update
-            await toggleMassThoughtValidation(thoughtsToValidate, "true")
+            await toggleMassThoughtValidation(thoughtsToValidate as Thought[], "true")
                 .then(() => {
                     toast.style = Toast.Style.Success
                     toast.title = "All thoughts validated"
@@ -366,7 +376,7 @@ export const useThoughts = (searchText: string) => {
     }
 
     return {
-        thoughts,
+        thoughts: thoughts as Thought[],
         isLoading,
         isOptimistic,
         handleDeleteThought,
@@ -376,6 +386,7 @@ export const useThoughts = (searchText: string) => {
         toggleMassThoughtValidation,
         handleEditThought,
         validateAllThoughts,
-        massThoughtDeletion
+        massThoughtDeletion,
+        pagination
     }
 }
