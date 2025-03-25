@@ -150,6 +150,9 @@ export default function Find() {
     const handleDragSelection = (direction: "up" | "down") => {
         if (!filteredThoughts || !selectedThoughtId) return
 
+        const now = Date.now()
+        if (selectedThoughtIdUpdatedAt.current && now - selectedThoughtIdUpdatedAt.current < 150) return
+
         // Find the current index of the selected thought
         const currentIndex = filteredThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
         if (currentIndex === -1) return
