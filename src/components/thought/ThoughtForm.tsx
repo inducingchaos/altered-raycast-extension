@@ -13,6 +13,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
 
     // Initialize form values
     const [content, setContent] = useState(thought.content)
+    const [devNotes, setDevNotes] = useState((thought["devNotes"] as string) || "")
     const [alias, setAlias] = useState(getThoughtAlias(thought))
     const [selectedDatasets, setSelectedDatasets] = useState<string[]>(thought.datasets ?? [])
 
@@ -20,11 +21,21 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
     const [customFields, setCustomFields] = useState<Record<string, string>>({})
 
     // Initialize custom fields from thought object
-    useState(() => {
+    useEffect(() => {
         const fields: Record<string, string> = {}
         Object.entries(thought).forEach(([key, value]) => {
             if (
-                !["id", "content", "attachmentId", "createdAt", "updatedAt", "alias", "validated", "datasets"].includes(key) &&
+                ![
+                    "id",
+                    "content",
+                    "attachmentId",
+                    "createdAt",
+                    "updatedAt",
+                    "alias",
+                    "validated",
+                    "datasets",
+                    "devNotes"
+                ].includes(key) &&
                 !FRONTEND_HIDDEN_FIELDS.includes(key) &&
                 value !== null &&
                 value !== undefined
@@ -33,7 +44,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
             }
         })
         setCustomFields(fields)
-    })
+    }, [])
 
     const handleSubmit = async (validateOnSave: boolean = false) => {
         setIsSubmitting(true)
@@ -43,6 +54,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
             const updatedFields: ThoughtFormFields = {
                 content,
                 alias,
+                devNotes,
                 validated: validateOnSave ? "true" : "false",
                 datasets: selectedDatasets,
                 // Add any custom fields
@@ -95,6 +107,10 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
             <>
                 {ALWAYS_VISIBLE_METADATA.includes("content") && (
                     <Form.TextArea id="content" title="Content" value={content} onChange={setContent} />
+                )}
+
+                {ALWAYS_VISIBLE_METADATA.includes("devNotes") && (
+                    <Form.TextArea id="dev-notes" title="Dev Notes" value={devNotes} onChange={setDevNotes} />
                 )}
 
                 {ALWAYS_VISIBLE_METADATA.includes("alias") && (

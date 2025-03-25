@@ -30,6 +30,13 @@ export const serializableThoughtsSchema: SerializableDataSchema = {
             ]
         },
         {
+            id: "TEMP_devNotes",
+            name: "Dev Notes",
+            description: "Developer notes about this thought.",
+            type: dataTypes.string.id,
+            required: false
+        },
+        {
             id: "TEMP_alias",
             name: "Alias",
             description: "A name for your thought.",

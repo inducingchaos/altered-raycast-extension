@@ -112,6 +112,13 @@ export default function Find() {
         markdown.push(`**Content:**\n${thought.content}`)
         markdown.push("") // Add empty line for separation
 
+        // Dev Notes if present - make it more prominent
+        if (thought.devNotes) {
+            markdown.push(`**Dev Notes:**`)
+            markdown.push(`\`\`\`\n${thought.devNotes}\n\`\`\``)
+            markdown.push("") // Add empty line for separation
+        }
+
         // Then other metadata
         markdown.push(`**Alias:** ${getThoughtAlias(thought)}`)
         markdown.push(`**Created:** ${new Date(thought.createdAt).toLocaleString()}`)
@@ -134,7 +141,7 @@ export default function Find() {
         Object.entries(thought).forEach(([key, value]) => {
             if (
                 !FRONTEND_HIDDEN_FIELDS.includes(key) &&
-                !["content", "alias", "validated", "datasets"].includes(key) &&
+                !["content", "alias", "validated", "datasets", "devNotes"].includes(key) &&
                 value !== null &&
                 value !== undefined
             ) {

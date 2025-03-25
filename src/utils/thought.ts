@@ -44,11 +44,11 @@ export const formatDetailDate = (date: Date): string => {
 }
 
 // Fields that require TEMP_ prefix when sent to API
-export const TEMP_PREFIXED_FIELDS = ["alias", "validated", "datasets"]
+export const TEMP_PREFIXED_FIELDS = ["alias", "validated", "datasets", "devNotes"]
 
 // Fields that should be hidden from frontend display (but may still be sent to API when appropriate)
 export const FRONTEND_HIDDEN_FIELDS = ["id", "userId", "createdAt", "updatedAt", "attachmentId"]
 
 // Metadata fields that should always be visible in the detail view
 // Note: 'content' is kept for reference, but will be rendered as markdown and excluded from metadata
-export const ALWAYS_VISIBLE_METADATA = ["content", "alias", "datasets", "validated"]
+export const ALWAYS_VISIBLE_METADATA = ["content", "alias", "datasets", "validated", "devNotes"]

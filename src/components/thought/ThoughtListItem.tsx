@@ -136,6 +136,14 @@ export function ThoughtListItem({
     const renderMetadataFields = () => {
         const metadataItems = []
 
+        // Add Dev Notes at the top if present
+        if (thought.devNotes) {
+            metadataItems.push(
+                <List.Item.Detail.Metadata.Label key="devNotes" title="Dev Notes" text={thought.devNotes} />,
+                <List.Item.Detail.Metadata.Separator key="devNotes-sep" />
+            )
+        }
+
         // Always show important fields in consistent order
         for (const field of ALWAYS_VISIBLE_METADATA) {
             // Skip content as we will display it as markdown in the detail view
@@ -182,7 +190,8 @@ export function ThoughtListItem({
                     "alias",
                     "validated",
                     "datasets",
-                    "userId"
+                    "userId",
+                    "devNotes"
                 ].includes(key) &&
                 thought[key] !== null &&
                 thought[key] !== undefined
@@ -225,6 +234,15 @@ export function ThoughtListItem({
         markdown.push(`# Content`)
         markdown.push(thought.content)
         markdown.push("")
+
+        // Add Dev Notes prominently at the top if present
+        if (thought.devNotes) {
+            markdown.push("")
+            markdown.push(`# Dev Notes`)
+            markdown.push(`\`\`\`\n${thought.devNotes}\n\`\`\``)
+            markdown.push("")
+        }
+
         markdown.push("")
         markdown.push(`## Alias`)
         markdown.push(alias)
