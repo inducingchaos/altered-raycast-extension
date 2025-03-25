@@ -202,6 +202,84 @@ export default function Find() {
         setLastSelectedItemId(thoughtId)
     }
 
+    // GAP SELECT NOTES (DO NOT DELETE)
+    // cmd-shift-s all items in-between the last selected item and the current item
+    // we always select/deselect based on the last action (select or deselect)
+    // we modify selection for every item in-between the last selected item and the current item, including the current item
+    // if ALL target items are already selected, we toggle them, INCLUDING the previous item
+
+    const handleGapSelection = () => {
+        if (!filteredThoughts || !selectedThoughtId || !lastSelectedItemId) return
+
+        // Find indices of current and last selected items
+        const currentIndex = filteredThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
+        const lastIndex = filteredThoughts.findIndex(thought => thought.id.toString() === lastSelectedItemId)
+
+        if (currentIndex === -1 || lastIndex === -1) return
+
+        // Determine range (start and end indices)
+        const startIdx = Math.min(currentIndex, lastIndex)
+        const endIdx = Math.max(currentIndex, lastIndex)
+
+        // Get all thoughts in the range
+        const thoughtsInRange = filteredThoughts.slice(startIdx, endIdx + 1)
+
+        // Check if all thoughts in range are already selected or all deselected
+        const allSelected = thoughtsInRange.every(thought => massSelection.has(thought.id.toString()))
+        const allDeselected = thoughtsInRange.every(thought => !massSelection.has(thought.id.toString()))
+
+        // Create a new selection set
+        const newMassSelection = new Set(massSelection)
+
+        // Apply toggling logic
+        if (allSelected) {
+            // If all are selected, deselect all thoughts in range
+            thoughtsInRange.forEach(thought => {
+                newMassSelection.delete(thought.id.toString())
+            })
+            // Set last action to deselect for next time
+            setLastSelectionAction("deselect")
+        } else if (allDeselected) {
+            // If all are deselected, select all thoughts in range
+            thoughtsInRange.forEach(thought => {
+                newMassSelection.add(thought.id.toString())
+            })
+            // Set last action to select for next time
+            setLastSelectionAction("select")
+        } else {
+            // Mixed selection state, make them consistent based on current lastSelectionAction
+            thoughtsInRange.forEach(thought => {
+                if (lastSelectionAction === "select") {
+                    newMassSelection.add(thought.id.toString())
+                } else {
+                    newMassSelection.delete(thought.id.toString())
+                }
+            })
+        }
+
+        // Update mass selection
+        setMassSelection(newMassSelection)
+
+        // Don't update lastSelectedItemId at all to ensure the same range is preserved
+        // for future gap selections
+    }
+
+    // DRAG SELECT NOTES (DO NOT DELETE)
+
+    // When a user shift-down or shift-up arrow - we want to "extend" the previous select action (either select or deselect)
+    // we track the last action (select or deselect) with state - if someone cmd-s (single select) to enable selection, ALL drag selections should be select
+    // if it was deselect, we drag-deselect all list items UNTIL we cmd-s to enable selection
+    // we can get the last item that was selected by grabbing the last item from the massSelection array
+    // when a user navigates with shift-(up/down), we need to also manually update the selectedItemId since the shortcut blocks the default behavior
+    //  when drag-selecting (different than gap selection), we don't modify items BETWEEN - just the one we're coming from, and the one we're going to (due to the ergonomics we always select both (2 items) on every handleDragSelection)
+
+    // FOR BOTH DRAG AND GAP SELECTION:
+    //  Fallback: if no selection state exists, for the last select action (we set the initial state in useState to "select", so there's always a default) and for the last selected item (we default to the first item in the list OR the lastMassSelectedItem, another state)
+    // Another state: even though we already store selected items in massSelection, we also need to track the last selected item IN CASE all items are deselected (massSelection is empty) OR the last action was a de-selection (lastAction = deselect)
+
+    // add a cmd-d action to deselect all
+    // ADD ALL ACTIONS TO THE LIST ITEM, not list
+
     if (isLargeTypeMode && selectedThought) {
         return (
             <Detail
@@ -226,29 +304,6 @@ export default function Find() {
         )
     }
 
-    // DRAG SELECT NOTES (DO NOT DELETE)
-
-    // When a user shift-down or shift-up arrow - we want to "extend" the previous select action (either select or deselect)
-    // we track the last action (select or deselect) with state - if someone cmd-s (single select) to enable selection, ALL drag selections should be select
-    // if it was deselect, we drag-deselect all list items UNTIL we cmd-s to enable selection
-    // we can get the last item that was selected by grabbing the last item from the massSelection array
-    // when a user navigates with shift-(up/down), we need to also manually update the selectedItemId since the shortcut blocks the default behavior
-    //  when drag-selecting (different than gap selection), we don't modify items BETWEEN - just the one we're coming from, and the one we're going to (due to the ergonomics we always select both (2 items) on every handleDragSelection)
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleGapSelection = () => {
-        // cmd-shift-s  all items in-between the last selected item and the current item
-        // we always select/deselect based on the last action (select or deselect)
-        // we modify selection for every item in-between the last selected item and the current item, including the current item
-        // if ALL target items are already selected, we toggle them, INCLUDING the previous item
-    }
-
-    // FOR BOTH DRAG AND GAP SELECTION:
-    //  Fallback: if no selection state exists, for the last select action (we set the initial state in useState to "select", so there's always a default) and for the last selected item (we default to the first item in the list OR the lastMassSelectedItem, another state)
-    // Another state: even though we already store selected items in massSelection, we also need to track the last selected item IN CASE all items are deselected (massSelection is empty) OR the last action was a de-selection (lastAction = deselect)
-
-    // add a cmd-d action to deselect all
-    // ADD ALL ACTIONS TO THE LIST ITEM, not list
     return (
         <List
             isLoading={isLoading || isLoadingDatasets}
