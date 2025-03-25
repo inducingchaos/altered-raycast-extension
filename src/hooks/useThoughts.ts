@@ -22,7 +22,7 @@ export const useThoughts = (searchText: string) => {
             if (searchText) params.append("search", searchText)
             const url = `http://localhost:5873/api/thoughts?${params}`
 
-            console.log("url", url)
+            // console.log("url", url)
 
             return url
         },
