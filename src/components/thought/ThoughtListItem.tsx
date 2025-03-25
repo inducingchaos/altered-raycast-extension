@@ -233,7 +233,9 @@ export function ThoughtListItem({
                     "validated",
                     "datasets",
                     "userId",
-                    "devNotes"
+                    "devNotes",
+                    "priority",
+                    "sensitive"
                 ].includes(key) &&
                 thought[key] !== null &&
                 thought[key] !== undefined
