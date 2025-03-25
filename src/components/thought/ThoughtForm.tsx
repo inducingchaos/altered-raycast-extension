@@ -4,6 +4,7 @@ import { Dataset } from "src/types/dataset"
 import { ThoughtFormFields, ThoughtFormProps } from "../../types/thought"
 import { ALWAYS_VISIBLE_METADATA, formatDate, FRONTEND_HIDDEN_FIELDS, getThoughtAlias } from "../../utils/thought"
 import { DatasetForm } from "../dataset/DatasetForm"
+import { parseStringToBoolean } from "../../hooks/useKv"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
@@ -17,6 +18,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
     const [alias, setAlias] = useState(getThoughtAlias(thought))
     const [selectedDatasets, setSelectedDatasets] = useState<string[]>(thought.datasets ?? [])
     const [priority, setPriority] = useState<string>(thought.priority ?? "")
+    const [sensitive, setSensitive] = useState<boolean>(parseStringToBoolean(thought.sensitive))
 
     // Create state for custom fields
     const [customFields, setCustomFields] = useState<Record<string, string>>({})
@@ -36,7 +38,8 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                     "validated",
                     "datasets",
                     "devNotes",
-                    "priority"
+                    "priority",
+                    "sensitive"
                 ].includes(key) &&
                 !FRONTEND_HIDDEN_FIELDS.includes(key) &&
                 value !== null &&
@@ -60,6 +63,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                 validated: validateOnSave ? "true" : "false",
                 datasets: selectedDatasets,
                 priority,
+                sensitive: sensitive.toString(),
                 // Add any custom fields
                 ...Object.entries(customFields).reduce(
                     (acc, [key, value]) => {
@@ -177,6 +181,17 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                                 setErrorMap(prev => ({ ...prev, priority: "Priority must be between 0 and 10" }))
                             }
                         }}
+                    />
+                )}
+
+                {ALWAYS_VISIBLE_METADATA.includes("sensitive") && (
+                    <Form.Checkbox
+                        id="sensitive"
+                        title="Sensitive"
+                        label="Mark as sensitive"
+                        value={sensitive}
+                        onChange={setSensitive}
+                        info="When enabled, this thought will be marked as sensitive content."
                     />
                 )}
             </>

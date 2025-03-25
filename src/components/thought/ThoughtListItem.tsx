@@ -9,6 +9,7 @@ import {
     isThoughtValidated
 } from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
+import { parseStringToBoolean } from "../../hooks/useKv"
 
 export function ThoughtListItem({
     thought,
@@ -90,6 +91,15 @@ export function ThoughtListItem({
                             }
                         ]
                       : []),
+                  // Sensitive indicator if set
+                  ...(thought.sensitive && parseStringToBoolean(thought.sensitive)
+                      ? [
+                            {
+                                icon: { source: Icon.EyeDisabled, tintColor: Color.SecondaryText },
+                                tooltip: "Sensitive Content"
+                            }
+                        ]
+                      : []),
                   // Dataset tags
                   ...(thought.datasets && thought.datasets.length > 0
                       ? (thought.datasets
@@ -161,6 +171,18 @@ export function ThoughtListItem({
             metadataItems.push(
                 <List.Item.Detail.Metadata.Label key="priority" title="Priority" text={`P${parseFloat(thought.priority)}`} />,
                 <List.Item.Detail.Metadata.Separator key="priority-sep" />
+            )
+        }
+
+        // Add Sensitive status if set
+        if (thought.sensitive) {
+            metadataItems.push(
+                <List.Item.Detail.Metadata.Label
+                    key="sensitive"
+                    title="Sensitive"
+                    text={parseStringToBoolean(thought.sensitive) ? "Yes" : "No"}
+                />,
+                <List.Item.Detail.Metadata.Separator key="sensitive-sep" />
             )
         }
 
@@ -286,6 +308,12 @@ export function ThoughtListItem({
         // Add Priority if set
         if (thought.priority) {
             markdown.push(`**Priority:** P${parseFloat(thought.priority)}`)
+            markdown.push("")
+        }
+
+        // Add Sensitive status if set
+        if (thought.sensitive) {
+            markdown.push(`**Sensitive:** ${parseStringToBoolean(thought.sensitive) ? "Yes" : "No"}`)
             markdown.push("")
         }
 
