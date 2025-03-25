@@ -390,6 +390,7 @@ export default function Find() {
                     createDataset={createDataset}
                     datasets={datasets}
                     isLoadingDatasets={isLoadingDatasets}
+                    isLoadingThoughts={isLoading}
                 />
             ))}
         </List>

@@ -35,11 +35,15 @@ export function ThoughtListItem({
     createDataset,
     datasets,
     isLoadingDatasets,
+    isLoadingThoughts,
     handleDragSelection,
     handleGapSelection
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
+
+    // Determine if we're in any loading state (datasets or thoughts)
+    const isLoading = isLoadingDatasets || isLoadingThoughts
 
     // Create a lookup map for dataset titles
     const datasetMap =
@@ -76,13 +80,37 @@ export function ThoughtListItem({
             ? [
                   // Dataset tags
                   ...(thought.datasets && thought.datasets.length > 0
-                      ? thought.datasets.map(datasetId => ({
-                            tag: {
-                                value: datasetMap[datasetId] || datasetId,
-                                color: Color.SecondaryText
-                            },
-                            tooltip: "Dataset"
-                        }))
+                      ? (thought.datasets
+                            .map(datasetId => {
+                                // Get the dataset title if it exists in our map
+                                const datasetTitle = datasetMap[datasetId]
+
+                                // If we have the title, show it immediately regardless of loading state
+                                if (datasetTitle) {
+                                    return {
+                                        tag: {
+                                            value: datasetTitle,
+                                            color: Color.SecondaryText
+                                        },
+                                        tooltip: "Dataset"
+                                    }
+                                }
+
+                                // If loading datasets or thoughts, don't show invalid tags
+                                if (isLoading) {
+                                    return null
+                                }
+
+                                // If dataset doesn't exist and we're done loading, show as invalid
+                                return {
+                                    tag: {
+                                        value: "Invalid Dataset",
+                                        color: Color.Red
+                                    },
+                                    tooltip: `Invalid dataset ID: ${datasetId}`
+                                }
+                            })
+                            .filter(item => item !== null) as List.Item.Accessory[])
                       : []),
 
                   // Creation date
@@ -121,7 +149,13 @@ export function ThoughtListItem({
             } else if (field === "datasets") {
                 const datasetsText =
                     thought.datasets && thought.datasets.length > 0
-                        ? thought.datasets.map(datasetId => datasetMap[datasetId] || datasetId).join(", ")
+                        ? thought.datasets
+                              .map(datasetId => {
+                                  const datasetTitle = datasetMap[datasetId]
+                                  // Show valid datasets immediately, only show placeholder for unknown datasets when loading
+                                  return datasetTitle || (isLoading ? "..." : "Invalid Dataset")
+                              })
+                              .join(", ")
                         : "-"
 
                 metadataItems.push(
@@ -212,7 +246,13 @@ export function ThoughtListItem({
         markdown.push("")
 
         if (thought.datasets && thought.datasets.length > 0) {
-            const datasetNames = thought.datasets.map(datasetId => datasetMap[datasetId] || datasetId).join(", ")
+            const datasetNames = thought.datasets
+                .map(datasetId => {
+                    const datasetTitle = datasetMap[datasetId]
+                    // Show valid datasets immediately, only show placeholder for unknown datasets when loading
+                    return datasetTitle || (isLoading ? "..." : "Invalid Dataset")
+                })
+                .join(", ")
             markdown.push(`**Datasets:** ${datasetNames}`)
         } else {
             markdown.push(`**Datasets:** -`)

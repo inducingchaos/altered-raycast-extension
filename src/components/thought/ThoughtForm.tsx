@@ -115,14 +115,18 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                         value={selectedDatasets}
                         onChange={setSelectedDatasets}
                     >
-                        {//  we temporarily add orphaned IDS to options so that we can remove them - shouldn't need in Production... throw error or handle otherwise
-
-                        //  to test against this, just add a random ID to datasets when you update a thought
-
-                        [
-                            ...(unfrozenDatasets ? unfrozenDatasets : []),
-                            ...(orphanedThoughtDatasetIDs?.map(id => ({ id, title: id })) ?? [])
-                        ]?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)}
+                        {/* We include orphaned datasets in the dropdown to allow users to identify and remove them */}
+                        {isLoadingDatasets ? (
+                            <Form.TagPicker.Item key="loading" value="loading" title="Loading datasets..." />
+                        ) : (
+                            [
+                                ...(unfrozenDatasets ? unfrozenDatasets : []),
+                                ...(orphanedThoughtDatasetIDs?.map(id => ({
+                                    id,
+                                    title: `Invalid Dataset`
+                                })) ?? [])
+                            ]?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)
+                        )}
                     </Form.TagPicker>
                 )}
             </>

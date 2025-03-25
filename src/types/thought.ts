@@ -49,6 +49,7 @@ export type ThoughtListItemProps = {
     createDataset: (title: string) => Promise<{ title: string; id: string }>
     datasets?: Dataset[]
     isLoadingDatasets: boolean
+    isLoadingThoughts: boolean // Whether thoughts are currently loading/updating
 }
 
 export type ThoughtFormProps = {
