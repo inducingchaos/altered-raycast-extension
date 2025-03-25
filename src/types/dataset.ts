@@ -1,12 +1,13 @@
 export type Dataset = {
     id: string
     title: string
+    description?: string
     createdAt?: string
     thoughts?: string[] // Array of thought IDs
 }
 
 export type DatasetFormProps = {
-    onSubmit: (title: string) => Promise<{ title: string; id: string }>
+    onSubmit: (title: string, description?: string) => Promise<{ title: string; id: string }>
     updateThoughtFormDatasets: (datasets: Dataset[]) => void
     thoughtFormDatasets: Dataset[]
 }

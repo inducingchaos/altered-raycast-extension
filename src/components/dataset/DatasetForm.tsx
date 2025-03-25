@@ -5,12 +5,13 @@ import { DatasetFormProps } from "../../types/dataset"
 export function DatasetForm({ onSubmit, updateThoughtFormDatasets, thoughtFormDatasets }: DatasetFormProps) {
     const { pop } = useNavigation()
     const [title, setTitle] = useState("")
+    const [description, setDescription] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmit = async () => {
         setIsSubmitting(true)
         try {
-            const newDataset = await onSubmit(title)
+            const newDataset = await onSubmit(title, description)
             pop()
             // after relocating the useDatasets hook to the parent, the ThoughtForm component would NOT update the datasets field options even though the ThoughtItemList (parent component) would get them and trigger a useEffect.
             //  We tried pop/push to recreate the form, etc - but ultimately it seems internally memoized???
@@ -42,6 +43,13 @@ export function DatasetForm({ onSubmit, updateThoughtFormDatasets, thoughtFormDa
                 value={title}
                 onChange={setTitle}
                 autoFocus
+            />
+            <Form.TextArea
+                id="description"
+                title="Description"
+                placeholder="Enter dataset description (optional)"
+                value={description}
+                onChange={setDescription}
             />
         </Form>
     )

@@ -23,7 +23,10 @@ export const useDatasets = (searchText?: string) => {
         }
     )
 
-    const createDataset = async (title: string): Promise<{ title: string; id: string }> => {
+    const createDataset = async (
+        title: string,
+        description?: string
+    ): Promise<{ title: string; id: string; description: string }> => {
         setIsOptimistic(true)
         const toast = await showToast({ style: Toast.Style.Animated, title: "Creating dataset..." })
 
@@ -38,7 +41,7 @@ export const useDatasets = (searchText?: string) => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
                 },
-                body: JSON.stringify({ title, id })
+                body: JSON.stringify({ title, id, description })
             })
 
             const response = await mutate(createRequest, {
@@ -47,7 +50,8 @@ export const useDatasets = (searchText?: string) => {
                         ...(data || []),
                         {
                             id,
-                            title
+                            title,
+                            description
                         }
                     ]
 
@@ -94,7 +98,7 @@ export const useDatasets = (searchText?: string) => {
         }
         setIsOptimistic(false)
 
-        return { title, id }
+        return { title, id, description: description ?? "" }
     }
 
     const deleteDataset = async (datasetId: string) => {
@@ -156,7 +160,7 @@ export const useDatasets = (searchText?: string) => {
         setIsOptimistic(false)
     }
 
-    const editDataset = async (datasetId: string, title: string) => {
+    const editDataset = async (datasetId: string, title: string, description?: string) => {
         setIsOptimistic(true)
         const toast = await showToast({ style: Toast.Style.Animated, title: "Updating dataset..." })
 
@@ -167,7 +171,7 @@ export const useDatasets = (searchText?: string) => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
                 },
-                body: JSON.stringify({ title })
+                body: JSON.stringify({ title, description })
             })
 
             const response = await mutate(updateRequest, {
@@ -175,7 +179,7 @@ export const useDatasets = (searchText?: string) => {
                     const datasets = data as Dataset[]
                     return datasets.map(d => {
                         if (d.id === datasetId) {
-                            return { ...d, title }
+                            return { ...d, title, description }
                         }
                         return d
                     })

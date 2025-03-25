@@ -1,13 +1,16 @@
-import { Action, ActionPanel, Alert, Form, Icon, List, showToast, Toast, confirmAlert } from "@raycast/api"
+import { Action, ActionPanel, Alert, Form, Icon, List, showToast, Toast, confirmAlert, Color } from "@raycast/api"
 import { useState } from "react"
 import { useDatasets } from "./hooks/useDatasets"
 import { Dataset } from "./types/dataset"
 import { useNavigation } from "@raycast/api"
 
 // Create dataset form component
-function CreateDatasetForm({ onCreate }: { onCreate: (title: string) => Promise<void> }) {
+function CreateDatasetForm({ onCreate }: { onCreate: (title: string, description?: string) => Promise<void> }) {
     const [title, setTitle] = useState("")
+    const [description, setDescription] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const { pop } = useNavigation()
+
     const handleSubmit = async () => {
         if (!title.trim()) {
             showToast({
@@ -19,7 +22,8 @@ function CreateDatasetForm({ onCreate }: { onCreate: (title: string) => Promise<
 
         setIsLoading(true)
         try {
-            await onCreate(title.trim())
+            await onCreate(title.trim(), description.trim() || undefined)
+            pop()
         } catch (error) {
             console.error("Error in form:", error)
         } finally {
@@ -44,13 +48,27 @@ function CreateDatasetForm({ onCreate }: { onCreate: (title: string) => Promise<
                 onChange={setTitle}
                 autoFocus
             />
+            <Form.TextArea
+                id="description"
+                title="Description"
+                placeholder="Enter dataset description (optional)"
+                value={description}
+                onChange={setDescription}
+            />
         </Form>
     )
 }
 
 // Edit dataset form component
-function EditDatasetForm({ dataset, onEdit }: { dataset: Dataset; onEdit: (id: string, title: string) => Promise<void> }) {
+function EditDatasetForm({
+    dataset,
+    onEdit
+}: {
+    dataset: Dataset
+    onEdit: (id: string, title: string, description?: string) => Promise<void>
+}) {
     const [title, setTitle] = useState(dataset.title)
+    const [description, setDescription] = useState(dataset.description || "")
     const [isLoading, setIsLoading] = useState(false)
 
     const { pop } = useNavigation()
@@ -66,7 +84,7 @@ function EditDatasetForm({ dataset, onEdit }: { dataset: Dataset; onEdit: (id: s
 
         setIsLoading(true)
         try {
-            await onEdit(dataset.id, title.trim())
+            await onEdit(dataset.id, title.trim(), description.trim() || undefined)
         } catch (error) {
             console.error("Error in form:", error)
         } finally {
@@ -91,6 +109,13 @@ function EditDatasetForm({ dataset, onEdit }: { dataset: Dataset; onEdit: (id: s
                 value={title}
                 onChange={setTitle}
                 autoFocus
+            />
+            <Form.TextArea
+                id="description"
+                title="Description"
+                placeholder="Enter dataset description (optional)"
+                value={description}
+                onChange={setDescription}
             />
         </Form>
     )
@@ -117,9 +142,9 @@ export default function Datasets() {
         }
     }
 
-    const handleCreateDataset = async (title: string) => {
+    const handleCreateDataset = async (title: string, description?: string) => {
         try {
-            await createDataset(title)
+            await createDataset(title, description)
             showToast({
                 style: Toast.Style.Success,
                 title: "Dataset created",
@@ -135,9 +160,9 @@ export default function Datasets() {
         }
     }
 
-    const handleEditDataset = async (id: string, title: string) => {
+    const handleEditDataset = async (id: string, title: string, description?: string) => {
         try {
-            await editDataset(id, title)
+            await editDataset(id, title, description)
             showToast({
                 style: Toast.Style.Success,
                 title: "Dataset updated",
@@ -154,7 +179,7 @@ export default function Datasets() {
     }
 
     // Function to get thought count text
-    const getThoughtsSubtitle = (dataset: Dataset): string | undefined => {
+    const getThoughtsCountText = (dataset: Dataset): string | undefined => {
         if (!dataset.thoughts || dataset.thoughts.length === 0) {
             return undefined
         }
@@ -185,16 +210,22 @@ export default function Datasets() {
                 <List.Item
                     key={dataset.id}
                     title={dataset.title}
-                    subtitle={getThoughtsSubtitle(dataset)}
+                    subtitle={dataset.description}
                     accessories={
-                        dataset.createdAt
-                            ? [
-                                  {
+                        [
+                            dataset.thoughts?.length
+                                ? {
+                                      text: { value: getThoughtsCountText(dataset), color: Color.PrimaryText }
+                                  }
+                                : undefined,
+
+                            dataset.createdAt
+                                ? {
                                       date: new Date(dataset.createdAt),
                                       tooltip: "Created on"
                                   }
-                              ]
-                            : []
+                                : undefined
+                        ].filter(Boolean) as { text: { value: string; color: Color } | undefined }[]
                     }
                     actions={
                         <ActionPanel>
