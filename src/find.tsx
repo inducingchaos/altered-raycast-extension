@@ -2,7 +2,7 @@
  *
  */
 
-import { Action, ActionPanel, Detail, List } from "@raycast/api"
+import { Action, ActionPanel, Alert, Detail, List, confirmAlert } from "@raycast/api"
 import { useMemo, useRef, useState } from "react"
 import { FeatureModelSwitcher } from "./components/FeatureModelSwitcher"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
@@ -13,6 +13,20 @@ import { useDatasets } from "./hooks/useDatasets"
 import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
 import { FRONTEND_HIDDEN_FIELDS, getThoughtAlias, isThoughtValidated } from "./utils/thought"
+
+// Helper function to confirm deletion with a destructive alert
+const confirmDelete = async (thought: Thought, onConfirm: () => Promise<void>) => {
+    const alias = getThoughtAlias(thought)
+    await confirmAlert({
+        title: "Delete Thought",
+        message: `Are you sure you want to delete "${alias}"?`,
+        primaryAction: {
+            title: "Delete",
+            style: Alert.ActionStyle.Destructive,
+            onAction: onConfirm
+        }
+    })
+}
 
 export default function Find() {
     const [searchText, setSearchText] = useState("")
@@ -30,6 +44,8 @@ export default function Find() {
         thoughts,
         isLoading,
         handleDeleteThought,
+        executeThoughtDeletion,
+        askBeforeDelete,
         toggleThoughtValidation,
         toggleMassThoughtValidation,
         massThoughtDeletion,
@@ -301,6 +317,47 @@ export default function Find() {
     // add a cmd-d action to deselect all
     // ADD ALL ACTIONS TO THE LIST ITEM, not list
 
+    // Wrapper function to handle deletion with confirmation
+    const onDeleteThought = async (thoughtId: string, forceDelete = false) => {
+        const thought = thoughts?.find(t => t.id === thoughtId)
+        if (!thought) return
+
+        if (askBeforeDelete && !forceDelete) {
+            // Show confirmation dialog if askBeforeDelete is true and we're not forcing deletion
+            await confirmDelete(thought, async () => {
+                await executeThoughtDeletion(thoughtId)
+            })
+        } else {
+            // Delete without confirmation if askBeforeDelete is false or forceDelete is true
+            await handleDeleteThought(thoughtId)
+        }
+    }
+
+    // Wrapper for mass thought deletion with confirmation
+    const onMassDeleteThoughts = async (thoughts: Thought[], forceDelete = false) => {
+        if (thoughts.length === 0) return
+
+        if (askBeforeDelete && !forceDelete) {
+            // Show confirmation for mass deletion if preference is enabled and not forcing deletion
+            await confirmAlert({
+                title: "Delete Multiple Thoughts",
+                message: `Are you sure you want to delete ${thoughts.length} thought${thoughts.length === 1 ? "" : "s"}?`,
+                primaryAction: {
+                    title: "Delete",
+                    style: Alert.ActionStyle.Destructive,
+                    onAction: async () => {
+                        setMassSelection(new Set())
+                        await massThoughtDeletion(thoughts)
+                    }
+                }
+            })
+        } else {
+            // If askBeforeDelete is false or we're forcing deletion, delete directly without confirmation
+            setMassSelection(new Set())
+            await massThoughtDeletion(thoughts)
+        }
+    }
+
     // Create a shared action panel section for feature model switcher
     // Pass the fetched data to the component
     const sharedActionPanel = (
@@ -395,8 +452,8 @@ export default function Find() {
                     toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
                     isSelected={selectedThoughtId === thought.id.toString()}
                     toggleValidation={toggleThoughtValidation}
-                    onDelete={handleDeleteThought}
-                    massThoughtDeletion={massThoughtDeletion}
+                    onDelete={onDeleteThought}
+                    massThoughtDeletion={onMassDeleteThoughts}
                     onEdit={handleEditThought}
                     toggleRawMode={toggleRawMode}
                     toggleLargeTypeMode={toggleLargeTypeMode}

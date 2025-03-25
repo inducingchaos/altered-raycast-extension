@@ -3,11 +3,13 @@ import { useFetch } from "@raycast/utils"
 import { useState } from "react"
 import { Thought, ThoughtFormFields } from "../types/thought"
 import { FRONTEND_HIDDEN_FIELDS, TEMP_PREFIXED_FIELDS } from "../utils/thought"
+import { useBooleanKv } from "./useKv"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
 export const useThoughts = (searchText: string) => {
     const [isOptimistic, setIsOptimistic] = useState(false)
+    const { value: askBeforeDelete } = useBooleanKv("ask-before-delete", true)
 
     const {
         isLoading,
@@ -23,7 +25,14 @@ export const useThoughts = (searchText: string) => {
         }
     )
 
+    // This function will be used by components to trigger a delete with confirmation
     const handleDeleteThought = async (thoughtId: string) => {
+        // Implement the actual deletion logic (moved from below)
+        await executeThoughtDeletion(thoughtId)
+    }
+
+    // The actual implementation of deletion, separated for clarity
+    const executeThoughtDeletion = async (thoughtId: string) => {
         setIsOptimistic(true)
         const toast = await showToast({ style: Toast.Style.Animated, title: "Deleting thought..." })
 
@@ -239,10 +248,10 @@ export const useThoughts = (searchText: string) => {
 
                 // Add TEMP_ prefix for fields that require it
                 if (TEMP_PREFIXED_FIELDS.includes(key)) {
-                    apiFields[`TEMP_${key}`] = value
+                    apiFields[`TEMP_${key}`] = value as string | string[]
                 } else {
                     // Send content and other non-TEMP fields directly
-                    apiFields[key] = value
+                    apiFields[key] = value as string | string[]
                 }
             })
 
@@ -361,6 +370,8 @@ export const useThoughts = (searchText: string) => {
         isLoading,
         isOptimistic,
         handleDeleteThought,
+        executeThoughtDeletion,
+        askBeforeDelete,
         toggleThoughtValidation,
         toggleMassThoughtValidation,
         handleEditThought,

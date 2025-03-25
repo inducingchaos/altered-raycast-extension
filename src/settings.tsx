@@ -4,6 +4,7 @@ import { usePrompts } from "./hooks/usePrompts"
 import { useAiFeatures } from "./hooks/useAiFeatures"
 import { useAiModels, AiModel } from "./hooks/useAiModels"
 import { useToolsPreferences } from "./hooks/useToolsPreferences"
+import { useBooleanKv } from "./hooks/useKv"
 
 export default function Settings() {
     // console.log("Settings component rendering")
@@ -20,6 +21,9 @@ export default function Settings() {
 
     // Get tools preferences
     const { preferences: toolsPreferences, updateToolsPreferences } = useToolsPreferences()
+
+    // Get the ask before delete preference using our new useKv hook
+    const { value: askBeforeDelete, updateValue: updateAskBeforeDelete } = useBooleanKv("ask-before-delete", true)
 
     // Use form key to force re-render when needed
     const [formKey, setFormKey] = useState(0)
@@ -142,7 +146,14 @@ export default function Settings() {
             const autoGenerateAliases = formValues.autoGenerateAliases
             if (autoGenerateAliases !== toolsPreferences.autoGenerateAliases) {
                 await updateToolsPreferences({ autoGenerateAliases: autoGenerateAliases as boolean })
-                toolsUpdateCount = 1
+                toolsUpdateCount += 1
+            }
+
+            // Handle ask before delete preference update
+            const askBeforeDeleteValue = formValues.askBeforeDelete as boolean
+            if (askBeforeDeleteValue !== askBeforeDelete) {
+                await updateAskBeforeDelete(askBeforeDeleteValue)
+                toolsUpdateCount += 1
             }
 
             // Success toast with summary
@@ -271,6 +282,14 @@ export default function Settings() {
                 label="Enable"
                 defaultValue={toolsPreferences.autoGenerateAliases}
                 info="When enabled, the system will automatically generate aliases for your thoughts based on their content."
+            />
+
+            <Form.Checkbox
+                id="askBeforeDelete"
+                title="Ask Before Delete"
+                label="Enable"
+                defaultValue={askBeforeDelete}
+                info="When enabled, you'll be asked to confirm before deleting thoughts."
             />
         </Form>
     )

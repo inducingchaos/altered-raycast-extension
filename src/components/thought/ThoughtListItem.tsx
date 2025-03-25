@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Color, Icon, List } from "@raycast/api"
+import { Action, ActionPanel, Color, Icon, List, Toast, showToast } from "@raycast/api"
 import { ThoughtListItemProps } from "../../types/thought"
 import {
     ALWAYS_VISIBLE_METADATA,
@@ -293,27 +293,58 @@ export function ThoughtListItem({
         return markdown.join("\n")
     }
 
-    // Handle mass deletion
+    // Handle deletion (both single item and mass selection)
     const handleDelete = () => {
         // If there are selected items and this one is selected, handle mass deletion
         if (massSelectionItems.size > 0 && allThoughts) {
-            const selectedIds = Array.from(massSelectionItems)
+            handleMassDelete()
+        } else {
+            // Otherwise, just delete this thought
+            onDelete(thought.id)
+        }
+    }
 
-            // Get the actual thought objects for all selected thoughts
-            const selectedThoughts = allThoughts.filter(t => selectedIds.includes(t.id.toString()))
+    // Force delete bypasses any confirmation
+    const handleForceDelete = () => {
+        // If there are selected items and this one is selected, handle mass deletion
+        if (massSelectionItems.size > 0 && allThoughts) {
+            // Find all the relevant thoughts for mass deletion
+            const selectedThoughts = allThoughts?.filter(t => massSelectionItems.has(t.id.toString())) || []
 
-            // Call onDelete for each selected item as a batch operation
-            // Promise.all(selectedThoughts.map(t => onDelete(t)))
+            if (selectedThoughts.length === 0) {
+                showToast({
+                    style: Toast.Style.Failure,
+                    title: "No thoughts selected",
+                    message: "Select at least one thought to delete"
+                })
+                return
+            }
 
-            massThoughtDeletion(selectedThoughts)
+            // Call massThoughtDeletion with true as second argument to bypass confirmation
+            massThoughtDeletion(selectedThoughts, true)
+        } else {
+            // Pass true as second argument to bypass confirmation for single thought deletion
+            onDelete(thought.id, true)
+        }
+    }
 
-            // Reset mass selection immediately after initiating deletion
-            resetMassSelection()
+    // Handle mass deletion
+    const handleMassDelete = () => {
+        // Find all the relevant thoughts for mass deletion
+        const selectedThoughts = allThoughts?.filter(t => massSelectionItems.has(t.id.toString())) || []
+
+        if (selectedThoughts.length === 0) {
+            showToast({
+                style: Toast.Style.Failure,
+                title: "No thoughts selected",
+                message: "Select at least one thought to delete"
+            })
             return
         }
 
-        // Otherwise, just delete this thought
-        onDelete(thought.id)
+        // Call massThoughtDeletion directly - no confirmation here as it will happen in the parent
+        massThoughtDeletion(selectedThoughts)
+        // Don't reset selection here - let the parent handle it after confirmation
     }
 
     // Handle mass validation/invalidation
@@ -498,8 +529,15 @@ export function ThoughtListItem({
                         title={massSelectionItems.size > 0 && isMassSelected ? "Delete Selected" : "Delete Thought"}
                         icon={Icon.Trash}
                         style={Action.Style.Destructive}
-                        shortcut={{ modifiers: ["opt"], key: "x" }}
+                        shortcut={{ modifiers: ["cmd"], key: "backspace" }}
                         onAction={handleDelete}
+                    />
+                    <Action
+                        title={massSelectionItems.size > 0 && isMassSelected ? "Force Delete Selected" : "Force Delete Thought"}
+                        icon={Icon.Trash}
+                        style={Action.Style.Destructive}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "backspace" }}
+                        onAction={handleForceDelete}
                     />
                 </ActionPanel>
             }
