@@ -170,7 +170,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                             // double check logic
                             const num = parseFloat(priority)
                             if (priority === "") {
-                                setErrorMap(prev => ({ ...prev, priority: "Priority is required" }))
+                                setErrorMap(prev => ({ ...prev, priority: null }))
                             } else if (!isNaN(num) && num >= 0 && num <= 10) {
                                 setErrorMap(prev => ({ ...prev, priority: null }))
                             } else if (isNaN(num)) {
