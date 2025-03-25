@@ -50,6 +50,7 @@ export type ThoughtListItemProps = {
     datasets?: Dataset[]
     isLoadingDatasets: boolean
     isLoadingThoughts: boolean // Whether thoughts are currently loading/updating
+    sharedActionPanel?: React.ReactNode // Shared action panel section to reuse across items
 }
 
 export type ThoughtFormProps = {

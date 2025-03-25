@@ -1,7 +1,7 @@
 import { ActionPanel, Action, Icon } from "@raycast/api"
 import { useMemo } from "react"
-import { useAiFeatures } from "../hooks/useAiFeatures"
-import { useAiModels } from "../hooks/useAiModels"
+import { AiFeature } from "../hooks/useAiFeatures"
+import { AiModel } from "../hooks/useAiModels"
 
 // Custom icon mapping for different features
 const getFeatureIcon = (featureId: string) => {
@@ -17,10 +17,21 @@ const getFeatureIcon = (featureId: string) => {
     }
 }
 
-export function FeatureModelSwitcher() {
-    const { features, isUpdatingFeature, updateFeatureModel } = useAiFeatures()
-    const { models, isLoading: isLoadingModels } = useAiModels()
+interface FeatureModelSwitcherProps {
+    features: AiFeature[]
+    isUpdatingFeature: (featureId: string) => boolean
+    updateFeatureModel: (featureId: string, modelId: string | null) => Promise<void>
+    models: AiModel[]
+    isLoadingModels: boolean
+}
 
+export function FeatureModelSwitcher({
+    features,
+    isUpdatingFeature,
+    updateFeatureModel,
+    models,
+    isLoadingModels
+}: FeatureModelSwitcherProps) {
     // Group models by provider for better organization
     const modelsByProvider = useMemo(() => {
         const grouped: Record<string, typeof models> = {}

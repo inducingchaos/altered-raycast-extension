@@ -4,8 +4,11 @@
 
 import { Action, ActionPanel, Detail, List } from "@raycast/api"
 import { useMemo, useRef, useState } from "react"
+import { FeatureModelSwitcher } from "./components/FeatureModelSwitcher"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
 import { changeSelection } from "./find/select-without-spazzing"
+import { useAiFeatures } from "./hooks/useAiFeatures"
+import { useAiModels } from "./hooks/useAiModels"
 import { useDatasets } from "./hooks/useDatasets"
 import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
@@ -15,6 +18,9 @@ export default function Find() {
     const [searchText, setSearchText] = useState("")
     const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
     const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)
+
+    const aiFeatures = useAiFeatures()
+    const aiModels = useAiModels()
 
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
@@ -288,6 +294,20 @@ export default function Find() {
     // add a cmd-d action to deselect all
     // ADD ALL ACTIONS TO THE LIST ITEM, not list
 
+    // Create a shared action panel section for feature model switcher
+    // Pass the fetched data to the component
+    const sharedActionPanel = (
+        <ActionPanel.Section title="Preferences">
+            <FeatureModelSwitcher
+                features={aiFeatures.features}
+                isUpdatingFeature={aiFeatures.isUpdatingFeature}
+                updateFeatureModel={aiFeatures.updateFeatureModel}
+                models={aiModels.models}
+                isLoadingModels={aiModels.isLoading}
+            />
+        </ActionPanel.Section>
+    )
+
     if (isLargeTypeMode && selectedThought) {
         return (
             <Detail
@@ -391,6 +411,7 @@ export default function Find() {
                     datasets={datasets}
                     isLoadingDatasets={isLoadingDatasets}
                     isLoadingThoughts={isLoading}
+                    sharedActionPanel={sharedActionPanel}
                 />
             ))}
         </List>

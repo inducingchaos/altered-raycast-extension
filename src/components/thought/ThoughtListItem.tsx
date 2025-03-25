@@ -9,7 +9,6 @@ import {
     isThoughtValidated
 } from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
-import { FeatureModelSwitcher } from "../FeatureModelSwitcher"
 
 export function ThoughtListItem({
     thought,
@@ -37,7 +36,8 @@ export function ThoughtListItem({
     isLoadingDatasets,
     isLoadingThoughts,
     handleDragSelection,
-    handleGapSelection
+    handleGapSelection,
+    sharedActionPanel
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -469,9 +469,7 @@ export function ThoughtListItem({
                             )}
                         </>
                     )}
-                    <ActionPanel.Section title="Preferences">
-                        <FeatureModelSwitcher />
-                    </ActionPanel.Section>
+                    {sharedActionPanel}
                     <Action
                         title={getValidationActionTitle()}
                         icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}
