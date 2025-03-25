@@ -212,11 +212,16 @@ export default function Find() {
     // if ALL target items are already selected, we toggle them, INCLUDING the previous item
 
     const handleGapSelection = () => {
-        if (!filteredThoughts || !selectedThoughtId || !lastSelectedItemId) return
+        if (!filteredThoughts || !selectedThoughtId) return
+
+        // If no lastSelectedItemId, use the first thought in the list
+        const effectiveLastSelectedId =
+            lastSelectedItemId || (filteredThoughts.length > 0 ? filteredThoughts[0].id.toString() : null)
+        if (!effectiveLastSelectedId) return
 
         // Find indices of current and last selected items
         const currentIndex = filteredThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
-        const lastIndex = filteredThoughts.findIndex(thought => thought.id.toString() === lastSelectedItemId)
+        const lastIndex = filteredThoughts.findIndex(thought => thought.id.toString() === effectiveLastSelectedId)
 
         if (currentIndex === -1 || lastIndex === -1) return
 
