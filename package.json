@@ -88,6 +88,13 @@
             "subtitle": "ALTERED Developer",
             "description": "A command for running scripts and implementation code.",
             "mode": "no-view"
+        },
+        {
+            "name": "datasets",
+            "title": "Datasets",
+            "subtitle": "ALTERED Datasets",
+            "description": "Manage your datasets - create, edit, and delete datasets.",
+            "mode": "view"
         }
     ],
     "preferences": [

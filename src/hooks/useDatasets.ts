@@ -97,10 +97,137 @@ export const useDatasets = (searchText?: string) => {
         return { title, id }
     }
 
+    const deleteDataset = async (datasetId: string) => {
+        setIsOptimistic(true)
+        const toast = await showToast({ style: Toast.Style.Animated, title: "Deleting dataset..." })
+
+        try {
+            const deleteRequest = fetch(`${DEV_BASE_URL}/api/datasets/${datasetId}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+                }
+            })
+
+            const response = await mutate(deleteRequest, {
+                optimisticUpdate(data) {
+                    const datasets = data as Dataset[]
+                    return datasets.filter(d => d.id !== datasetId)
+                }
+            })
+
+            if (!response.ok) {
+                // Parse error response in detail
+                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }))
+                console.error("API Error Response:", errorData)
+
+                // Extract detailed error information
+                const errorMessage = errorData.message || `Failed with status ${response.status}`
+                const errorDetails = errorData.error
+                    ? typeof errorData.error === "string"
+                        ? errorData.error
+                        : JSON.stringify(errorData.error, null, 2)
+                    : ""
+
+                throw new Error(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ""}`)
+            }
+
+            toast.style = Toast.Style.Success
+            toast.title = "Dataset deleted"
+        } catch (error) {
+            console.error("Error deleting dataset:", error)
+
+            toast.style = Toast.Style.Failure
+            toast.title = "Failed to delete dataset"
+            toast.message = error instanceof Error ? error.message : String(error)
+            toast.primaryAction = {
+                title: "View Details",
+                onAction: () => {
+                    showToast({
+                        style: Toast.Style.Failure,
+                        title: "Error Details",
+                        message: error instanceof Error ? error.message : String(error)
+                    })
+                }
+            }
+
+            throw error
+        }
+        setIsOptimistic(false)
+    }
+
+    const editDataset = async (datasetId: string, title: string) => {
+        setIsOptimistic(true)
+        const toast = await showToast({ style: Toast.Style.Animated, title: "Updating dataset..." })
+
+        try {
+            const updateRequest = fetch(`${DEV_BASE_URL}/api/datasets/${datasetId}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
+                },
+                body: JSON.stringify({ title })
+            })
+
+            const response = await mutate(updateRequest, {
+                optimisticUpdate(data) {
+                    const datasets = data as Dataset[]
+                    return datasets.map(d => {
+                        if (d.id === datasetId) {
+                            return { ...d, title }
+                        }
+                        return d
+                    })
+                }
+            })
+
+            if (!response.ok) {
+                // Parse error response in detail
+                const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` }))
+                console.error("API Error Response:", errorData)
+
+                // Extract detailed error information
+                const errorMessage = errorData.message || `Failed with status ${response.status}`
+                const errorDetails = errorData.error
+                    ? typeof errorData.error === "string"
+                        ? errorData.error
+                        : JSON.stringify(errorData.error, null, 2)
+                    : ""
+
+                throw new Error(`${errorMessage}${errorDetails ? `\n\nDetails: ${errorDetails}` : ""}`)
+            }
+
+            toast.style = Toast.Style.Success
+            toast.title = "Dataset updated"
+        } catch (error) {
+            console.error("Error updating dataset:", error)
+
+            toast.style = Toast.Style.Failure
+            toast.title = "Failed to update dataset"
+            toast.message = error instanceof Error ? error.message : String(error)
+            toast.primaryAction = {
+                title: "View Details",
+                onAction: () => {
+                    showToast({
+                        style: Toast.Style.Failure,
+                        title: "Error Details",
+                        message: error instanceof Error ? error.message : String(error)
+                    })
+                }
+            }
+
+            throw error
+        }
+        setIsOptimistic(false)
+    }
+
     return {
         datasets,
         isLoading,
         createDataset,
+        deleteDataset,
+        editDataset,
         revalidateDatasets: mutate
     }
 }

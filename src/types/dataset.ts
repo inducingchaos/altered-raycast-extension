@@ -1,6 +1,8 @@
 export type Dataset = {
     id: string
     title: string
+    createdAt?: string
+    thoughts?: string[] // Array of thought IDs
 }
 
 export type DatasetFormProps = {
