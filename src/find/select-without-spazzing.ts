@@ -13,7 +13,7 @@ export function changeSelection({
     setSelectedItemId: Dispatch<SetStateAction<string | null>>
     selectedItemIdUpdatedAt: MutableRefObject<number | undefined>
 }): void {
-    if (!selectedItemId) throw new Error("'Null' item selected - handle this edge case.")
+    if (!selectedItemId) return
 
     // we really shouldn't need this - again this is caused by the "onSelectionChange" detecting our manual selection and re-selecting the PREV item because using stale state (maybe using a ref would fix this? - but wouldn't trigger a re-render?)
     // THIS was introduced to the Find cmd when we added the drag-select feature - had to increase from 50 -150
