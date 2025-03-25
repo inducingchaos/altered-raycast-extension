@@ -108,11 +108,11 @@ export default function Find() {
 
         // we need to do a more comprehensive check than just length since we could change the filter and have the same number of thoughts
 
-        if (allThoughtsMassSelected) {
-            setMassSelection(new Set())
-        } else {
-            setMassSelection(new Set(filteredThoughts?.map(thought => thought.id) || []))
-        }
+        // if (allThoughtsMassSelected) {
+        //     setMassSelection(new Set())
+        // } else {
+        setMassSelection(new Set(filteredThoughts?.map(thought => thought.id) || []))
+        // }
     }
 
     // Get the selected thought for raw view

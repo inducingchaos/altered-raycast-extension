@@ -436,10 +436,10 @@ export function ThoughtListItem({
                     />
                     {globalActions && (
                         <Action
-                            title="Validate All Visible Thoughts"
-                            icon={Icon.CheckCircle}
-                            shortcut={{ modifiers: ["cmd"], key: "v" }}
-                            onAction={globalActions.validateAllThoughts}
+                            title="Deselect All"
+                            icon={Icon.XMarkCircle}
+                            shortcut={{ modifiers: ["cmd", "shift"], key: "d" }}
+                            onAction={resetMassSelection}
                         />
                     )}
                     <Action
@@ -522,7 +522,7 @@ export function ThoughtListItem({
                     <Action
                         title={getValidationActionTitle()}
                         icon={isValidated ? Icon.XMarkCircle : Icon.CheckCircle}
-                        shortcut={{ modifiers: ["opt"], key: "v" }}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "v" }}
                         onAction={handleValidation}
                     />
                     <Action
