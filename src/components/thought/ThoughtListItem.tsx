@@ -78,6 +78,18 @@ export function ThoughtListItem({
     const accessories =
         inspectorVisibility === "hidden"
             ? [
+                  // Priority tag if set
+                  ...(thought.priority
+                      ? [
+                            {
+                                text: {
+                                    value: `P${parseFloat(thought.priority)}`,
+                                    color: Color.PrimaryText
+                                },
+                                tooltip: "Priority Level"
+                            }
+                        ]
+                      : []),
                   // Dataset tags
                   ...(thought.datasets && thought.datasets.length > 0
                       ? (thought.datasets
@@ -141,6 +153,14 @@ export function ThoughtListItem({
             metadataItems.push(
                 <List.Item.Detail.Metadata.Label key="devNotes" title="Dev Notes" text={thought.devNotes} />,
                 <List.Item.Detail.Metadata.Separator key="devNotes-sep" />
+            )
+        }
+
+        // Add Priority if set
+        if (thought.priority) {
+            metadataItems.push(
+                <List.Item.Detail.Metadata.Label key="priority" title="Priority" text={`P${parseFloat(thought.priority)}`} />,
+                <List.Item.Detail.Metadata.Separator key="priority-sep" />
             )
         }
 
@@ -263,6 +283,12 @@ export function ThoughtListItem({
         markdown.push("\n")
         markdown.push("")
 
+        // Add Priority if set
+        if (thought.priority) {
+            markdown.push(`**Priority:** P${parseFloat(thought.priority)}`)
+            markdown.push("")
+        }
+
         if (thought.datasets && thought.datasets.length > 0) {
             const datasetNames = thought.datasets
                 .map(datasetId => {
@@ -281,7 +307,7 @@ export function ThoughtListItem({
         Object.entries(thought).forEach(([key, value]) => {
             if (
                 !FRONTEND_HIDDEN_FIELDS.includes(key) &&
-                !["content", "alias", "validated", "datasets"].includes(key) &&
+                !["content", "alias", "validated", "datasets", "devNotes", "priority"].includes(key) &&
                 value !== null &&
                 value !== undefined
             ) {

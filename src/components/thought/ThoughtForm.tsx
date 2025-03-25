@@ -16,6 +16,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
     const [devNotes, setDevNotes] = useState((thought["devNotes"] as string) || "")
     const [alias, setAlias] = useState(getThoughtAlias(thought))
     const [selectedDatasets, setSelectedDatasets] = useState<string[]>(thought.datasets ?? [])
+    const [priority, setPriority] = useState<string>(thought.priority ?? "")
 
     // Create state for custom fields
     const [customFields, setCustomFields] = useState<Record<string, string>>({})
@@ -34,7 +35,8 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                     "alias",
                     "validated",
                     "datasets",
-                    "devNotes"
+                    "devNotes",
+                    "priority"
                 ].includes(key) &&
                 !FRONTEND_HIDDEN_FIELDS.includes(key) &&
                 value !== null &&
@@ -57,6 +59,7 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                 devNotes,
                 validated: validateOnSave ? "true" : "false",
                 datasets: selectedDatasets,
+                priority,
                 // Add any custom fields
                 ...Object.entries(customFields).reduce(
                     (acc, [key, value]) => {
@@ -101,6 +104,8 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
         setUnfrozenDatasets(datasets)
     }, [datasets])
 
+    const [errorMap, setErrorMap] = useState<Record<string, string | null>>({})
+
     // Determine which fields to render based on ALWAYS_VISIBLE_METADATA
     const renderFormFields = () => {
         return (
@@ -144,6 +149,35 @@ export function ThoughtForm({ thought, onSubmit, createDataset, datasets, isLoad
                             ]?.map(dataset => <Form.TagPicker.Item key={dataset.id} value={dataset.id} title={dataset.title} />)
                         )}
                     </Form.TagPicker>
+                )}
+
+                {ALWAYS_VISIBLE_METADATA.includes("priority") && (
+                    <Form.TextField
+                        id="priority"
+                        title="Priority"
+                        placeholder="0-10 (e.g. 9.3)"
+                        value={priority?.toString() ?? ""}
+                        onChange={setPriority}
+                        error={errorMap.priority ?? undefined}
+                        onFocus={() => {
+                            setErrorMap(prev => ({ ...prev, priority: null }))
+                        }}
+                        onBlur={() => {
+                            // double check logic
+                            const num = parseFloat(priority)
+                            if (priority === "") {
+                                setErrorMap(prev => ({ ...prev, priority: "Priority is required" }))
+                            } else if (!isNaN(num) && num >= 0 && num <= 10) {
+                                setErrorMap(prev => ({ ...prev, priority: null }))
+                            } else if (isNaN(num)) {
+                                setErrorMap(prev => ({ ...prev, priority: "Priority must be a number" }))
+                            } else if (num.toFixed(1) !== num.toString() || num.toString().length > 3) {
+                                setErrorMap(prev => ({ ...prev, priority: "Priority must be a single decimal place" }))
+                            } else {
+                                setErrorMap(prev => ({ ...prev, priority: "Priority must be between 0 and 10" }))
+                            }
+                        }}
+                    />
                 )}
             </>
         )

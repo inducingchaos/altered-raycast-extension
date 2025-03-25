@@ -10,6 +10,7 @@ export type Thought = {
     datasets?: string[] // Array of dataset IDs
     validated?: string // Should always be "true" or "false" string
     devNotes?: string // Developer notes about the thought
+    priority?: string // Priority level (0-10)
     // Dynamic key-value pairs appended to the thought object
     [key: string]: string | number | Date | null | boolean | string[] | undefined
 }
@@ -20,6 +21,7 @@ export type ThoughtFormFields = {
     validated: string // Always "true" or "false" as a string
     datasets: string[]
     devNotes?: string // Developer notes about the thought
+    priority?: string // Priority level (1-5)
     [key: string]: string | string[] | undefined // Other custom fields
 }
 

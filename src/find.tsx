@@ -141,6 +141,11 @@ export default function Find() {
         markdown.push(`**Updated:** ${new Date(thought.updatedAt).toLocaleString()}`)
         markdown.push(`**Validated:** ${isThoughtValidated(thought) ? "Yes" : "No"}`)
 
+        // Add Priority if set
+        if (thought.priority) {
+            markdown.push(`**Priority:** P${thought.priority}`)
+        }
+
         if (thought.datasets && thought.datasets.length > 0) {
             const datasetNames = thought.datasets
                 .map((datasetId: string) => {
@@ -157,7 +162,7 @@ export default function Find() {
         Object.entries(thought).forEach(([key, value]) => {
             if (
                 !FRONTEND_HIDDEN_FIELDS.includes(key) &&
-                !["content", "alias", "validated", "datasets", "devNotes"].includes(key) &&
+                !["content", "alias", "validated", "datasets", "devNotes", "priority"].includes(key) &&
                 value !== null &&
                 value !== undefined
             ) {
