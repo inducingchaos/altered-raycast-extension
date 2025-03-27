@@ -1,22 +1,14 @@
-import { List } from "@raycast/api"
+import { List, ActionPanel, Action } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
 import { useState, useMemo } from "react"
+import SubCategoryView from "./subcategory-view"
 
 interface Category {
     type: string
     id: string
     attributes: {
-        _id: string
-        name:
-            | Array<{
-                  value: string
-                  languageCode: string
-              }>
-            | string
-        fimId?: string
-        aimsId?: string
-        parentId?: string
-        parentAimsId?: string
+        name: string | { value: string; languageCode: string }[]
+        parentId: string
     }
 }
 
@@ -52,16 +44,14 @@ export default function OrderParts() {
         const categoryMap = new Map(data.data.map(cat => [cat.id, cat]))
 
         // Create a set of all parent IDs that are referenced
-        const referencedParentIds = new Set(
-            data.data.map(cat => cat.attributes.parentId || cat.attributes.parentAimsId).filter((id): id is string => !!id)
-        )
+        const referencedParentIds = new Set(data.data.map(cat => cat.attributes.parentId).filter((id): id is string => !!id))
 
         // Find true parent categories (ones that are referenced but aren't children)
         const parentCategories = new Map<string, Category>()
         const childCategories = new Map<string, Category[]>()
 
         data.data.forEach(category => {
-            const parentId = category.attributes.parentId || category.attributes.parentAimsId
+            const parentId = category.attributes.parentId
             if (parentId) {
                 // This is a child category
                 if (!childCategories.has(parentId)) {
@@ -119,7 +109,27 @@ export default function OrderParts() {
                                           (n: { value: string; languageCode: string }) => n.languageCode === "en"
                                       )?.value || ""
                             }
-                            subtitle={category.attributes.aimsId}
+                            actions={
+                                <ActionPanel>
+                                    <Action.Push
+                                        title="View Subcategories"
+                                        target={
+                                            <SubCategoryView
+                                                categoryId={category.id}
+                                                categoryName={
+                                                    typeof category.attributes.name === "string"
+                                                        ? category.attributes.name
+                                                        : category.attributes.name.find(
+                                                              (n: { value: string; languageCode: string }) =>
+                                                                  n.languageCode === "en"
+                                                          )?.value || ""
+                                                }
+                                                categories={data?.data || []}
+                                            />
+                                        }
+                                    />
+                                </ActionPanel>
+                            }
                         />
                     ))}
                 </List.Section>
