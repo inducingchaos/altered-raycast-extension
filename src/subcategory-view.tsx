@@ -1,5 +1,6 @@
-import { List } from "@raycast/api"
+import { List, ActionPanel, Action } from "@raycast/api"
 import { useState, useMemo } from "react"
+import ProductGrid from "./product-grid"
 
 interface Category {
     type: string
@@ -34,7 +35,18 @@ export default function SubCategoryView({ categoryId, categoryName, categories }
     return (
         <List searchText={searchText} onSearchTextChange={setSearchText} filtering={true} navigationTitle={categoryName}>
             {items.map(item => (
-                <List.Item key={item.id} title={item.title} />
+                <List.Item
+                    key={item.id}
+                    title={item.title}
+                    actions={
+                        <ActionPanel>
+                            <Action.Push
+                                title="View Products"
+                                target={<ProductGrid categoryId={item.id} categoryName={item.title} />}
+                            />
+                        </ActionPanel>
+                    }
+                />
             ))}
         </List>
     )
