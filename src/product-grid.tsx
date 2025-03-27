@@ -105,6 +105,8 @@ export default function ProductGrid({ categoryId, categoryName }: ProductGridPro
                         actions={
                             <ActionPanel>
                                 <Action.Push title="View Details" target={<ProductDetail product={product} />} />
+                                <Action title="Add to Cart" />
+                                <Action title="Order Now" style={Action.Style.Destructive} />
                             </ActionPanel>
                         }
                     />
