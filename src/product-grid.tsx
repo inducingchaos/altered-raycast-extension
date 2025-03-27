@@ -1,6 +1,7 @@
-import { Grid } from "@raycast/api"
+import { Grid, ActionPanel, Action } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
 import { useState } from "react"
+import ProductDetail from "./product-detail"
 
 interface Product {
     type: string
@@ -8,8 +9,10 @@ interface Product {
     attributes: {
         title: { value: string; languageCode: string }[]
         shortDescription: { value: string; languageCode: string }[]
+        longDescription: { value: string; languageCode: string }[]
         manufacturerName: string
         distributorPartNumber: string
+        manufacturerPartNumber: string
         images: {
             name: string
             sources: {
@@ -21,6 +24,14 @@ interface Product {
             warehouseCode: string
             quantity: number
         }[]
+        dealerPrice: number
+        retailPrice: number
+        clearancePrice: number
+        flyerPrice: number
+        FXSurcharge: number
+        unitOfMeasure: string
+        cataloguePageNum: string
+        isDiscontinued: boolean
     }
 }
 
@@ -51,6 +62,7 @@ export default function ProductGrid({ categoryId, categoryName }: ProductGridPro
             }).toString(),
         {
             headers: {
+                // spell-checker: disable
                 cookie: "_ga=GA1.1.153569863.1743100735; x-session-id=a83f59fc-86df-4a0a-9476-be7a7ab73569; _ga_VV7YBBZ886=GS1.1.1743100735.1.1.1743101312.0.0.0"
             },
             keepPreviousData: true
@@ -90,6 +102,11 @@ export default function ProductGrid({ categoryId, categoryName }: ProductGridPro
                         content={imageUrl}
                         title={title}
                         subtitle={`${product.attributes.manufacturerName} - ${product.attributes.distributorPartNumber} (${totalStock} in stock)`}
+                        actions={
+                            <ActionPanel>
+                                <Action.Push title="View Details" target={<ProductDetail product={product} />} />
+                            </ActionPanel>
+                        }
                     />
                 )
             })}
