@@ -95,6 +95,13 @@
             "subtitle": "ALTERED Datasets",
             "description": "Manage your datasets - create, edit, and delete datasets.",
             "mode": "view"
+        },
+        {
+            "name": "order-parts",
+            "title": "Order Parts",
+            "subtitle": "RV Parts Ordering",
+            "description": "Browse and order RV parts from Atlas Trailer.",
+            "mode": "view"
         }
     ],
     "preferences": [
