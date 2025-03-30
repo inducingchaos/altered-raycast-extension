@@ -102,6 +102,12 @@
             "subtitle": "RV Parts Ordering",
             "description": "Browse and order RV parts from Atlas Trailer.",
             "mode": "view"
+        },
+        {
+            "name": "create-work-order",
+            "title": "Create Work Order",
+            "description": "Create a new work order for trailer service",
+            "mode": "view"
         }
     ],
     "preferences": [
