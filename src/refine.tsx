@@ -6,7 +6,7 @@ import { Action, ActionPanel, Alert, Detail, List, confirmAlert } from "@raycast
 import { useMemo, useRef, useState } from "react"
 import { FeatureModelSwitcher } from "./components/FeatureModelSwitcher"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
-import { changeSelection } from "./find/select-without-spazzing"
+import { changeSelection } from "./refine/select-without-spazzing"
 import { useAiFeatures } from "./hooks/useAiFeatures"
 import { useAiModels } from "./hooks/useAiModels"
 import { useDatasets } from "./hooks/useDatasets"
@@ -28,7 +28,7 @@ const confirmDelete = async (thought: Thought, onConfirm: () => Promise<void>) =
     })
 }
 
-export default function Find() {
+export default function Refine() {
     const [searchText, setSearchText] = useState("")
     const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
     const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)

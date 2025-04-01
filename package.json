@@ -25,10 +25,10 @@
             "mode": "view"
         },
         {
-            "name": "find",
-            "title": "Find",
-            "subtitle": "ALTERED Find",
-            "description": "Provides an interface for finding thoughts for your ALTERED brain.",
+            "name": "refine",
+            "title": "Refine Your Knowledge",
+            "subtitle": "ALTERED Refine",
+            "description": "Provides an interface for drafting and refining thoughts for your ALTERED brain.",
             "mode": "view"
         },
         {
