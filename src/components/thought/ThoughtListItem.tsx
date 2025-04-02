@@ -526,16 +526,16 @@ export function ThoughtListItem({
                         onAction={toggleMassSelection}
                     />
 
-                    {/* This action is the one we should use for drag-selecting thoughts */}
+                    {/* Update titles and descriptions for drag actions */}
                     <Action
-                        title="Select Next Thought"
+                        title={massSelectionItems.size > 0 ? "Select Next Thought" : "Move Thought Down"}
                         icon={Icon.ArrowDown}
                         shortcut={{ modifiers: ["shift"], key: "arrowDown" }}
                         onAction={() => handleDragSelection?.("down")}
                     />
 
                     <Action
-                        title="Select Previous Thought"
+                        title={massSelectionItems.size > 0 ? "Select Previous Thought" : "Move Thought Up"}
                         icon={Icon.ArrowUp}
                         shortcut={{ modifiers: ["shift"], key: "arrowUp" }}
                         onAction={() => handleDragSelection?.("up")}

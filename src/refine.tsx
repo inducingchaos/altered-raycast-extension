@@ -2,7 +2,7 @@
  *
  */
 
-import { Action, ActionPanel, Alert, Detail, List, confirmAlert } from "@raycast/api"
+import { Action, ActionPanel, Alert, Detail, List, confirmAlert, showToast, Toast } from "@raycast/api"
 import { useMemo, useRef, useState } from "react"
 import { FeatureModelSwitcher } from "./components/FeatureModelSwitcher"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
@@ -13,6 +13,7 @@ import { useDatasets } from "./hooks/useDatasets"
 import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
 import { FRONTEND_HIDDEN_FIELDS, getThoughtAlias, isThoughtValidated } from "./utils/thought"
+import { useDatasetSorting } from "./hooks/useDatasetSorting"
 
 // Helper function to confirm deletion with a destructive alert
 const confirmDelete = async (thought: Thought, onConfirm: () => Promise<void>) => {
@@ -182,46 +183,116 @@ export default function Refine() {
         [validateAllThoughts]
     )
 
-    const handleDragSelection = (direction: "up" | "down") => {
-        if (!filteredThoughts || !selectedThoughtId) return
+    // Get current dataset ID from filter
+    const currentDatasetId = useMemo(() => {
+        if (!filter.startsWith("dataset-")) return undefined
+        return filter.replace("dataset-", "")
+    }, [filter])
 
-        const now = Date.now()
-        if (selectedThoughtIdUpdatedAt.current && now - selectedThoughtIdUpdatedAt.current < 150) return
+    // Add dataset sorting hook
+    const { getSortedThoughts, updateSorting, isLoading: isLoadingSorting } = useDatasetSorting(currentDatasetId)
 
-        // Find the current index of the selected thought
-        const currentIndex = filteredThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
-        if (currentIndex === -1) return
+    // Apply sorting to filtered thoughts
+    const sortedThoughts = useMemo(() => {
+        if (!currentDatasetId) return filteredThoughts
+        return getSortedThoughts(filteredThoughts)
+    }, [currentDatasetId, filteredThoughts, getSortedThoughts])
 
-        // Calculate the target index based on direction
-        const targetIndex =
-            direction === "up" ? Math.max(0, currentIndex - 1) : Math.min(filteredThoughts.length - 1, currentIndex + 1)
-
-        // Get the target thought
-        const targetThought = filteredThoughts[targetIndex]
-        if (!targetThought) return
-
-        // Update the selected item ID to the target
-        onSelectionChange(targetThought.id.toString())
-
-        // Apply the last selection action to both current and target items
-        const newMassSelection = new Set(massSelection)
-
-        // Apply the action based on the last selection type
-        if (lastSelectionAction === "select") {
-            // If the last action was select, add both current and target items
-            if (selectedThoughtId) newMassSelection.add(selectedThoughtId)
-            newMassSelection.add(targetThought.id.toString())
-        } else {
-            // If the last action was deselect, remove both current and target items
-            if (selectedThoughtId) newMassSelection.delete(selectedThoughtId)
-            newMassSelection.delete(targetThought.id.toString())
+    // Add handler for drag reordering
+    const handleDragReorder = async (direction: "up" | "down") => {
+        if (!currentDatasetId) {
+            showToast({
+                style: Toast.Style.Failure,
+                title: "Cannot reorder thoughts",
+                message: "Global thought reordering is not yet implemented. Please select a dataset first."
+            })
+            return
+        }
+        if (!sortedThoughts) {
+            console.log("No sorted thoughts available")
+            return
+        }
+        if (!selectedThoughtId) {
+            console.log("No thought selected")
+            return
+        }
+        if (massSelection.size > 0) {
+            console.log("Mass selection active")
+            return
         }
 
-        // Update the mass selection
-        setMassSelection(newMassSelection)
+        const currentIndex = sortedThoughts.findIndex(t => t.id === selectedThoughtId)
+        if (currentIndex === -1) {
+            console.log("Selected thought not found in sorted thoughts")
+            return
+        }
 
-        // Update the last selected item
-        setLastSelectedItemId(targetThought.id.toString())
+        const newIndex =
+            direction === "up" ? Math.max(0, currentIndex - 1) : Math.min(sortedThoughts.length - 1, currentIndex + 1)
+
+        // Create new array with reordered thoughts
+        const newThoughts = [...sortedThoughts]
+        const [thought] = newThoughts.splice(currentIndex, 1)
+        newThoughts.splice(newIndex, 0, thought)
+
+        try {
+            // Update sorting
+            await updateSorting(newThoughts.map(t => t.id))
+        } catch (error) {
+            console.error("Failed to update sorting:", error)
+            throw error
+        }
+    }
+
+    // Modify the existing handleDragSelection to incorporate reordering
+    const handleDragSelection = (direction: "up" | "down") => {
+        if (massSelection.size > 0) {
+            // Existing drag-select logic
+            const now = Date.now()
+            if (selectedThoughtIdUpdatedAt.current && now - selectedThoughtIdUpdatedAt.current < 150) return
+
+            // Find the current index of the selected thought
+            const currentIndex = sortedThoughts?.findIndex(thought => thought.id.toString() === selectedThoughtId)
+            if (currentIndex === undefined || currentIndex === -1) return
+
+            // Calculate the target index based on direction
+            const targetIndex =
+                direction === "up"
+                    ? Math.max(0, currentIndex - 1)
+                    : Math.min((sortedThoughts?.length || 0) - 1, currentIndex + 1)
+
+            // Get the target thought
+            const targetThought = sortedThoughts?.[targetIndex]
+            if (!targetThought) return
+
+            // Update the selected item ID to the target
+            onSelectionChange(targetThought.id.toString())
+
+            // Apply the last selection action to both current and target items
+            const newMassSelection = new Set(massSelection)
+
+            // Apply the action based on the last selection type
+            if (lastSelectionAction === "select") {
+                // If the last action was select, add both current and target items
+                if (selectedThoughtId) newMassSelection.add(selectedThoughtId)
+                newMassSelection.add(targetThought.id.toString())
+            } else {
+                // If the last action was deselect, remove both current and target items
+                if (selectedThoughtId) newMassSelection.delete(selectedThoughtId)
+                newMassSelection.delete(targetThought.id.toString())
+            }
+
+            // Update the mass selection
+            setMassSelection(newMassSelection)
+
+            // Update the last selected item
+            setLastSelectedItemId(targetThought.id.toString())
+        } else {
+            // If no mass selection, handle reordering
+            handleDragReorder(direction).catch(error => {
+                console.error("Failed to reorder thoughts:", error)
+            })
+        }
     }
 
     // Add a function to toggle single item selection that also updates the last action
@@ -404,7 +475,7 @@ export default function Refine() {
 
     return (
         <List
-            isLoading={isLoading || isLoadingDatasets}
+            isLoading={isLoading || isLoadingDatasets || isLoadingSorting}
             onSearchTextChange={setSearchText}
             searchBarPlaceholder="Search thoughts..."
             isShowingDetail={inspectorVisibility === "visible"}
@@ -451,7 +522,7 @@ export default function Refine() {
                 </List.Dropdown>
             }
         >
-            {filteredThoughts?.map(thought => (
+            {(sortedThoughts || []).map(thought => (
                 <ThoughtListItem
                     key={thought.id}
                     thought={thought}
