@@ -39,13 +39,27 @@ function navigateArray<Item>({
     source: Item[]
     current: (item: Item) => boolean
     direction: "next" | "previous"
-}): Item {
+}): Item | null {
     const currentIndex = source.findIndex(predicate)
-    const notFound = currentIndex === -1
-    const offset = direction === "next" ? 1 : notFound ? 0 : -1 + source.length
-    const offsetIndex = (currentIndex + offset) % source.length
 
-    return source[offsetIndex]
+    // Calculate the target index based on direction
+    let targetIndex: number
+
+    if (direction === "next") {
+        // Going forward - stop at the end instead of looping
+        targetIndex = currentIndex + 1
+        if (targetIndex >= source.length) {
+            return null // Return null if we're at the end
+        }
+    } else {
+        // Going backward - stop at the beginning instead of looping
+        targetIndex = currentIndex - 1
+        if (targetIndex < 0) {
+            return null // Return null if we're at the beginning
+        }
+    }
+
+    return source[targetIndex]
 }
 
 export default function Refine() {
@@ -481,6 +495,7 @@ export default function Refine() {
         if (nextThought) {
             onSelectionChange(nextThought.id.toString())
         }
+        // If nextThought is null, we're at the beginning or end of the list, so do nothing
     }
 
     if (isLargeTypeMode && selectedThought) {
