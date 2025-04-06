@@ -34,12 +34,9 @@ export type ThoughtListItemProps = {
     toggleValidation: (thought: Thought) => Promise<void>
     toggleMassThoughtValidation?: (thoughts: Thought[], targetValidationState: string) => Promise<void>
     onEdit: (thought: Thought, updatedFields: ThoughtFormFields) => Promise<void>
-    inspectorVisibility: "visible" | "hidden"
-    toggleInspector: () => void
+    inspectorVisibility: "visible" | "hidden" | "expanded"
+    toggleInspector: (mode?: "visible" | "hidden" | "expanded") => void
     isSelected: boolean
-    toggleRawMode?: () => void // Optional since not all components may use it
-    toggleLargeTypeMode?: () => void // Optional toggle for Large Type Mode
-    isRawMode?: boolean // The raw mode state, controlled by parent
     isMassSelected: boolean
     toggleMassSelection: () => void
     massSelectionItems: Set<string>

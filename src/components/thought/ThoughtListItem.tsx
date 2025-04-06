@@ -1,13 +1,6 @@
 import { Action, ActionPanel, Color, Icon, List, Toast, showToast } from "@raycast/api"
 import { ThoughtListItemProps } from "../../types/thought"
-import {
-    ALWAYS_VISIBLE_METADATA,
-    FRONTEND_HIDDEN_FIELDS,
-    formatDate,
-    formatSubtitle,
-    getThoughtAlias,
-    isThoughtValidated
-} from "../../utils/thought"
+import { ALWAYS_VISIBLE_METADATA, formatDate, formatSubtitle, getThoughtAlias, isThoughtValidated } from "../../utils/thought"
 import { ThoughtForm } from "./ThoughtForm"
 import { parseStringToBoolean } from "../../hooks/useKv"
 
@@ -21,9 +14,6 @@ export function ThoughtListItem({
     inspectorVisibility,
     toggleInspector,
     isSelected,
-    toggleRawMode,
-    toggleLargeTypeMode,
-    isRawMode = false,
     isMassSelected,
     toggleMassSelection,
     massSelectionItems,
@@ -63,7 +53,7 @@ export function ThoughtListItem({
 
     const noAlias = alias === ""
 
-    if (inspectorVisibility === "visible") {
+    if (inspectorVisibility !== "hidden") {
         if (isSelected) {
             title = noAlias ? formatSubtitle(thought) : alias
             subtitle = undefined
@@ -158,6 +148,12 @@ export function ThoughtListItem({
     // Create a more consistent detail metadata panel
     const renderMetadataFields = () => {
         const metadataItems = []
+
+        // Add content at the top
+        metadataItems.push(
+            <List.Item.Detail.Metadata.Label key="content" title="Content" text={thought.content} />,
+            <List.Item.Detail.Metadata.Separator key="content-sep" />
+        )
 
         // Add Dev Notes at the top if present
         if (thought.devNotes) {
@@ -271,85 +267,6 @@ export function ThoughtListItem({
         return metadataItems
     }
 
-    // Generate markdown for raw view
-    const generateMarkdown = (): string => {
-        const markdown = []
-
-        // Content first - raw mode shows everything including content
-        markdown.push(`# Content`)
-        markdown.push(thought.content)
-        markdown.push("")
-
-        // Add Dev Notes prominently at the top if present
-        if (thought.devNotes) {
-            markdown.push("")
-            markdown.push(`# Dev Notes`)
-            markdown.push(`\`\`\`\n${thought.devNotes}\n\`\`\``)
-            markdown.push("")
-        }
-
-        markdown.push("")
-        markdown.push(`## Alias`)
-        markdown.push(alias)
-        markdown.push("")
-        markdown.push("")
-        markdown.push(`## Created`)
-        markdown.push(formatDate(new Date(thought.createdAt)))
-        markdown.push("")
-        markdown.push("")
-        markdown.push(`**${"`"}Updated${"`"}**  ${formatDate(new Date(thought.updatedAt))}`)
-        markdown.push("")
-        markdown.push("---")
-        markdown.push(`**${"`"}Validated${"`"}**  ${isValidated ? "Yes" : "No"}`)
-        markdown.push("")
-        markdown.push("---")
-        markdown.push(`**Datasets:**  ${thought.datasets ? "Yes" : "No"}`)
-        markdown.push("")
-        markdown.push("\n")
-        markdown.push("")
-
-        // Add Priority if set
-        if (thought.priority) {
-            markdown.push(`**Priority:** P${parseFloat(thought.priority)}`)
-            markdown.push("")
-        }
-
-        // Add Sensitive status if set
-        if (thought.sensitive) {
-            markdown.push(`**Sensitive:** ${parseStringToBoolean(thought.sensitive) ? "Yes" : "No"}`)
-            markdown.push("")
-        }
-
-        if (thought.datasets && thought.datasets.length > 0) {
-            const datasetNames = thought.datasets
-                .map(datasetId => {
-                    const datasetTitle = datasetMap[datasetId]
-                    // Show valid datasets immediately, only show placeholder for unknown datasets when loading
-                    return datasetTitle || (isLoading ? "..." : "Invalid Dataset")
-                })
-                .join(", ")
-            markdown.push(`**Datasets:** ${datasetNames}`)
-        } else {
-            markdown.push(`**Datasets:** -`)
-        }
-        markdown.push("")
-
-        // Add any custom properties
-        Object.entries(thought).forEach(([key, value]) => {
-            if (
-                !FRONTEND_HIDDEN_FIELDS.includes(key) &&
-                !["content", "alias", "validated", "datasets", "devNotes", "priority"].includes(key) &&
-                value !== null &&
-                value !== undefined
-            ) {
-                markdown.push(`**${key.charAt(0).toUpperCase() + key.slice(1)}:** ${value}`)
-                markdown.push("")
-            }
-        })
-
-        return markdown.join("\n")
-    }
-
     // Handle deletion (both single item and mass selection)
     const handleDelete = () => {
         // If there are selected items and this one is selected, handle mass deletion
@@ -461,6 +378,27 @@ export function ThoughtListItem({
         return isValidated ? "Invalidate Thought" : "Validate Thought"
     }
 
+    // Inspector action handlers
+    const handleToggleInspector = () => {
+        // Always toggle between visible and hidden
+        toggleInspector(inspectorVisibility === "hidden" ? "visible" : "hidden")
+    }
+
+    const handleToggleExpanded = () => {
+        // If inspector is hidden, jump directly to expanded
+        if (inspectorVisibility === "hidden") {
+            toggleInspector("expanded")
+        }
+        // If already expanded, go back to visible
+        else if (inspectorVisibility === "expanded") {
+            toggleInspector("visible")
+        }
+        // If visible, go to expanded
+        else {
+            toggleInspector("expanded")
+        }
+    }
+
     return (
         <List.Item
             id={thought.id.toString()}
@@ -468,14 +406,10 @@ export function ThoughtListItem({
             subtitle={subtitle}
             accessories={accessories}
             detail={
-                isRawMode ? (
-                    <List.Item.Detail markdown={generateMarkdown()} />
-                ) : (
-                    <List.Item.Detail
-                        markdown={thought.content}
-                        metadata={<List.Item.Detail.Metadata>{renderMetadataFields()}</List.Item.Detail.Metadata>}
-                    />
-                )
+                <List.Item.Detail
+                    markdown={inspectorVisibility === "expanded" ? thought.content : undefined}
+                    metadata={<List.Item.Detail.Metadata>{renderMetadataFields()}</List.Item.Detail.Metadata>}
+                />
             }
             icon={
                 massSelectionItems.size > 0
@@ -500,10 +434,16 @@ export function ThoughtListItem({
                         />
                     )}
                     <Action
-                        title={`${inspectorVisibility === "visible" ? "Hide" : "Show"} Inspector`}
-                        icon={inspectorVisibility === "visible" ? Icon.EyeDisabled : Icon.Eye}
+                        title={`${inspectorVisibility === "hidden" ? "Show" : "Hide"} Inspector`}
+                        icon={inspectorVisibility === "hidden" ? Icon.Eye : Icon.EyeDisabled}
                         shortcut={{ modifiers: ["cmd"], key: "i" }}
-                        onAction={toggleInspector}
+                        onAction={handleToggleInspector}
+                    />
+                    <Action
+                        title="Expand Inspector"
+                        icon={Icon.Sidebar}
+                        shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+                        onAction={handleToggleExpanded}
                     />
                     <Action.Push
                         title="Edit Thought"
@@ -557,24 +497,6 @@ export function ThoughtListItem({
                         onAction={handleGapSelection}
                     />
 
-                    {inspectorVisibility === "visible" && (
-                        <>
-                            <Action
-                                title={isRawMode ? "Switch to Metadata View" : "Switch to Raw View"}
-                                icon={Icon.Text}
-                                shortcut={{ modifiers: ["opt"], key: "r" }}
-                                onAction={toggleRawMode}
-                            />
-                            {toggleLargeTypeMode && (
-                                <Action
-                                    title="Large Type Mode"
-                                    icon={Icon.Maximize}
-                                    shortcut={{ modifiers: ["opt"], key: "l" }}
-                                    onAction={toggleLargeTypeMode}
-                                />
-                            )}
-                        </>
-                    )}
                     {sharedActionPanel}
                     <Action
                         title={getValidationActionTitle()}

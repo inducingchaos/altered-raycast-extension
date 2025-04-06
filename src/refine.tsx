@@ -2,7 +2,7 @@
  *
  */
 
-import { Action, ActionPanel, Alert, Detail, List, confirmAlert, showToast, Toast } from "@raycast/api"
+import { ActionPanel, Alert, List, confirmAlert, showToast, Toast } from "@raycast/api"
 import { useMemo, useRef, useState } from "react"
 import { useCachedState } from "@raycast/utils"
 import { FeatureModelSwitcher } from "./components/FeatureModelSwitcher"
@@ -13,7 +13,7 @@ import { useAiModels } from "./hooks/useAiModels"
 import { useDatasets } from "./hooks/useDatasets"
 import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
-import { FRONTEND_HIDDEN_FIELDS, getThoughtAlias, isThoughtValidated } from "./utils/thought"
+import { getThoughtAlias, isThoughtValidated } from "./utils/thought"
 import { useDatasetSorting } from "./hooks/useDatasetSorting"
 
 // Helper function to confirm deletion with a destructive alert
@@ -64,14 +64,12 @@ function navigateArray<Item>({
 
 export default function Refine() {
     const [searchText, setSearchText] = useState("")
-    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
+    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden" | "expanded">("hidden")
     const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)
 
     const aiFeatures = useAiFeatures()
     const aiModels = useAiModels()
 
-    const [isRawMode, setIsRawMode] = useState(false)
-    const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
     const [filter, setFilter] = useCachedState<string>("refine-filter", "")
 
     const {
@@ -99,12 +97,19 @@ export default function Refine() {
         })
     }
 
-    const toggleRawMode = () => {
-        setIsRawMode(!isRawMode)
-    }
-
-    const toggleLargeTypeMode = () => {
-        setIsLargeTypeMode(!isLargeTypeMode)
+    const toggleInspector = (mode?: "visible" | "hidden" | "expanded") => {
+        if (mode) {
+            setInspectorVisibility(mode)
+        } else {
+            // Cycle through states: hidden -> visible -> expanded -> hidden
+            if (inspectorVisibility === "hidden") {
+                setInspectorVisibility("visible")
+            } else if (inspectorVisibility === "visible") {
+                setInspectorVisibility("expanded")
+            } else {
+                setInspectorVisibility("hidden")
+            }
+        }
     }
 
     const [massSelection, setMassSelection] = useState<Set<string>>(new Set())
@@ -148,64 +153,6 @@ export default function Refine() {
         // } else {
         setMassSelection(new Set(filteredThoughts?.map(thought => thought.id) || []))
         // }
-    }
-
-    // Get the selected thought for raw view
-    const selectedThought = filteredThoughts?.find(thought => thought.id.toString() === selectedThoughtId)
-
-    // Generate markdown for raw view
-    const generateMarkdown = (thought: Thought | undefined): string => {
-        if (!thought) return ""
-
-        const markdown = []
-
-        // Content first
-        markdown.push(`**Content:**\n${thought.content}`)
-        markdown.push("") // Add empty line for separation
-
-        // Dev Notes if present - make it more prominent
-        if (thought.devNotes) {
-            markdown.push(`**Dev Notes:**`)
-            markdown.push(`\`\`\`\n${thought.devNotes}\n\`\`\``)
-            markdown.push("") // Add empty line for separation
-        }
-
-        // Then other metadata
-        markdown.push(`**Alias:** ${getThoughtAlias(thought)}`)
-        markdown.push(`**Created:** ${new Date(thought.createdAt).toLocaleString()}`)
-        markdown.push(`**Updated:** ${new Date(thought.updatedAt).toLocaleString()}`)
-        markdown.push(`**Validated:** ${isThoughtValidated(thought) ? "Yes" : "No"}`)
-
-        // Add Priority if set
-        if (thought.priority) {
-            markdown.push(`**Priority:** P${thought.priority}`)
-        }
-
-        if (thought.datasets && thought.datasets.length > 0) {
-            const datasetNames = thought.datasets
-                .map((datasetId: string) => {
-                    const dataset = datasets?.find(d => d.id === datasetId)
-                    return dataset ? dataset.title : datasetId
-                })
-                .join(", ")
-            markdown.push(`**Datasets:** ${datasetNames}`)
-        } else {
-            markdown.push(`**Datasets:** -`)
-        }
-
-        // Add any custom properties
-        Object.entries(thought).forEach(([key, value]) => {
-            if (
-                !FRONTEND_HIDDEN_FIELDS.includes(key) &&
-                !["content", "alias", "validated", "datasets", "devNotes", "priority"].includes(key) &&
-                value !== null &&
-                value !== undefined
-            ) {
-                markdown.push(`**${key.charAt(0).toUpperCase() + key.slice(1)}:** ${value}`)
-            }
-        })
-
-        return markdown.join("\n")
     }
 
     // Prepare global actions object to pass to list items
@@ -498,36 +445,12 @@ export default function Refine() {
         // If nextThought is null, we're at the beginning or end of the list, so do nothing
     }
 
-    if (isLargeTypeMode && selectedThought) {
-        return (
-            <Detail
-                markdown={isRawMode ? selectedThought.content : generateMarkdown(selectedThought)}
-                navigationTitle={`${getThoughtAlias(selectedThought)} - ${isRawMode ? "Content" : "Details"}`}
-                actions={
-                    <ActionPanel>
-                        <Action title="Toggle View Mode" shortcut={{ modifiers: ["opt"], key: "r" }} onAction={toggleRawMode} />
-                        <Action
-                            title={`${isThoughtValidated(selectedThought) ? "Invalidate" : "Validate"} Thought`}
-                            shortcut={{ modifiers: ["opt"], key: "v" }}
-                            onAction={() => toggleThoughtValidation(selectedThought)}
-                        />
-                        <Action
-                            title="Exit Large Type Mode"
-                            shortcut={{ modifiers: ["opt"], key: "l" }}
-                            onAction={toggleLargeTypeMode}
-                        />
-                    </ActionPanel>
-                }
-            />
-        )
-    }
-
     return (
         <List
             isLoading={isLoading || isLoadingDatasets || isLoadingSorting}
             onSearchTextChange={setSearchText}
             searchBarPlaceholder="Search thoughts..."
-            isShowingDetail={inspectorVisibility === "visible"}
+            isShowingDetail={inspectorVisibility !== "hidden"}
             selectedItemId={selectedThoughtId ?? undefined}
             onSelectionChange={onSelectionChange}
             throttle
@@ -578,15 +501,12 @@ export default function Refine() {
                     key={thought.id}
                     thought={thought}
                     inspectorVisibility={inspectorVisibility}
-                    toggleInspector={() => setInspectorVisibility(inspectorVisibility === "visible" ? "hidden" : "visible")}
+                    toggleInspector={toggleInspector}
                     isSelected={selectedThoughtId === thought.id.toString()}
                     toggleValidation={toggleThoughtValidation}
                     onDelete={onDeleteThought}
                     massThoughtDeletion={onMassDeleteThoughts}
                     onEdit={handleEditThought}
-                    toggleRawMode={toggleRawMode}
-                    toggleLargeTypeMode={toggleLargeTypeMode}
-                    isRawMode={isRawMode}
                     isMassSelected={massSelection.has(thought.id.toString())}
                     isAllMassSelected={allThoughtsMassSelected}
                     massSelectionItems={massSelection}
