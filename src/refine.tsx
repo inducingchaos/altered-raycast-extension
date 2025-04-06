@@ -483,6 +483,7 @@ export default function Refine() {
             onSelectionChange={onSelectionChange}
             throttle
             pagination={pagination}
+            navigationTitle={massSelection.size > 0 ? `${massSelection.size} Selected` : undefined}
             searchBarAccessory={
                 <List.Dropdown
                     tooltip="Filter Thoughts"
