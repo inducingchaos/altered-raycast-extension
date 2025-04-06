@@ -30,6 +30,24 @@ const confirmDelete = async (thought: Thought, onConfirm: () => Promise<void>) =
     })
 }
 
+// Add the navigateArray utility function
+function navigateArray<Item>({
+    source,
+    current: predicate,
+    direction
+}: {
+    source: Item[]
+    current: (item: Item) => boolean
+    direction: "next" | "previous"
+}): Item {
+    const currentIndex = source.findIndex(predicate)
+    const notFound = currentIndex === -1
+    const offset = direction === "next" ? 1 : notFound ? 0 : -1 + source.length
+    const offsetIndex = (currentIndex + offset) % source.length
+
+    return source[offsetIndex]
+}
+
 export default function Refine() {
     const [searchText, setSearchText] = useState("")
     const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden">("hidden")
@@ -450,6 +468,21 @@ export default function Refine() {
         </ActionPanel.Section>
     )
 
+    // Add a function to handle tab navigation
+    const handleTabNavigation = (direction: "next" | "previous") => {
+        if (!sortedThoughts || sortedThoughts.length === 0) return
+
+        const nextThought = navigateArray({
+            source: sortedThoughts,
+            current: thought => thought.id.toString() === selectedThoughtId,
+            direction
+        })
+
+        if (nextThought) {
+            onSelectionChange(nextThought.id.toString())
+        }
+    }
+
     if (isLargeTypeMode && selectedThought) {
         return (
             <Detail
@@ -484,7 +517,7 @@ export default function Refine() {
             onSelectionChange={onSelectionChange}
             throttle
             pagination={pagination}
-            navigationTitle={massSelection.size > 0 ? `${massSelection.size} Selected` : undefined}
+            navigationTitle={massSelection.size > 0 ? `${massSelection.size} Items Selected` : undefined}
             searchBarAccessory={
                 <List.Dropdown
                     tooltip="Filter Thoughts"
@@ -551,6 +584,7 @@ export default function Refine() {
                     }}
                     handleDragSelection={handleDragSelection}
                     handleGapSelection={handleGapSelection}
+                    handleTabNavigation={handleTabNavigation}
                     globalActions={globalActions}
                     createDataset={createDataset}
                     datasets={datasets}

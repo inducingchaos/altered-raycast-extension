@@ -49,6 +49,7 @@ export type ThoughtListItemProps = {
     resetMassSelection: () => void // Function to clear mass selection
     handleDragSelection?: (direction: "up" | "down") => void // Optional drag selection handler
     handleGapSelection?: () => void // Optional gap selection handler
+    handleTabNavigation?: (direction: "next" | "previous") => void // Optional tab navigation handler
     globalActions?: {
         validateAllThoughts: () => Promise<void>
     }

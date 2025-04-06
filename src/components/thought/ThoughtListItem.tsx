@@ -38,7 +38,8 @@ export function ThoughtListItem({
     isLoadingThoughts,
     handleDragSelection,
     handleGapSelection,
-    sharedActionPanel
+    sharedActionPanel,
+    handleTabNavigation
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -595,6 +596,19 @@ export function ThoughtListItem({
                         shortcut={{ modifiers: ["cmd", "shift"], key: "backspace" }}
                         onAction={handleForceDelete}
                     />
+
+                    <ActionPanel.Section title="Navigation">
+                        <Action
+                            title="Next Item"
+                            shortcut={{ modifiers: [], key: "tab" }}
+                            onAction={() => handleTabNavigation?.("next")}
+                        />
+                        <Action
+                            title="Previous Item"
+                            shortcut={{ modifiers: ["shift"], key: "tab" }}
+                            onAction={() => handleTabNavigation?.("previous")}
+                        />
+                    </ActionPanel.Section>
                 </ActionPanel>
             }
         />
