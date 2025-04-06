@@ -4,6 +4,7 @@
 
 import { Action, ActionPanel, Alert, Detail, List, confirmAlert, showToast, Toast } from "@raycast/api"
 import { useMemo, useRef, useState } from "react"
+import { useCachedState } from "@raycast/utils"
 import { FeatureModelSwitcher } from "./components/FeatureModelSwitcher"
 import { ThoughtListItem } from "./components/thought/ThoughtListItem"
 import { changeSelection } from "./refine/select-without-spazzing"
@@ -39,7 +40,7 @@ export default function Refine() {
 
     const [isRawMode, setIsRawMode] = useState(false)
     const [isLargeTypeMode, setIsLargeTypeMode] = useState(false)
-    const [filter, setFilter] = useState<string>("")
+    const [filter, setFilter] = useCachedState<string>("refine-filter", "")
 
     const {
         thoughts,
@@ -488,6 +489,7 @@ export default function Refine() {
                 <List.Dropdown
                     tooltip="Filter Thoughts"
                     value={filter}
+                    storeValue={true}
                     onChange={filter => {
                         setFilter(filter)
 
