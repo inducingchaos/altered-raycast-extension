@@ -76,6 +76,7 @@ export default function Refine() {
 
     const {
         thoughts,
+        total,
         isLoading,
         handleDeleteThought,
         executeThoughtDeletion,
@@ -487,9 +488,9 @@ export default function Refine() {
             pagination={pagination}
             navigationTitle={
                 massSelection.size > 0
-                    ? `${massSelection.size} Items Selected`
+                    ? `${massSelection.size}/${filteredThoughts?.length} Selected`
                     : filteredThoughts?.length
-                      ? `${filteredThoughts.length} Thought${filteredThoughts.length === 1 ? "" : "s"}`
+                      ? `${filteredThoughts.length}/${total} Thoughts`
                       : undefined
             }
             searchBarAccessory={

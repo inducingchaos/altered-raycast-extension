@@ -1,39 +1,68 @@
 import { getPreferenceValues, showToast, Toast } from "@raycast/api"
 import { useFetch } from "@raycast/utils"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Thought, ThoughtFormFields } from "../types/thought"
 import { FRONTEND_HIDDEN_FIELDS, TEMP_PREFIXED_FIELDS } from "../utils/thought"
 import { useBooleanKv } from "./useKv"
 
 const DEV_BASE_URL = "http://localhost:5873"
 
+interface ThoughtsResponse {
+    thoughts: Thought[]
+    position: "start" | "delta" | "end"
+    total: number
+}
+
+// Add a discriminated union type for array items
+type ThoughtArrayItem = { type: "metadata"; data: { total: number } } | { type: "thought"; data: Thought }
+
+// Helper to transform thoughts array to our internal format
+const transformToArrayItems = (thoughts: Thought[], total: number): ThoughtArrayItem[] => [
+    { type: "metadata", data: { total } },
+    ...thoughts.map(thought => ({ type: "thought" as const, data: thought }))
+]
+
+// Helper to extract thoughts and total from array items
+const extractFromArrayItems = (data: ThoughtArrayItem[] | undefined) => {
+    if (!data) return { thoughts: [], total: 0 }
+
+    const metadataItem = data.find(item => item.type === "metadata") as
+        | { type: "metadata"; data: { total: number } }
+        | undefined
+    const thoughts = data
+        .filter((item): item is { type: "thought"; data: Thought } => item.type === "thought")
+        .map(item => item.data)
+
+    return {
+        thoughts,
+        total: metadataItem?.data.total ?? 0
+    }
+}
+
 export const useThoughts = (searchText: string) => {
     const [isOptimistic, setIsOptimistic] = useState(false)
     const { value: askBeforeDelete } = useBooleanKv("ask-before-delete", true)
 
-    const {
-        isLoading,
-        mutate,
-        data: thoughts,
-        pagination
-    } = useFetch<Thought[]>(
+    const { isLoading, mutate, data, pagination } = useFetch(
         options => {
             const params = new URLSearchParams({ limit: "25", offset: (options.page * 25).toString() })
             if (searchText) params.append("search", searchText)
-            const url = `http://localhost:5873/api/thoughts?${params}`
-
-            // console.log("url", url)
-
-            return url
+            return `${DEV_BASE_URL}/api/thoughts?${params}`
         },
         {
             headers: {
                 Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
             },
             execute: !isOptimistic,
-            mapResult: result => ({ data: result, hasMore: result.length === 25 })
+            mapResult: (result: ThoughtsResponse) => ({
+                data: transformToArrayItems(result.thoughts, result.total),
+                hasMore: result.position !== "end"
+            })
         }
     )
+
+    // Extract thoughts and total from the transformed data
+    const processedData = useMemo(() => extractFromArrayItems(data), [data])
 
     // This function will be used by components to trigger a delete with confirmation
     const handleDeleteThought = async (thoughtId: string) => {
@@ -47,7 +76,7 @@ export const useThoughts = (searchText: string) => {
         const toast = await showToast({ style: Toast.Style.Animated, title: "Deleting thought..." })
 
         try {
-            const deleteRequest = fetch(`http://localhost:5873/api/thoughts/${thoughtId}`, {
+            const deleteRequest = fetch(`${DEV_BASE_URL}/api/thoughts/${thoughtId}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${getPreferenceValues<{ "api-key": string }>()["api-key"]}`
@@ -56,8 +85,10 @@ export const useThoughts = (searchText: string) => {
 
             await mutate(deleteRequest, {
                 optimisticUpdate(data) {
-                    const thoughts = data as Thought[]
-                    return thoughts.filter(t => t.id !== thoughtId)
+                    if (!data) return data
+                    const { thoughts, total } = extractFromArrayItems(data)
+                    const updatedThoughts = thoughts.filter(t => t.id !== thoughtId)
+                    return transformToArrayItems(updatedThoughts, total - 1)
                 }
             })
 
@@ -91,8 +122,10 @@ export const useThoughts = (searchText: string) => {
 
             const responses = await mutate(bulkDeletePromise, {
                 optimisticUpdate(data) {
-                    const thoughts = data as Thought[]
-                    return thoughts.filter(t => !thoughtIds.includes(t.id.toString()))
+                    if (!data) return data
+                    const { thoughts: currentThoughts, total } = extractFromArrayItems(data)
+                    const remainingThoughts = currentThoughts.filter(t => !thoughtIds.includes(t.id.toString()))
+                    return transformToArrayItems(remainingThoughts, total - thoughts.length)
                 }
             })
 
@@ -117,7 +150,6 @@ export const useThoughts = (searchText: string) => {
 
     const toggleThoughtValidation = async (thought: Thought) => {
         setIsOptimistic(true)
-        // Convert any input to string for consistent checking
         const isCurrentlyValidated = thought.validated === "true"
         const newValidationStatus = isCurrentlyValidated ? "false" : "true"
 
@@ -133,16 +165,12 @@ export const useThoughts = (searchText: string) => {
 
             const response = await mutate(fetchRequest, {
                 optimisticUpdate(data) {
-                    const thoughts = data as Thought[]
-                    return thoughts.map(t => {
-                        if (t.id === thought.id) {
-                            return {
-                                ...t,
-                                validated: newValidationStatus
-                            }
-                        }
-                        return t
-                    })
+                    if (!data) return data
+                    const { thoughts, total } = extractFromArrayItems(data)
+                    const updatedThoughts = thoughts.map(t =>
+                        t.id === thought.id ? { ...t, validated: newValidationStatus } : t
+                    )
+                    return transformToArrayItems(updatedThoughts, total)
                 }
             })
 
@@ -194,7 +222,6 @@ export const useThoughts = (searchText: string) => {
         const thoughtIds = thoughtsToUpdate.map(t => t.id.toString())
 
         try {
-            // Create a promise for all API calls
             const bulkUpdatePromise = Promise.all(
                 thoughtsToUpdate.map(thought =>
                     fetch(`${DEV_BASE_URL}/api/thoughts/${thought.id}`, {
@@ -210,16 +237,12 @@ export const useThoughts = (searchText: string) => {
 
             const responses = await mutate(bulkUpdatePromise, {
                 optimisticUpdate(data) {
-                    const thoughts = data as Thought[]
-                    return thoughts.map(t => {
-                        if (thoughtIds.includes(t.id.toString())) {
-                            return {
-                                ...t,
-                                validated: targetValidationState
-                            }
-                        }
-                        return t
-                    })
+                    if (!data) return data
+                    const { thoughts, total } = extractFromArrayItems(data)
+                    const updatedThoughts = thoughts.map(t =>
+                        thoughtIds.includes(t.id.toString()) ? { ...t, validated: targetValidationState } : t
+                    )
+                    return transformToArrayItems(updatedThoughts, total)
                 }
             })
 
@@ -278,16 +301,10 @@ export const useThoughts = (searchText: string) => {
 
             const response = await mutate(fetchRequest, {
                 optimisticUpdate(data) {
-                    const thoughts = data as Thought[]
-                    return thoughts.map(t => {
-                        if (t.id === thought.id) {
-                            return {
-                                ...t,
-                                ...updatedFields
-                            }
-                        }
-                        return t
-                    })
+                    if (!data) return data
+                    const { thoughts, total } = extractFromArrayItems(data)
+                    const updatedThoughts = thoughts.map(t => (t.id === thought.id ? { ...t, ...updatedFields } : t))
+                    return transformToArrayItems(updatedThoughts, total)
                 }
             })
 
@@ -335,7 +352,7 @@ export const useThoughts = (searchText: string) => {
     const validateAllThoughts = async () => {
         try {
             // Filter thoughts that are not already validated
-            const thoughtsToValidate = (thoughts as Thought[])?.filter(thought => thought.validated !== "true") || []
+            const thoughtsToValidate = processedData.thoughts.filter(thought => thought.validated !== "true")
 
             if (thoughtsToValidate.length === 0) {
                 showToast({
@@ -354,7 +371,7 @@ export const useThoughts = (searchText: string) => {
             })
 
             // Use toggleMassThoughtValidation for batch update
-            await toggleMassThoughtValidation(thoughtsToValidate as Thought[], "true")
+            await toggleMassThoughtValidation(thoughtsToValidate, "true")
                 .then(() => {
                     toast.style = Toast.Style.Success
                     toast.title = "All thoughts validated"
@@ -376,7 +393,8 @@ export const useThoughts = (searchText: string) => {
     }
 
     return {
-        thoughts: thoughts as Thought[],
+        thoughts: processedData.thoughts,
+        total: processedData.total,
         isLoading,
         isOptimistic,
         handleDeleteThought,
