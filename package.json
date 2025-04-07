@@ -76,6 +76,13 @@
             "mode": "view"
         },
         {
+            "name": "boring-capture",
+            "title": "Simple Thought Capture",
+            "subtitle": "ALTERED Capture (Simple)",
+            "description": "A simplified interface for capturing thoughts in your ALTERED brain.",
+            "mode": "view"
+        },
+        {
             "name": "warp",
             "title": "Warp Clipboard",
             "subtitle": "ALTERED Warp",
