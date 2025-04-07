@@ -64,8 +64,10 @@ function navigateArray<Item>({
 
 export default function Refine() {
     const [searchText, setSearchText] = useState("")
-    const [inspectorVisibility, setInspectorVisibility] = useState<"visible" | "hidden" | "expanded">("hidden")
+    const [inspectorVisible, setInspectorVisible] = useState(false)
+    const [inspectorMode, setInspectorMode] = useCachedState<"compact" | "expanded">("inspector-mode", "compact")
     const [selectedThoughtId, setSelectedThoughtId] = useState<string | null>(null)
+    const [focusedParameter, setFocusedParameter] = useState<string>("content")
 
     const aiFeatures = useAiFeatures()
     const aiModels = useAiModels()
@@ -97,19 +99,12 @@ export default function Refine() {
         })
     }
 
-    const toggleInspector = (mode?: "visible" | "hidden" | "expanded") => {
-        if (mode) {
-            setInspectorVisibility(mode)
-        } else {
-            // Cycle through states: hidden -> visible -> expanded -> hidden
-            if (inspectorVisibility === "hidden") {
-                setInspectorVisibility("visible")
-            } else if (inspectorVisibility === "visible") {
-                setInspectorVisibility("expanded")
-            } else {
-                setInspectorVisibility("hidden")
-            }
-        }
+    const toggleInspector = () => {
+        setInspectorVisible(!inspectorVisible)
+    }
+
+    const toggleInspectorMode = () => {
+        setInspectorMode(inspectorMode === "compact" ? "expanded" : "compact")
     }
 
     const [massSelection, setMassSelection] = useState<Set<string>>(new Set())
@@ -445,12 +440,47 @@ export default function Refine() {
         // If nextThought is null, we're at the beginning or end of the list, so do nothing
     }
 
+    // Add a function to cycle through parameters
+    const cycleParameter = (direction: "next" | "previous") => {
+        // Define the order of parameters to cycle through
+        const parameterOrder = [
+            "content",
+            "devNotes",
+            "alias",
+            "priority",
+            "sensitive",
+            "validated",
+            "datasets",
+            "createdAt",
+            "updatedAt"
+        ]
+
+        // Find the current index
+        const currentIndex = parameterOrder.indexOf(focusedParameter)
+
+        // Calculate the next index based on direction
+        let nextIndex
+        if (direction === "next") {
+            nextIndex = (currentIndex + 1) % parameterOrder.length
+        } else {
+            nextIndex = (currentIndex - 1 + parameterOrder.length) % parameterOrder.length
+        }
+
+        // Set the new focused parameter
+        setFocusedParameter(parameterOrder[nextIndex])
+    }
+
+    // Add a function to handle parameter cycling with keyboard shortcuts
+    const handleParameterCycle = (direction: "next" | "previous") => {
+        cycleParameter(direction)
+    }
+
     return (
         <List
             isLoading={isLoading || isLoadingDatasets || isLoadingSorting}
             onSearchTextChange={setSearchText}
             searchBarPlaceholder="Search thoughts..."
-            isShowingDetail={inspectorVisibility !== "hidden"}
+            isShowingDetail={inspectorVisible}
             selectedItemId={selectedThoughtId ?? undefined}
             onSelectionChange={onSelectionChange}
             throttle
@@ -500,8 +530,9 @@ export default function Refine() {
                 <ThoughtListItem
                     key={thought.id}
                     thought={thought}
-                    inspectorVisibility={inspectorVisibility}
+                    inspectorVisibility={inspectorVisible ? inspectorMode : "hidden"}
                     toggleInspector={toggleInspector}
+                    toggleInspectorMode={toggleInspectorMode}
                     isSelected={selectedThoughtId === thought.id.toString()}
                     toggleValidation={toggleThoughtValidation}
                     onDelete={onDeleteThought}
@@ -520,6 +551,8 @@ export default function Refine() {
                     handleDragSelection={handleDragSelection}
                     handleGapSelection={handleGapSelection}
                     handleTabNavigation={handleTabNavigation}
+                    handleParameterCycle={handleParameterCycle}
+                    focusedParameter={focusedParameter}
                     globalActions={globalActions}
                     createDataset={createDataset}
                     datasets={datasets}

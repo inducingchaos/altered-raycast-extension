@@ -27,34 +27,35 @@ export type ThoughtFormFields = {
     [key: string]: string | string[] | undefined // Other custom fields
 }
 
-export type ThoughtListItemProps = {
+export interface ThoughtListItemProps {
     thought: Thought
-    onDelete: (id: string, forceDelete?: boolean) => Promise<void>
-    massThoughtDeletion: (thoughts: Thought[], forceDelete?: boolean) => Promise<void>
+    onDelete: (id: string, force?: boolean) => Promise<void>
+    massThoughtDeletion: (thoughts: Thought[], force?: boolean) => Promise<void>
     toggleValidation: (thought: Thought) => Promise<void>
-    toggleMassThoughtValidation?: (thoughts: Thought[], targetValidationState: string) => Promise<void>
-    onEdit: (thought: Thought, updatedFields: ThoughtFormFields) => Promise<void>
-    inspectorVisibility: "visible" | "hidden" | "expanded"
-    toggleInspector: (mode?: "visible" | "hidden" | "expanded") => void
+    toggleMassThoughtValidation?: (thoughts: Thought[], validated: string) => Promise<void>
+    onEdit: (thought: Thought, fields: ThoughtFormFields) => Promise<void>
+    inspectorVisibility: "hidden" | "compact" | "expanded"
+    toggleInspector: () => void
+    toggleInspectorMode: () => void
     isSelected: boolean
     isMassSelected: boolean
     toggleMassSelection: () => void
     massSelectionItems: Set<string>
     handleMassSelectAll: () => void
     isAllMassSelected: boolean
-    allThoughts?: Thought[] // All filtered thoughts for validation logic
-    resetMassSelection: () => void // Function to clear mass selection
-    handleDragSelection?: (direction: "up" | "down") => void // Optional drag selection handler
-    handleGapSelection?: () => void // Optional gap selection handler
-    handleTabNavigation?: (direction: "next" | "previous") => void // Optional tab navigation handler
-    globalActions?: {
-        validateAllThoughts: () => Promise<void>
-    }
+    allThoughts: Thought[] | undefined
+    resetMassSelection: () => void
+    globalActions: { validateAllThoughts: () => Promise<void> }
     createDataset: (title: string) => Promise<{ title: string; id: string }>
-    datasets?: Dataset[]
+    datasets: Dataset[] | undefined
     isLoadingDatasets: boolean
-    isLoadingThoughts: boolean // Whether thoughts are currently loading/updating
-    sharedActionPanel?: React.ReactNode // Shared action panel section to reuse across items
+    isLoadingThoughts: boolean
+    handleDragSelection?: (direction: "up" | "down") => void
+    handleGapSelection?: () => void
+    sharedActionPanel: React.ReactNode
+    handleTabNavigation?: (direction: "next" | "previous") => void
+    handleParameterCycle?: (direction: "next" | "previous") => void
+    focusedParameter?: string
 }
 
 export type ThoughtFormProps = {

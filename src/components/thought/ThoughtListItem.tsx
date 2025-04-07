@@ -4,6 +4,10 @@ import { ALWAYS_VISIBLE_METADATA, formatDate, formatSubtitle, getThoughtAlias, i
 import { ThoughtForm } from "./ThoughtForm"
 import { parseStringToBoolean } from "../../hooks/useKv"
 
+// Constants for empty values
+const EMPTY_METADATA_PLACEHOLDER = "-"
+const EMPTY_PARAMETER_PLACEHOLDER = "\\-"
+
 export function ThoughtListItem({
     thought,
     onDelete,
@@ -13,6 +17,7 @@ export function ThoughtListItem({
     onEdit,
     inspectorVisibility,
     toggleInspector,
+    toggleInspectorMode,
     isSelected,
     isMassSelected,
     toggleMassSelection,
@@ -29,7 +34,9 @@ export function ThoughtListItem({
     handleDragSelection,
     handleGapSelection,
     sharedActionPanel,
-    handleTabNavigation
+    handleTabNavigation,
+    handleParameterCycle,
+    focusedParameter = "content"
 }: ThoughtListItemProps) {
     const alias = getThoughtAlias(thought)
     const isValidated = isThoughtValidated(thought)
@@ -151,14 +158,22 @@ export function ThoughtListItem({
 
         // Add content at the top
         metadataItems.push(
-            <List.Item.Detail.Metadata.Label key="content" title="Content" text={thought.content} />,
+            <List.Item.Detail.Metadata.Label
+                key="content"
+                title="Content"
+                text={thought.content || EMPTY_METADATA_PLACEHOLDER}
+            />,
             <List.Item.Detail.Metadata.Separator key="content-sep" />
         )
 
         // Add Dev Notes at the top if present
         if (thought.devNotes) {
             metadataItems.push(
-                <List.Item.Detail.Metadata.Label key="devNotes" title="Dev Notes" text={thought.devNotes} />,
+                <List.Item.Detail.Metadata.Label
+                    key="devNotes"
+                    title="Dev Notes"
+                    text={thought.devNotes || EMPTY_METADATA_PLACEHOLDER}
+                />,
                 <List.Item.Detail.Metadata.Separator key="devNotes-sep" />
             )
         }
@@ -166,7 +181,11 @@ export function ThoughtListItem({
         // Add Priority if set
         if (thought.priority) {
             metadataItems.push(
-                <List.Item.Detail.Metadata.Label key="priority" title="Priority" text={`P${parseFloat(thought.priority)}`} />,
+                <List.Item.Detail.Metadata.Label
+                    key="priority"
+                    title="Priority"
+                    text={thought.priority ? `P${parseFloat(thought.priority)}` : EMPTY_METADATA_PLACEHOLDER}
+                />,
                 <List.Item.Detail.Metadata.Separator key="priority-sep" />
             )
         }
@@ -177,7 +196,13 @@ export function ThoughtListItem({
                 <List.Item.Detail.Metadata.Label
                     key="sensitive"
                     title="Sensitive"
-                    text={parseStringToBoolean(thought.sensitive) ? "Yes" : "No"}
+                    text={
+                        thought.sensitive
+                            ? parseStringToBoolean(thought.sensitive)
+                                ? "Yes"
+                                : "No"
+                            : EMPTY_METADATA_PLACEHOLDER
+                    }
                 />,
                 <List.Item.Detail.Metadata.Separator key="sensitive-sep" />
             )
@@ -190,7 +215,7 @@ export function ThoughtListItem({
                 continue
             } else if (field === "alias") {
                 metadataItems.push(
-                    <List.Item.Detail.Metadata.Label key="alias" title="Alias" text={alias} />,
+                    <List.Item.Detail.Metadata.Label key="alias" title="Alias" text={alias || EMPTY_METADATA_PLACEHOLDER} />,
                     <List.Item.Detail.Metadata.Separator key="alias-sep" />
                 )
             } else if (field === "datasets") {
@@ -203,10 +228,14 @@ export function ThoughtListItem({
                                   return datasetTitle || (isLoading ? "..." : "Invalid Dataset")
                               })
                               .join(", ")
-                        : "-"
+                        : EMPTY_METADATA_PLACEHOLDER
 
                 metadataItems.push(
-                    <List.Item.Detail.Metadata.Label key="datasets" title="Datasets" text={datasetsText} />,
+                    <List.Item.Detail.Metadata.Label
+                        key="datasets"
+                        title="Datasets"
+                        text={datasetsText || EMPTY_METADATA_PLACEHOLDER}
+                    />,
                     <List.Item.Detail.Metadata.Separator key="datasets-sep" />
                 )
             } else if (field === "validated") {
@@ -243,7 +272,7 @@ export function ThoughtListItem({
                 <List.Item.Detail.Metadata.Label
                     key={key}
                     title={key.charAt(0).toUpperCase() + key.slice(1)}
-                    text={String(value)}
+                    text={String(value) || EMPTY_METADATA_PLACEHOLDER}
                 />
             )
 
@@ -259,9 +288,17 @@ export function ThoughtListItem({
 
         // Always add dates at the bottom
         metadataItems.push(
-            <List.Item.Detail.Metadata.Label key="created" title="Created" text={formatDate(new Date(thought.createdAt))} />,
+            <List.Item.Detail.Metadata.Label
+                key="created"
+                title="Created"
+                text={formatDate(new Date(thought.createdAt)) || EMPTY_METADATA_PLACEHOLDER}
+            />,
             <List.Item.Detail.Metadata.Separator key="created-sep" />,
-            <List.Item.Detail.Metadata.Label key="updated" title="Updated" text={formatDate(new Date(thought.updatedAt))} />
+            <List.Item.Detail.Metadata.Label
+                key="updated"
+                title="Updated"
+                text={formatDate(new Date(thought.updatedAt)) || EMPTY_METADATA_PLACEHOLDER}
+            />
         )
 
         return metadataItems
@@ -378,25 +415,108 @@ export function ThoughtListItem({
         return isValidated ? "Invalidate Thought" : "Validate Thought"
     }
 
-    // Inspector action handlers
+    // Handle toggling the inspector visibility
     const handleToggleInspector = () => {
-        // Always toggle between visible and hidden
-        toggleInspector(inspectorVisibility === "hidden" ? "visible" : "hidden")
+        toggleInspector()
     }
 
+    // Handle toggling between compact and expanded modes
     const handleToggleExpanded = () => {
-        // If inspector is hidden, jump directly to expanded
-        if (inspectorVisibility === "hidden") {
-            toggleInspector("expanded")
+        toggleInspectorMode()
+    }
+
+    // Get the parameter value to display in markdown
+    const getParameterValue = () => {
+        switch (focusedParameter) {
+            case "content":
+                return thought.content || EMPTY_PARAMETER_PLACEHOLDER
+            case "devNotes":
+                return thought.devNotes || EMPTY_PARAMETER_PLACEHOLDER
+            case "alias":
+                return getThoughtAlias(thought) || EMPTY_PARAMETER_PLACEHOLDER
+            case "priority":
+                return thought.priority || EMPTY_PARAMETER_PLACEHOLDER
+            case "sensitive":
+                return thought.sensitive || EMPTY_PARAMETER_PLACEHOLDER
+            case "validated":
+                return isThoughtValidated(thought) ? "true" : "false"
+            case "datasets":
+                return thought.datasets?.join(", ") || EMPTY_PARAMETER_PLACEHOLDER
+            case "createdAt":
+                return formatDate(new Date(thought.createdAt)) || EMPTY_PARAMETER_PLACEHOLDER
+            case "updatedAt":
+                return formatDate(new Date(thought.updatedAt)) || EMPTY_PARAMETER_PLACEHOLDER
+            default:
+                return thought.content || EMPTY_PARAMETER_PLACEHOLDER
         }
-        // If already expanded, go back to visible
-        else if (inspectorVisibility === "expanded") {
-            toggleInspector("visible")
+    }
+
+    // Get the parameter title to display in markdown
+    const getParameterTitle = () => {
+        switch (focusedParameter) {
+            case "content":
+                return "Content"
+            case "devNotes":
+                return "Developer Notes"
+            case "alias":
+                return "Alias"
+            case "priority":
+                return "Priority"
+            case "sensitive":
+                return "Sensitive"
+            case "validated":
+                return "Validated"
+            case "datasets":
+                return "Datasets"
+            case "createdAt":
+                return "Created At"
+            case "updatedAt":
+                return "Updated At"
+            default:
+                return "Content"
         }
-        // If visible, go to expanded
-        else {
-            toggleInspector("expanded")
+    }
+
+    // Get parameter type
+    const getParameterType = () => {
+        switch (focusedParameter) {
+            case "createdAt":
+            case "updatedAt":
+                return "Date"
+            default:
+                return "String"
         }
+    }
+
+    // Get parameter position in the list
+    const getParameterPosition = () => {
+        const parameterOrder = [
+            "content",
+            "devNotes",
+            "alias",
+            "priority",
+            "sensitive",
+            "validated",
+            "datasets",
+            "createdAt",
+            "updatedAt"
+        ]
+
+        const position = parameterOrder.indexOf(focusedParameter) + 1
+        return `${position}/${parameterOrder.length}`
+    }
+
+    // Render parameter-specific metadata for expanded mode
+    const renderParameterMetadata = () => {
+        return (
+            <List.Item.Detail.Metadata>
+                <List.Item.Detail.Metadata.Label title="Name" text={getParameterTitle()} />
+                <List.Item.Detail.Metadata.Separator />
+                <List.Item.Detail.Metadata.Label title="Type" text={getParameterType()} />
+                <List.Item.Detail.Metadata.Separator />
+                <List.Item.Detail.Metadata.Label title="Position" text={getParameterPosition()} />
+            </List.Item.Detail.Metadata>
+        )
     }
 
     return (
@@ -407,8 +527,14 @@ export function ThoughtListItem({
             accessories={accessories}
             detail={
                 <List.Item.Detail
-                    markdown={inspectorVisibility === "expanded" ? thought.content : undefined}
-                    metadata={<List.Item.Detail.Metadata>{renderMetadataFields()}</List.Item.Detail.Metadata>}
+                    markdown={inspectorVisibility === "expanded" ? getParameterValue() : undefined}
+                    metadata={
+                        inspectorVisibility === "expanded" ? (
+                            renderParameterMetadata()
+                        ) : (
+                            <List.Item.Detail.Metadata>{renderMetadataFields()}</List.Item.Detail.Metadata>
+                        )
+                    }
                 />
             }
             icon={
@@ -439,12 +565,30 @@ export function ThoughtListItem({
                         shortcut={{ modifiers: ["cmd"], key: "i" }}
                         onAction={handleToggleInspector}
                     />
-                    <Action
-                        title="Expand Inspector"
-                        icon={Icon.Sidebar}
-                        shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
-                        onAction={handleToggleExpanded}
-                    />
+                    {inspectorVisibility !== "hidden" && (
+                        <Action
+                            title={`${inspectorVisibility === "expanded" ? "Compact" : "Expand"} Inspector`}
+                            icon={Icon.Sidebar}
+                            shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+                            onAction={handleToggleExpanded}
+                        />
+                    )}
+                    {inspectorVisibility === "expanded" && (
+                        <>
+                            <Action
+                                title="Next Parameter"
+                                icon={Icon.Eye}
+                                shortcut={{ modifiers: ["ctrl"], key: "tab" }}
+                                onAction={() => handleParameterCycle?.("next")}
+                            />
+                            <Action
+                                title="Previous Parameter"
+                                icon={Icon.Eye}
+                                shortcut={{ modifiers: ["ctrl", "shift"], key: "tab" }}
+                                onAction={() => handleParameterCycle?.("previous")}
+                            />
+                        </>
+                    )}
                     <Action.Push
                         title="Edit Thought"
                         icon={Icon.Pencil}
