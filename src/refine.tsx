@@ -15,6 +15,7 @@ import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
 import { getThoughtAlias, isThoughtValidated } from "./utils/thought"
 import { useDatasetSorting } from "./hooks/useDatasetSorting"
+import { formatNavigationTitle } from "./utils/navigationTitle"
 
 // Helper function to confirm deletion with a destructive alert
 const confirmDelete = async (thought: Thought, onConfirm: () => Promise<void>) => {
@@ -476,6 +477,7 @@ export default function Refine() {
         cycleParameter(direction)
     }
 
+    const currentDataset = datasets?.find(d => d.id === currentDatasetId)
     return (
         <List
             isLoading={isLoading || isLoadingDatasets || isLoadingSorting}
@@ -486,13 +488,20 @@ export default function Refine() {
             onSelectionChange={onSelectionChange}
             throttle
             pagination={pagination}
-            navigationTitle={
-                massSelection.size > 0
-                    ? `${massSelection.size}/${filteredThoughts?.length} Selected`
-                    : filteredThoughts?.length
-                      ? `${filteredThoughts.length}/${total} Thoughts`
-                      : undefined
-            }
+            navigationTitle={formatNavigationTitle({
+                selected: massSelection.size > 0 ? massSelection.size : undefined,
+                total: currentDataset
+                    ? currentDataset.thoughtCount
+                    : filter === "validated-true" || filter === "validated-false"
+                      ? (filteredThoughts?.length ?? 0)
+                      : total,
+                results: searchText ? (filteredThoughts?.length !== total ? filteredThoughts?.length : undefined) : undefined,
+                position: selectedThoughtId
+                    ? filteredThoughts?.findIndex(t => t.id.toString() === selectedThoughtId) + 1
+                    : undefined,
+                datasetName: currentDataset?.title,
+                filter: filter === "validated-true" ? "validated" : filter === "validated-false" ? "pending" : undefined
+            })}
             searchBarAccessory={
                 <List.Dropdown
                     tooltip="Filter Thoughts"

@@ -4,6 +4,7 @@ export type Dataset = {
     description?: string
     createdAt?: string
     thoughts?: string[] // Array of thought IDs
+    thoughtCount: number // Total number of thoughts in this dataset
 }
 
 export type DatasetFormProps = {
