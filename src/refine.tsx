@@ -13,7 +13,7 @@ import { useAiModels } from "./hooks/useAiModels"
 import { useDatasets } from "./hooks/useDatasets"
 import { useThoughts } from "./hooks/useThoughts"
 import { Thought } from "./types/thought"
-import { getThoughtAlias, isThoughtValidated } from "./utils/thought"
+import { getThoughtAlias } from "./utils/thought"
 import { useDatasetSorting } from "./hooks/useDatasetSorting"
 import { formatNavigationTitle } from "./utils/navigationTitle"
 
@@ -88,7 +88,7 @@ export default function Refine() {
         handleEditThought,
         validateAllThoughts,
         pagination
-    } = useThoughts(searchText)
+    } = useThoughts(searchText, filter)
     const { datasets, isLoading: isLoadingDatasets, createDataset } = useDatasets()
 
     const selectedThoughtIdUpdatedAt = useRef<number | undefined>()
@@ -110,55 +110,8 @@ export default function Refine() {
     }
 
     const [massSelection, setMassSelection] = useState<Set<string>>(new Set())
-
-    // Add these new state variables for drag selection
     const [lastSelectionAction, setLastSelectionAction] = useState<"select" | "deselect">("select")
-
     const [lastSelectedItemId, setLastSelectedItemId] = useState<string | null>(null)
-
-    // Filter thoughts based on selected filter
-    const filteredThoughts = useMemo(() => {
-        if (!thoughts || !filter) return thoughts
-
-        if (filter === "validated-true") {
-            return thoughts.filter(thought => isThoughtValidated(thought))
-        }
-
-        if (filter === "validated-false") {
-            return thoughts.filter(thought => !isThoughtValidated(thought))
-        }
-
-        if (filter.startsWith("dataset-")) {
-            const datasetId = filter.replace("dataset-", "")
-            return thoughts.filter(thought => thought.datasets && thought.datasets.includes(datasetId))
-        }
-
-        return thoughts
-    }, [thoughts, filter])
-
-    const allThoughtsMassSelected: boolean = useMemo(() => {
-        return filteredThoughts?.every(thought => massSelection.has(thought.id.toString())) ?? false
-    }, [filteredThoughts, massSelection])
-
-    const handleMassSelectAll = () => {
-        // check if all filtered thoughts are already in the mass selection, deselect all if so, otherwise select all
-
-        // we need to do a more comprehensive check than just length since we could change the filter and have the same number of thoughts
-
-        // if (allThoughtsMassSelected) {
-        //     setMassSelection(new Set())
-        // } else {
-        setMassSelection(new Set(filteredThoughts?.map(thought => thought.id) || []))
-        // }
-    }
-
-    // Prepare global actions object to pass to list items
-    const globalActions = useMemo(
-        () => ({
-            validateAllThoughts
-        }),
-        [validateAllThoughts]
-    )
 
     // Get current dataset ID from filter
     const currentDatasetId = useMemo(() => {
@@ -171,9 +124,28 @@ export default function Refine() {
 
     // Apply sorting to filtered thoughts
     const sortedThoughts = useMemo(() => {
-        if (!currentDatasetId) return filteredThoughts
-        return getSortedThoughts(filteredThoughts)
-    }, [currentDatasetId, filteredThoughts, getSortedThoughts])
+        if (!currentDatasetId || !thoughts) return thoughts
+        return getSortedThoughts(thoughts)
+    }, [currentDatasetId, thoughts, getSortedThoughts])
+
+    const allThoughtsMassSelected: boolean = useMemo(() => {
+        return sortedThoughts?.every(thought => massSelection.has(thought.id.toString())) ?? false
+    }, [sortedThoughts, massSelection])
+
+    const handleMassSelectAll = () => {
+        // we need to do a more comprehensive check than just length
+        // since we could change the filter and have the same number
+        // of thoughts
+        setMassSelection(new Set(sortedThoughts?.map(thought => thought.id) || []))
+    }
+
+    // Prepare global actions object to pass to list items
+    const globalActions = useMemo(
+        () => ({
+            validateAllThoughts
+        }),
+        [validateAllThoughts]
+    )
 
     // Add handler for drag reordering
     const handleDragReorder = async (direction: "up" | "down") => {
@@ -295,16 +267,16 @@ export default function Refine() {
     // if ALL target items are already selected, we toggle them, INCLUDING the previous item
 
     const handleGapSelection = () => {
-        if (!filteredThoughts || !selectedThoughtId) return
+        if (!sortedThoughts || !selectedThoughtId) return
 
         // If no lastSelectedItemId, use the first thought in the list
         const effectiveLastSelectedId =
-            lastSelectedItemId || (filteredThoughts.length > 0 ? filteredThoughts[0].id.toString() : null)
+            lastSelectedItemId || (sortedThoughts.length > 0 ? sortedThoughts[0].id.toString() : null)
         if (!effectiveLastSelectedId) return
 
         // Find indices of current and last selected items
-        const currentIndex = filteredThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
-        const lastIndex = filteredThoughts.findIndex(thought => thought.id.toString() === effectiveLastSelectedId)
+        const currentIndex = sortedThoughts.findIndex(thought => thought.id.toString() === selectedThoughtId)
+        const lastIndex = sortedThoughts.findIndex(thought => thought.id.toString() === effectiveLastSelectedId)
 
         if (currentIndex === -1 || lastIndex === -1) return
 
@@ -313,7 +285,7 @@ export default function Refine() {
         const endIdx = Math.max(currentIndex, lastIndex)
 
         // Get all thoughts in the range
-        const thoughtsInRange = filteredThoughts.slice(startIdx, endIdx + 1)
+        const thoughtsInRange = sortedThoughts.slice(startIdx, endIdx + 1)
 
         // Check if all thoughts in range are already selected or all deselected
         const allSelected = thoughtsInRange.every(thought => massSelection.has(thought.id.toString()))
@@ -490,15 +462,12 @@ export default function Refine() {
             pagination={pagination}
             navigationTitle={formatNavigationTitle({
                 selected: massSelection.size > 0 ? massSelection.size : undefined,
-                total: currentDataset
-                    ? currentDataset.thoughtCount
-                    : filter === "validated-true" || filter === "validated-false"
-                      ? (filteredThoughts?.length ?? 0)
-                      : total,
-                results: searchText ? (filteredThoughts?.length !== total ? filteredThoughts?.length : undefined) : undefined,
-                position: selectedThoughtId
-                    ? filteredThoughts?.findIndex(t => t.id.toString() === selectedThoughtId) + 1
-                    : undefined,
+                total: currentDataset ? currentDataset.thoughtCount : total,
+                results: searchText ? (sortedThoughts?.length !== total ? sortedThoughts?.length : undefined) : undefined,
+                position:
+                    selectedThoughtId && sortedThoughts
+                        ? sortedThoughts.findIndex(t => t.id.toString() === selectedThoughtId) + 1
+                        : undefined,
                 datasetName: currentDataset?.title,
                 filter: filter === "validated-true" ? "validated" : filter === "validated-false" ? "pending" : undefined
             })}
@@ -513,7 +482,7 @@ export default function Refine() {
                         // if the filter is changed, we need to filter out the selections that are no longer visible
 
                         const newMassSelection = new Set(
-                            Array.from(massSelection).filter(id => filteredThoughts?.some(thought => thought.id === id))
+                            Array.from(massSelection).filter(id => sortedThoughts?.some(thought => thought.id === id))
                         )
                         setMassSelection(newMassSelection)
                     }}
@@ -558,7 +527,7 @@ export default function Refine() {
                     isAllMassSelected={allThoughtsMassSelected}
                     massSelectionItems={massSelection}
                     handleMassSelectAll={handleMassSelectAll}
-                    allThoughts={filteredThoughts}
+                    allThoughts={sortedThoughts}
                     toggleMassThoughtValidation={toggleMassThoughtValidation}
                     resetMassSelection={() => setMassSelection(new Set())}
                     toggleMassSelection={() => {

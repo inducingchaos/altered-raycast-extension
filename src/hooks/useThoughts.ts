@@ -39,7 +39,7 @@ const extractFromArrayItems = (data: ThoughtArrayItem[] | undefined) => {
     }
 }
 
-export const useThoughts = (searchText: string) => {
+export const useThoughts = (searchText: string, filter?: string) => {
     const [isOptimistic, setIsOptimistic] = useState(false)
     const { value: askBeforeDelete } = useBooleanKv("ask-before-delete", true)
 
@@ -47,6 +47,17 @@ export const useThoughts = (searchText: string) => {
         options => {
             const params = new URLSearchParams({ limit: "25", offset: (options.page * 25).toString() })
             if (searchText) params.append("search", searchText)
+
+            // Add validated filter
+            if (filter === "validated-true") params.append("validated", "true")
+            if (filter === "validated-false") params.append("validated", "false")
+
+            // Add dataset filter
+            if (filter?.startsWith("dataset-")) {
+                const datasetId = filter.replace("dataset-", "")
+                params.append("dataset", datasetId)
+            }
+
             return `${DEV_BASE_URL}/api/thoughts?${params}`
         },
         {
